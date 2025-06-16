@@ -1,0 +1,148 @@
+[
+  {
+    "id": 1,
+    "title": "代数基础练习",
+    "subject": "数学",
+    "grade": "初中二年级",
+    "description": "本作业旨在巩固一元二次方程的解法和应用",
+    "deadline": "2023-07-15 23:59:59",
+    "teacher_id": 101,
+    "teacher_name": "李老师",
+    "status": "active",
+    "created_at": "2023-06-25 10:00:00",
+    "questions": [
+      {
+        "id": 101,
+        "type": "choice",
+        "content": "解方程 x² - 5x + 6 = 0",
+        "options": ["x=2,x=3", "x=1,x=6", "x=-2,x=-3", "x=2,x=-3"],
+        "answer": "x=2,x=3",
+        "score": 10,
+        "knowledge_points": ["一元二次方程", "因式分解"]
+      },
+      {
+        "id": 102,
+        "type": "fill",
+        "content": "若 a + b = 5，ab = 6，则 a² + b² = ?",
+        "answer": "13",
+        "score": 10,
+        "knowledge_points": ["代数恒等式", "平方差公式"]
+      },
+      {
+        "id": 103,
+        "type": "calculation",
+        "content": "解方程 2x² + 5x - 3 = 0",
+        "answer": "x=0.5, x=-3",
+        "score": 15,
+        "knowledge_points": ["一元二次方程", "求根公式"]
+      },
+      {
+        "id": 104,
+        "type": "application",
+        "content": "小明有一块长方形的纸，长为x+2厘米，宽为x-1厘米，面积为15平方厘米，求这块纸的周长。",
+        "answer": "16",
+        "score": 15,
+        "knowledge_points": ["一元二次方程", "应用题", "面积计算"]
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "几何图形性质",
+    "subject": "数学",
+    "grade": "初中二年级",
+    "description": "本作业主要练习三角形和圆的基本性质",
+    "deadline": "2023-07-20 23:59:59",
+    "teacher_id": 101,
+    "teacher_name": "李老师",
+    "status": "active",
+    "created_at": "2023-06-28 14:30:00",
+    "questions": [
+      {
+        "id": 201,
+        "type": "choice",
+        "content": "在三角形中，下列说法正确的是：",
+        "options": [
+          "三个内角和为180°",
+          "三个内角和为360°",
+          "任意两边之和小于第三边",
+          "任意两边之差大于第三边"
+        ],
+        "answer": "三个内角和为180°",
+        "score": 10,
+        "knowledge_points": ["三角形", "内角和"]
+      },
+      {
+        "id": 202,
+        "type": "fill",
+        "content": "等腰三角形的两条腰长为5，底边长为6，则这个三角形的面积为多少？",
+        "answer": "12",
+        "score": 15,
+        "knowledge_points": ["等腰三角形", "面积计算"]
+      },
+      {
+        "id": 203,
+        "type": "calculation",
+        "content": "一个圆的半径为4厘米，求这个圆的面积和周长。（取π=3.14）",
+        "answer": "面积=50.24平方厘米，周长=25.12厘米",
+        "score": 15,
+        "knowledge_points": ["圆", "面积计算", "周长计算"]
+      },
+      {
+        "id": 204,
+        "type": "proof",
+        "content": "证明：在任意三角形中，最大角的对边是最长边。",
+        "answer": "假设三角形ABC中，∠C是最大角。根据余弦定理，a² = b² + c² - 2bc·cosA。由于∠C最大，所以cosC最小。比较三边可得c（∠A的对边）最长。",
+        "score": 20,
+        "knowledge_points": ["三角形", "余弦定理", "几何证明"]
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "集合与统计初步",
+    "subject": "数学",
+    "grade": "初中三年级",
+    "description": "本作业涵盖集合基础概念和统计数据分析",
+    "deadline": "2023-08-01 23:59:59",
+    "teacher_id": 102,
+    "teacher_name": "张老师",
+    "status": "active",
+    "created_at": "2023-07-01 09:15:00",
+    "questions": [
+      {
+        "id": 301,
+        "type": "choice",
+        "content": "下列哪项不是集合的运算？",
+        "options": ["交集", "并集", "补集", "乘集"],
+        "answer": "乘集",
+        "score": 10,
+        "knowledge_points": ["集合", "集合运算"]
+      },
+      {
+        "id": 302,
+        "type": "fill",
+        "content": "若集合A={1,2,3,4}，集合B={3,4,5,6}，则A∩B=?",
+        "answer": "{3,4}",
+        "score": 10,
+        "knowledge_points": ["集合", "交集"]
+      },
+      {
+        "id": 303,
+        "type": "calculation",
+        "content": "某班级50名学生的数学成绩如下：60分以下5人，60-70分8人，70-80分15人，80-90分14人，90分以上8人。求这个班级数学成绩的平均分。（假设每个分数段内的学生成绩均匀分布）",
+        "answer": "76.5",
+        "score": 15,
+        "knowledge_points": ["统计", "平均值", "数据分析"]
+      },
+      {
+        "id": 304,
+        "type": "application",
+        "content": "在一个有100人的调查中，喜欢足球的有45人，喜欢篮球的有50人，两者都喜欢的有20人。问既不喜欢足球也不喜欢篮球的人数是多少？",
+        "answer": "25",
+        "score": 15,
+        "knowledge_points": ["集合", "并集", "补集", "应用题"]
+      }
+    ]
+  }
+] 

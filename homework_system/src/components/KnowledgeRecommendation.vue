@@ -228,9 +228,37 @@ export default {
       this.loading = true;
       
       try {
-        // 实际应用中应调用API获取推荐
-        // 这里使用模拟数据
-        await this.simulateFetch();
+        // 调用API获取知识点
+        const knowledgeService = await import('../services/knowledgeService');
+        
+        // 如果题目有ID，通过ID获取知识点
+        if (this.currentProblem.id) {
+          const response = await knowledgeService.getQuestionKnowledgePoints(this.currentProblem.id);
+          if (response.data && response.data.knowledge_points) {
+            this.processKnowledgePoints(response.data.knowledge_points);
+          } else {
+            // 如果没有返回知识点，则通过题目内容获取
+            const textResponse = await knowledgeService.getKnowledgePointsByText(this.currentProblem.content);
+            if (textResponse.data && textResponse.data.knowledge_points) {
+              this.processKnowledgePoints(textResponse.data.knowledge_points);
+            } else {
+              // 如果API没有返回知识点，使用模拟数据
+              await this.simulateFetch();
+            }
+          }
+        } else if (this.currentProblem.content) {
+          // 如果题目没有ID但有内容，通过内容获取知识点
+          const response = await knowledgeService.getKnowledgePointsByText(this.currentProblem.content);
+          if (response.data && response.data.knowledge_points) {
+            this.processKnowledgePoints(response.data.knowledge_points);
+          } else {
+            // 如果API没有返回知识点，使用模拟数据
+            await this.simulateFetch();
+          }
+        } else {
+          // 如果没有ID和内容，使用模拟数据
+          await this.simulateFetch();
+        }
         
         // 初始化知识图谱
         if (this.showKnowledgeGraph) {
@@ -240,9 +268,120 @@ export default {
         }
       } catch (error) {
         console.error('获取知识点推荐失败', error);
-        this.$message.error('获取知识点推荐失败');
+        this.$message.error('获取知识点推荐失败，使用本地数据');
+        // 出错时使用模拟数据
+        await this.simulateFetch();
       } finally {
         this.loading = false;
+      }
+    },
+    
+    // 处理API返回的知识点数据
+    processKnowledgePoints(knowledgePoints) {
+      if (!knowledgePoints || knowledgePoints.length === 0) {
+        this.recommendedConcepts = [];
+        return;
+      }
+      
+      // 将后端知识点数据转换为前端所需格式
+      this.recommendedConcepts = knowledgePoints.map(kp => ({
+        id: kp.id,
+        title: kp.name,
+        description: kp.description || '暂无描述',
+        examples: kp.examples ? kp.examples.map(ex => ex.problem + '\n' + ex.solution) : [],
+        formulas: kp.key_points || [],
+        relevance: 0.9
+      }));
+      
+      // 生成学习路径
+      this.generateLearningPath(knowledgePoints);
+      
+      // 检查用户弱点
+      this.checkWeakPoints(knowledgePoints);
+      
+      // 默认展开第一个概念
+      if (this.recommendedConcepts.length > 0) {
+        this.activeConceptNames = [this.recommendedConcepts[0].title];
+      }
+    },
+    
+    // 生成学习路径
+    generateLearningPath(knowledgePoints) {
+      this.learningPath = [];
+      
+      // 根据知识点的先决条件生成学习路径
+      for (const kp of knowledgePoints) {
+        if (kp.prerequisites && kp.prerequisites.length > 0) {
+          for (const prereq of kp.prerequisites) {
+            this.learningPath.push({
+              id: 'p' + Math.random().toString(36).substr(2, 9),
+              title: prereq,
+              description: `学习 ${prereq} 的基本概念和应用`
+            });
+          }
+        }
+        
+        // 添加当前知识点
+        this.learningPath.push({
+          id: 'p' + kp.id,
+          title: kp.name,
+          description: kp.description || `掌握 ${kp.name} 的核心内容`
+        });
+        
+        // 添加相关概念
+        if (kp.related_concepts && kp.related_concepts.length > 0) {
+          for (const related of kp.related_concepts) {
+            this.learningPath.push({
+              id: 'p' + Math.random().toString(36).substr(2, 9),
+              title: related,
+              description: `学习 ${related} 与 ${kp.name} 的关联`
+            });
+          }
+        }
+      }
+      
+      // 去重
+      const uniquePaths = [];
+      const seen = new Set();
+      for (const path of this.learningPath) {
+        if (!seen.has(path.title)) {
+          seen.add(path.title);
+          uniquePaths.push(path);
+        }
+      }
+      this.learningPath = uniquePaths;
+    },
+    
+    // 检查用户弱点
+    checkWeakPoints(knowledgePoints) {
+      this.weakPoints = [];
+      
+      // 如果用户上下文中有弱点数据
+      if (this.userContext && this.userContext.weakPoints) {
+        for (const kp of knowledgePoints) {
+          const weakPoint = this.userContext.weakPoints.find(wp => 
+            wp.name === kp.name || kp.related_concepts && kp.related_concepts.includes(wp.name)
+          );
+          
+          if (weakPoint) {
+            this.weakPoints.push({
+              id: 'w' + kp.id,
+              title: kp.name,
+              description: `您在此知识点的掌握程度较弱，建议复习。`
+            });
+          }
+        }
+      }
+      
+      // 如果知识点有常见错误，也添加到弱点中
+      for (const kp of knowledgePoints) {
+        if (kp.common_errors && kp.common_errors.length > 0) {
+          this.weakPoints.push({
+            id: 'w' + kp.id,
+            title: kp.name + ' - 常见错误',
+            description: kp.common_errors.join('\n')
+          });
+        }
       }
     },
     

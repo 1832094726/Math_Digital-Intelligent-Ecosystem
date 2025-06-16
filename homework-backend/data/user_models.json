@@ -1,0 +1,208 @@
+[
+  {
+    "user_id": 1,
+    "knowledge_mastery": {
+      "三角形": 0.7,
+      "等腰三角形": 0.5,
+      "直角三角形": 0.6,
+      "圆": 0.8,
+      "方程": 0.8,
+      "一元一次方程": 0.9,
+      "一元二次方程": 0.4,
+      "因式分解": 0.5,
+      "集合": 0.3,
+      "交集": 0.4,
+      "并集": 0.4,
+      "统计": 0.6,
+      "平均值": 0.8,
+      "中位数": 0.7,
+      "众数": 0.7,
+      "概率": 0.5
+    },
+    "learning_style": "visual",
+    "difficulty_preference": "medium",
+    "symbol_usage_frequency": {
+      "+": 120,
+      "-": 100,
+      "×": 80,
+      "÷": 60,
+      "=": 150,
+      "△": 30,
+      "∠": 25,
+      "√": 45,
+      "π": 20
+    },
+    "recent_activities": [
+      {
+        "type": "homework",
+        "id": 1,
+        "timestamp": "2023-06-20 15:30:00",
+        "score": 85
+      },
+      {
+        "type": "practice",
+        "id": 102,
+        "timestamp": "2023-06-19 16:45:00",
+        "completed": true
+      },
+      {
+        "type": "quiz",
+        "id": 35,
+        "timestamp": "2023-06-18 10:20:00",
+        "score": 90
+      },
+      {
+        "type": "homework",
+        "id": 2,
+        "timestamp": "2023-06-15 14:00:00",
+        "score": 75
+      }
+    ],
+    "learning_path": {
+      "current_focus": ["一元二次方程", "等腰三角形", "集合"],
+      "completed_topics": ["一元一次方程", "基本几何", "基本代数"],
+      "recommended_next": ["二元一次方程组", "相似三角形", "统计图表"]
+    },
+    "error_patterns": {
+      "calculation_errors": 0.3,
+      "concept_misunderstanding": 0.2,
+      "formula_application": 0.4,
+      "problem_interpretation": 0.5
+    },
+    "last_updated": "2023-06-21 08:30:00"
+  },
+  {
+    "user_id": 2,
+    "knowledge_mastery": {
+      "三角形": 0.8,
+      "等腰三角形": 0.7,
+      "直角三角形": 0.9,
+      "圆": 0.6,
+      "方程": 0.5,
+      "一元一次方程": 0.7,
+      "一元二次方程": 0.3,
+      "因式分解": 0.4,
+      "集合": 0.5,
+      "交集": 0.6,
+      "并集": 0.6,
+      "统计": 0.4,
+      "平均值": 0.6,
+      "中位数": 0.5,
+      "众数": 0.5,
+      "概率": 0.3
+    },
+    "learning_style": "reading",
+    "difficulty_preference": "hard",
+    "symbol_usage_frequency": {
+      "+": 90,
+      "-": 85,
+      "×": 70,
+      "÷": 50,
+      "=": 130,
+      "△": 45,
+      "∠": 40,
+      "√": 30,
+      "π": 15
+    },
+    "recent_activities": [
+      {
+        "type": "homework",
+        "id": 2,
+        "timestamp": "2023-06-21 16:20:00",
+        "score": 92
+      },
+      {
+        "type": "practice",
+        "id": 105,
+        "timestamp": "2023-06-20 14:30:00",
+        "completed": true
+      },
+      {
+        "type": "quiz",
+        "id": 36,
+        "timestamp": "2023-06-19 11:15:00",
+        "score": 85
+      }
+    ],
+    "learning_path": {
+      "current_focus": ["一元二次方程", "圆", "概率"],
+      "completed_topics": ["一元一次方程", "三角形", "集合基础"],
+      "recommended_next": ["二元一次方程组", "圆的切线", "条件概率"]
+    },
+    "error_patterns": {
+      "calculation_errors": 0.2,
+      "concept_misunderstanding": 0.3,
+      "formula_application": 0.3,
+      "problem_interpretation": 0.4
+    },
+    "last_updated": "2023-06-21 18:45:00"
+  },
+  {
+    "user_id": 3,
+    "knowledge_mastery": {
+      "三角形": 0.9,
+      "等腰三角形": 0.8,
+      "直角三角形": 0.9,
+      "圆": 0.7,
+      "方程": 0.9,
+      "一元一次方程": 0.95,
+      "一元二次方程": 0.8,
+      "因式分解": 0.7,
+      "集合": 0.8,
+      "交集": 0.8,
+      "并集": 0.8,
+      "统计": 0.7,
+      "平均值": 0.9,
+      "中位数": 0.8,
+      "众数": 0.8,
+      "概率": 0.7
+    },
+    "learning_style": "interactive",
+    "difficulty_preference": "hard",
+    "symbol_usage_frequency": {
+      "+": 150,
+      "-": 130,
+      "×": 110,
+      "÷": 90,
+      "=": 180,
+      "△": 60,
+      "∠": 55,
+      "√": 70,
+      "π": 40,
+      "∑": 25,
+      "∫": 10
+    },
+    "recent_activities": [
+      {
+        "type": "homework",
+        "id": 3,
+        "timestamp": "2023-06-21 19:45:00",
+        "score": 95
+      },
+      {
+        "type": "practice",
+        "id": 110,
+        "timestamp": "2023-06-20 18:30:00",
+        "completed": true
+      },
+      {
+        "type": "quiz",
+        "id": 38,
+        "timestamp": "2023-06-19 16:20:00",
+        "score": 98
+      }
+    ],
+    "learning_path": {
+      "current_focus": ["二次函数", "相似三角形", "概率统计"],
+      "completed_topics": ["一元二次方程", "三角形", "集合", "基础统计"],
+      "recommended_next": ["函数", "三角函数", "数列"]
+    },
+    "error_patterns": {
+      "calculation_errors": 0.1,
+      "concept_misunderstanding": 0.1,
+      "formula_application": 0.2,
+      "problem_interpretation": 0.2
+    },
+    "last_updated": "2023-06-21 20:15:00"
+  }
+] 

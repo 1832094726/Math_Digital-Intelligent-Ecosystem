@@ -1,0 +1,392 @@
+[
+  {
+    "id": 1,
+    "symbol": "+",
+    "name": "加号",
+    "description": "表示加法运算",
+    "category": "基本运算",
+    "usage_examples": [
+      "3 + 5 = 8",
+      "x + y = z"
+    ],
+    "related_knowledge": ["加法", "代数运算"],
+    "difficulty": 0.1
+  },
+  {
+    "id": 2,
+    "symbol": "-",
+    "name": "减号",
+    "description": "表示减法运算",
+    "category": "基本运算",
+    "usage_examples": [
+      "8 - 3 = 5",
+      "x - y = z"
+    ],
+    "related_knowledge": ["减法", "代数运算"],
+    "difficulty": 0.1
+  },
+  {
+    "id": 3,
+    "symbol": "×",
+    "name": "乘号",
+    "description": "表示乘法运算",
+    "category": "基本运算",
+    "usage_examples": [
+      "3 × 5 = 15",
+      "a × b = c"
+    ],
+    "related_knowledge": ["乘法", "代数运算"],
+    "difficulty": 0.2
+  },
+  {
+    "id": 4,
+    "symbol": "÷",
+    "name": "除号",
+    "description": "表示除法运算",
+    "category": "基本运算",
+    "usage_examples": [
+      "15 ÷ 3 = 5",
+      "a ÷ b = c"
+    ],
+    "related_knowledge": ["除法", "代数运算"],
+    "difficulty": 0.2
+  },
+  {
+    "id": 5,
+    "symbol": "=",
+    "name": "等号",
+    "description": "表示等式关系",
+    "category": "关系符号",
+    "usage_examples": [
+      "3 + 5 = 8",
+      "x + y = z"
+    ],
+    "related_knowledge": ["等式", "方程"],
+    "difficulty": 0.1
+  },
+  {
+    "id": 6,
+    "symbol": ">",
+    "name": "大于号",
+    "description": "表示前者大于后者",
+    "category": "关系符号",
+    "usage_examples": [
+      "5 > 3",
+      "x > y"
+    ],
+    "related_knowledge": ["不等式", "数的大小比较"],
+    "difficulty": 0.2
+  },
+  {
+    "id": 7,
+    "symbol": "<",
+    "name": "小于号",
+    "description": "表示前者小于后者",
+    "category": "关系符号",
+    "usage_examples": [
+      "3 < 5",
+      "x < y"
+    ],
+    "related_knowledge": ["不等式", "数的大小比较"],
+    "difficulty": 0.2
+  },
+  {
+    "id": 8,
+    "symbol": "≥",
+    "name": "大于等于号",
+    "description": "表示前者大于或等于后者",
+    "category": "关系符号",
+    "usage_examples": [
+      "x ≥ 5",
+      "a + b ≥ c"
+    ],
+    "related_knowledge": ["不等式", "数的大小比较"],
+    "difficulty": 0.3
+  },
+  {
+    "id": 9,
+    "symbol": "≤",
+    "name": "小于等于号",
+    "description": "表示前者小于或等于后者",
+    "category": "关系符号",
+    "usage_examples": [
+      "x ≤ 5",
+      "a + b ≤ c"
+    ],
+    "related_knowledge": ["不等式", "数的大小比较"],
+    "difficulty": 0.3
+  },
+  {
+    "id": 10,
+    "symbol": "≠",
+    "name": "不等号",
+    "description": "表示两边不相等",
+    "category": "关系符号",
+    "usage_examples": [
+      "x ≠ y",
+      "3 ≠ 5"
+    ],
+    "related_knowledge": ["不等式", "数的大小比较"],
+    "difficulty": 0.3
+  },
+  {
+    "id": 11,
+    "symbol": "≈",
+    "name": "约等于号",
+    "description": "表示两边近似相等",
+    "category": "关系符号",
+    "usage_examples": [
+      "π ≈ 3.14",
+      "√2 ≈ 1.414"
+    ],
+    "related_knowledge": ["近似计算", "误差"],
+    "difficulty": 0.4
+  },
+  {
+    "id": 12,
+    "symbol": "∈",
+    "name": "属于号",
+    "description": "表示元素属于某个集合",
+    "category": "集合符号",
+    "usage_examples": [
+      "3 ∈ {1,2,3,4,5}",
+      "x ∈ R"
+    ],
+    "related_knowledge": ["集合", "元素"],
+    "difficulty": 0.5
+  },
+  {
+    "id": 13,
+    "symbol": "∉",
+    "name": "不属于号",
+    "description": "表示元素不属于某个集合",
+    "category": "集合符号",
+    "usage_examples": [
+      "6 ∉ {1,2,3,4,5}",
+      "x ∉ A"
+    ],
+    "related_knowledge": ["集合", "元素"],
+    "difficulty": 0.5
+  },
+  {
+    "id": 14,
+    "symbol": "⊂",
+    "name": "包含于号",
+    "description": "表示前一集合是后一集合的子集",
+    "category": "集合符号",
+    "usage_examples": [
+      "{1,2} ⊂ {1,2,3,4,5}",
+      "A ⊂ B"
+    ],
+    "related_knowledge": ["集合", "子集"],
+    "difficulty": 0.6
+  },
+  {
+    "id": 15,
+    "symbol": "⊆",
+    "name": "包含于等于号",
+    "description": "表示前一集合是后一集合的子集或等于后一集合",
+    "category": "集合符号",
+    "usage_examples": [
+      "{1,2,3} ⊆ {1,2,3}",
+      "A ⊆ B"
+    ],
+    "related_knowledge": ["集合", "子集"],
+    "difficulty": 0.6
+  },
+  {
+    "id": 16,
+    "symbol": "∪",
+    "name": "并集号",
+    "description": "表示两个集合的并集",
+    "category": "集合符号",
+    "usage_examples": [
+      "{1,2} ∪ {2,3} = {1,2,3}",
+      "A ∪ B"
+    ],
+    "related_knowledge": ["集合", "并集"],
+    "difficulty": 0.5
+  },
+  {
+    "id": 17,
+    "symbol": "∩",
+    "name": "交集号",
+    "description": "表示两个集合的交集",
+    "category": "集合符号",
+    "usage_examples": [
+      "{1,2,3} ∩ {2,3,4} = {2,3}",
+      "A ∩ B"
+    ],
+    "related_knowledge": ["集合", "交集"],
+    "difficulty": 0.5
+  },
+  {
+    "id": 18,
+    "symbol": "∅",
+    "name": "空集",
+    "description": "表示不含任何元素的集合",
+    "category": "集合符号",
+    "usage_examples": [
+      "A ∩ B = ∅",
+      "{x | x² < 0} = ∅"
+    ],
+    "related_knowledge": ["集合", "空集"],
+    "difficulty": 0.4
+  },
+  {
+    "id": 19,
+    "symbol": "∠",
+    "name": "角",
+    "description": "表示几何中的角",
+    "category": "几何符号",
+    "usage_examples": [
+      "∠ABC = 90°",
+      "∠α = 45°"
+    ],
+    "related_knowledge": ["几何", "角度"],
+    "difficulty": 0.3
+  },
+  {
+    "id": 20,
+    "symbol": "△",
+    "name": "三角形",
+    "description": "表示三角形",
+    "category": "几何符号",
+    "usage_examples": [
+      "△ABC",
+      "△的面积公式"
+    ],
+    "related_knowledge": ["几何", "三角形"],
+    "difficulty": 0.3
+  },
+  {
+    "id": 21,
+    "symbol": "⊥",
+    "name": "垂直",
+    "description": "表示两条直线垂直",
+    "category": "几何符号",
+    "usage_examples": [
+      "AB ⊥ CD",
+      "直线l ⊥ 平面α"
+    ],
+    "related_knowledge": ["几何", "垂直"],
+    "difficulty": 0.4
+  },
+  {
+    "id": 22,
+    "symbol": "∥",
+    "name": "平行",
+    "description": "表示两条直线平行",
+    "category": "几何符号",
+    "usage_examples": [
+      "AB ∥ CD",
+      "直线l ∥ 直线m"
+    ],
+    "related_knowledge": ["几何", "平行"],
+    "difficulty": 0.4
+  },
+  {
+    "id": 23,
+    "symbol": "≅",
+    "name": "全等",
+    "description": "表示两个图形全等",
+    "category": "几何符号",
+    "usage_examples": [
+      "△ABC ≅ △DEF",
+      "图形A ≅ 图形B"
+    ],
+    "related_knowledge": ["几何", "全等"],
+    "difficulty": 0.5
+  },
+  {
+    "id": 24,
+    "symbol": "∽",
+    "name": "相似",
+    "description": "表示两个图形相似",
+    "category": "几何符号",
+    "usage_examples": [
+      "△ABC ∽ △DEF",
+      "图形A ∽ 图形B"
+    ],
+    "related_knowledge": ["几何", "相似"],
+    "difficulty": 0.5
+  },
+  {
+    "id": 25,
+    "symbol": "π",
+    "name": "圆周率",
+    "description": "圆的周长与直径的比值",
+    "category": "常数符号",
+    "usage_examples": [
+      "圆的周长 = 2πr",
+      "圆的面积 = πr²"
+    ],
+    "related_knowledge": ["圆", "圆周率"],
+    "difficulty": 0.3
+  },
+  {
+    "id": 26,
+    "symbol": "√",
+    "name": "平方根",
+    "description": "表示一个数的平方根",
+    "category": "运算符号",
+    "usage_examples": [
+      "√9 = 3",
+      "√x² = |x|"
+    ],
+    "related_knowledge": ["平方根", "无理数"],
+    "difficulty": 0.4
+  },
+  {
+    "id": 27,
+    "symbol": "∑",
+    "name": "求和符号",
+    "description": "表示一系列数的和",
+    "category": "运算符号",
+    "usage_examples": [
+      "∑(i=1 to n) i = n(n+1)/2",
+      "∑(i=1 to 3) i² = 1² + 2² + 3² = 14"
+    ],
+    "related_knowledge": ["级数", "求和"],
+    "difficulty": 0.7
+  },
+  {
+    "id": 28,
+    "symbol": "∏",
+    "name": "连乘符号",
+    "description": "表示一系列数的乘积",
+    "category": "运算符号",
+    "usage_examples": [
+      "∏(i=1 to n) i = n!",
+      "∏(i=1 to 3) i = 1 × 2 × 3 = 6"
+    ],
+    "related_knowledge": ["级数", "阶乘"],
+    "difficulty": 0.7
+  },
+  {
+    "id": 29,
+    "symbol": "∞",
+    "name": "无穷大",
+    "description": "表示无限大的数",
+    "category": "常数符号",
+    "usage_examples": [
+      "lim(x→∞) 1/x = 0",
+      "∑(i=1 to ∞) 1/i² = π²/6"
+    ],
+    "related_knowledge": ["极限", "无穷"],
+    "difficulty": 0.6
+  },
+  {
+    "id": 30,
+    "symbol": "∫",
+    "name": "积分符号",
+    "description": "表示函数的积分",
+    "category": "运算符号",
+    "usage_examples": [
+      "∫(a to b) f(x)dx",
+      "∫ x²dx = x³/3 + C"
+    ],
+    "related_knowledge": ["微积分", "积分"],
+    "difficulty": 0.9
+  }
+] 

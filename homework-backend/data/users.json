@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "username": "student1",
+    "name": "张三",
+    "grade": "初中二年级",
+    "school": "示例中学",
+    "created_at": "2023-06-01 10:00:00"
+  },
+  {
+    "id": 2,
+    "username": "student2",
+    "name": "李四",
+    "grade": "初中二年级",
+    "school": "示例中学",
+    "created_at": "2023-06-02 11:30:00"
+  },
+  {
+    "id": 3,
+    "username": "student3",
+    "name": "王五",
+    "grade": "初中三年级",
+    "school": "示例中学",
+    "created_at": "2023-06-03 09:15:00"
+  },
+  {
+    "id": 101,
+    "username": "teacher1",
+    "name": "李老师",
+    "role": "teacher",
+    "subject": "数学",
+    "school": "示例中学",
+    "created_at": "2023-05-01 08:00:00"
+  },
+  {
+    "id": 102,
+    "username": "teacher2",
+    "name": "张老师",
+    "role": "teacher",
+    "subject": "数学",
+    "school": "示例中学",
+    "created_at": "2023-05-02 08:30:00"
+  }
+] 

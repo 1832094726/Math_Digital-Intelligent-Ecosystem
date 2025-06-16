@@ -61,20 +61,29 @@
           <div class="problem-list">
             <el-collapse v-model="activeProblemIds">
               <el-collapse-item 
-                v-for="problem in currentHomework.problems" 
-                :key="problem.id"
-                :title="`${problem.title} (${problem.points}分)`"
-                :name="problem.id"
+                v-for="question in currentHomework.questions" 
+                :key="question.id"
+                :title="`问题 ${question.id} (${question.score}分)`"
+                :name="question.id"
               >
                 <div class="problem-content">
-                  <div class="problem-statement" v-html="problem.content"></div>
+                  <div class="problem-statement" v-html="question.content"></div>
                   
-                  <div class="answer-area">
+                  <div v-if="question.options && question.options.length > 0" class="options-area">
+                    <el-radio-group v-model="answers[question.id]">
+                      <el-radio 
+                        v-for="(option, index) in question.options" 
+                        :key="index"
+                        :label="option"
+                      >{{ option }}</el-radio>
+                    </el-radio-group>
+                  </div>
+                  <div v-else class="answer-area">
                     <el-input
                       type="textarea"
                       :rows="4"
                       placeholder="在此输入答案..."
-                      v-model="answers[problem.id]"
+                      v-model="answers[question.id]"
                       @input="saveProgress"
                     ></el-input>
                   </div>
@@ -170,8 +179,8 @@ export default {
     currentProblem() {
       if (!this.currentHomework || !this.activeProblemIds.length) return null;
       
-      return this.currentHomework.problems.find(
-        problem => problem.id === this.activeProblemIds[0]
+      return this.currentHomework.questions.find(
+        question => question.id === this.activeProblemIds[0]
       );
     },
     
@@ -180,8 +189,8 @@ export default {
       if (!this.currentHomework) return false;
       
       // 检查是否所有问题都已回答
-      return this.currentHomework.problems.every(
-        problem => this.answers[problem.id]
+      return this.currentHomework.questions.every(
+        question => this.answers[question.id]
       );
     }
   },
@@ -239,8 +248,8 @@ export default {
         }
         
         // 默认展开第一个问题
-        if (homework.problems && homework.problems.length > 0) {
-          this.activeProblemIds = [homework.problems[0].id];
+        if (homework.questions && homework.questions.length > 0) {
+          this.activeProblemIds = [homework.questions[0].id];
         }
       } catch (error) {
         console.error('获取作业详情失败', error);

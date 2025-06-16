@@ -1,0 +1,298 @@
+[
+  {
+    "id": 1,
+    "name": "一元二次方程",
+    "category": "代数",
+    "description": "形如ax²+bx+c=0（a≠0）的方程，其中a、b、c是已知数，x是未知数",
+    "grade_level": "初中二年级",
+    "difficulty": 0.6,
+    "prerequisites": ["代数基础", "一元一次方程"],
+    "related_concepts": ["二次函数", "抛物线", "因式分解"],
+    "key_points": [
+      "一元二次方程的标准形式：ax²+bx+c=0（a≠0）",
+      "求根公式：x = (-b ± √(b² - 4ac)) / 2a",
+      "判别式：△ = b² - 4ac，△>0有两个不相等实根，△=0有两个相等实根，△<0没有实根",
+      "韦达定理：x₁ + x₂ = -b/a，x₁ × x₂ = c/a"
+    ],
+    "common_errors": [
+      "忘记判断a≠0的条件",
+      "计算判别式时符号错误",
+      "使用求根公式时计算错误"
+    ],
+    "examples": [
+      {
+        "problem": "解方程：x² - 5x + 6 = 0",
+        "solution": "a=1, b=-5, c=6\n△=b²-4ac=(-5)²-4×1×6=25-24=1>0\n所以方程有两个不相等的实根\nx = (5 ± √1) / 2 = (5 ± 1) / 2\nx₁ = 3, x₂ = 2\n验证：3+2=5，3×2=6，符合韦达定理"
+      },
+      {
+        "problem": "解方程：x² - 6x + 9 = 0",
+        "solution": "a=1, b=-6, c=9\n△=b²-4ac=(-6)²-4×1×9=36-36=0\n所以方程有两个相等的实根\nx = 6/2 = 3\n验证：3+3=6，3×3=9，符合韦达定理"
+      }
+    ],
+    "learning_resources": [
+      {
+        "title": "一元二次方程基础",
+        "type": "video",
+        "url": "/resources/algebra/quadratic_equations/basics"
+      },
+      {
+        "title": "一元二次方程解法详解",
+        "type": "article",
+        "url": "/resources/algebra/quadratic_equations/methods"
+      },
+      {
+        "title": "一元二次方程应用题",
+        "type": "practice",
+        "url": "/resources/algebra/quadratic_equations/applications"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "三角形",
+    "category": "几何",
+    "description": "由三条线段首尾顺次连接而成的平面图形",
+    "grade_level": "初中一年级",
+    "difficulty": 0.5,
+    "prerequisites": ["平面几何基础", "线段"],
+    "related_concepts": ["多边形", "角", "全等", "相似"],
+    "key_points": [
+      "三角形内角和为180°",
+      "三角形外角等于与它不相邻的两个内角的和",
+      "三角形任意两边之和大于第三边，任意两边之差小于第三边",
+      "三角形的面积公式：S = (1/2)·底·高",
+      "三角形的面积公式：S = (1/2)·ab·sinC（正弦公式）",
+      "三角形的面积公式：S = √[s(s-a)(s-b)(s-c)]（海伦公式，其中s=(a+b+c)/2）"
+    ],
+    "common_errors": [
+      "混淆内角和外角的概念",
+      "计算面积时使用错误的公式",
+      "不理解三角形的存在条件"
+    ],
+    "examples": [
+      {
+        "problem": "已知三角形的三边长分别为3cm、4cm和5cm，求该三角形的面积。",
+        "solution": "使用海伦公式：\ns = (3+4+5)/2 = 6\nS = √[6(6-3)(6-4)(6-5)] = √[6×3×2×1] = √36 = 6\n所以三角形的面积为6平方厘米。"
+      },
+      {
+        "problem": "已知三角形的底边长为8cm，高为5cm，求该三角形的面积。",
+        "solution": "使用面积公式：S = (1/2)·底·高 = (1/2)×8×5 = 20\n所以三角形的面积为20平方厘米。"
+      }
+    ],
+    "learning_resources": [
+      {
+        "title": "三角形的基本性质",
+        "type": "video",
+        "url": "/resources/geometry/triangle/basics"
+      },
+      {
+        "title": "三角形的面积计算方法",
+        "type": "article",
+        "url": "/resources/geometry/triangle/area"
+      },
+      {
+        "title": "三角形的判定与证明",
+        "type": "practice",
+        "url": "/resources/geometry/triangle/proofs"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "等腰三角形",
+    "category": "几何",
+    "description": "有两条边相等的三角形",
+    "grade_level": "初中一年级",
+    "difficulty": 0.5,
+    "prerequisites": ["三角形"],
+    "related_concepts": ["等边三角形", "直角三角形", "全等"],
+    "key_points": [
+      "等腰三角形有两条边相等，这两条边叫做腰，第三边叫做底边",
+      "等腰三角形的两个底角相等",
+      "等腰三角形的顶角平分线、底边上的高、底边上的中线重合",
+      "等腰三角形的面积公式：S = (1/2)·底·高"
+    ],
+    "common_errors": [
+      "混淆等腰三角形和等边三角形",
+      "忘记等腰三角形的特殊性质"
+    ],
+    "examples": [
+      {
+        "problem": "等腰三角形的两条腰长为5cm，底边长为6cm，求该三角形的面积。",
+        "solution": "设底边上的高为h，根据勾股定理：\n5² = (6/2)² + h²\n25 = 9 + h²\nh² = 16\nh = 4\n所以三角形的面积为：S = (1/2)×6×4 = 12平方厘米"
+      },
+      {
+        "problem": "等腰三角形的两个底角各为45°，腰长为10cm，求该三角形的面积。",
+        "solution": "顶角 = 180° - 45° - 45° = 90°\n这是一个等腰直角三角形\n底边长 = 2×10×sin45° = 2×10×(√2/2) = 10√2\n高 = 10×cos45° = 10×(√2/2) = 5√2\nS = (1/2)×10√2×5√2 = 50平方厘米"
+      }
+    ],
+    "learning_resources": [
+      {
+        "title": "等腰三角形的性质",
+        "type": "video",
+        "url": "/resources/geometry/isosceles_triangle/properties"
+      },
+      {
+        "title": "等腰三角形的判定方法",
+        "type": "article",
+        "url": "/resources/geometry/isosceles_triangle/identification"
+      },
+      {
+        "title": "等腰三角形的应用题",
+        "type": "practice",
+        "url": "/resources/geometry/isosceles_triangle/applications"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "圆",
+    "category": "几何",
+    "description": "平面上到定点（圆心）距离相等的所有点的集合",
+    "grade_level": "初中二年级",
+    "difficulty": 0.6,
+    "prerequisites": ["平面几何基础", "线段", "角"],
+    "related_concepts": ["圆周率", "弧", "弦", "扇形"],
+    "key_points": [
+      "圆的半径：从圆心到圆上任意一点的线段",
+      "圆的直径：过圆心且端点在圆上的线段，等于2倍半径",
+      "圆的周长公式：C = 2πr",
+      "圆的面积公式：S = πr²",
+      "圆心角的度数等于它所对的弧所对的圆周角的2倍",
+      "半圆内的圆周角是直角"
+    ],
+    "common_errors": [
+      "混淆圆的周长和面积公式",
+      "计算时π的取值不一致",
+      "圆周角定理应用错误"
+    ],
+    "examples": [
+      {
+        "problem": "一个圆的半径为5cm，求该圆的周长和面积。（取π=3.14）",
+        "solution": "周长 = 2πr = 2×3.14×5 = 31.4cm\n面积 = πr² = 3.14×5² = 3.14×25 = 78.5平方厘米"
+      },
+      {
+        "problem": "如果一个圆的面积是28.26平方厘米，求该圆的半径和周长。（取π=3.14）",
+        "solution": "面积 = πr²\n28.26 = 3.14×r²\nr² = 28.26 ÷ 3.14 = 9\nr = 3cm\n周长 = 2πr = 2×3.14×3 = 18.84cm"
+      }
+    ],
+    "learning_resources": [
+      {
+        "title": "圆的基本性质",
+        "type": "video",
+        "url": "/resources/geometry/circle/basics"
+      },
+      {
+        "title": "圆的周长与面积",
+        "type": "article",
+        "url": "/resources/geometry/circle/area_and_perimeter"
+      },
+      {
+        "title": "圆的切线性质",
+        "type": "practice",
+        "url": "/resources/geometry/circle/tangent"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "集合",
+    "category": "集合论",
+    "description": "具有某种特定性质的事物的总体",
+    "grade_level": "初中三年级",
+    "difficulty": 0.7,
+    "prerequisites": ["基础数学概念"],
+    "related_concepts": ["元素", "子集", "空集", "全集"],
+    "key_points": [
+      "集合的表示法：列举法和描述法",
+      "集合的基本运算：并集、交集、补集、差集",
+      "并集：A∪B = {x|x∈A或x∈B}",
+      "交集：A∩B = {x|x∈A且x∈B}",
+      "补集：A' = {x|x∈U且x∉A}，其中U为全集",
+      "差集：A-B = {x|x∈A且x∉B}"
+    ],
+    "common_errors": [
+      "混淆并集和交集的概念",
+      "集合运算顺序错误",
+      "不理解空集的性质"
+    ],
+    "examples": [
+      {
+        "problem": "已知集合A={1,2,3,4,5}，B={3,4,5,6,7}，求A∪B、A∩B和A-B。",
+        "solution": "A∪B = {1,2,3,4,5,6,7}\nA∩B = {3,4,5}\nA-B = {1,2}"
+      },
+      {
+        "problem": "已知全集U={1,2,3,4,5,6,7,8,9,10}，集合A={2,4,6,8,10}，B={1,3,5,7,9}，求A'和A∩B。",
+        "solution": "A' = {1,3,5,7,9}\nA∩B = ∅（空集）"
+      }
+    ],
+    "learning_resources": [
+      {
+        "title": "集合的基本概念",
+        "type": "video",
+        "url": "/resources/set_theory/basics"
+      },
+      {
+        "title": "集合的运算",
+        "type": "article",
+        "url": "/resources/set_theory/operations"
+      },
+      {
+        "title": "集合的应用",
+        "type": "practice",
+        "url": "/resources/set_theory/applications"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "统计与概率基础",
+    "category": "统计",
+    "description": "研究数据收集、整理、分析和解释的数学分支",
+    "grade_level": "初中三年级",
+    "difficulty": 0.6,
+    "prerequisites": ["基础数学", "分数", "百分比"],
+    "related_concepts": ["平均值", "中位数", "众数", "方差", "概率"],
+    "key_points": [
+      "平均值：总和除以数量",
+      "中位数：按大小排序后居于中间的数",
+      "众数：出现次数最多的数",
+      "极差：最大值减最小值",
+      "方差：各数据与平均值的差的平方的平均值",
+      "标准差：方差的算术平方根",
+      "概率：特定事件发生的可能性，值在0到1之间"
+    ],
+    "common_errors": [
+      "计算平均值时分子分母错误",
+      "找中位数时忘记排序",
+      "概率计算时分子分母定义错误"
+    ],
+    "examples": [
+      {
+        "problem": "一组数据：2, 5, 7, 5, 8, 10, 5，求这组数据的平均值、中位数和众数。",
+        "solution": "平均值 = (2+5+7+5+8+10+5)/7 = 42/7 = 6\n排序后：2, 5, 5, 5, 7, 8, 10\n中位数 = 5\n众数 = 5（出现3次）"
+      },
+      {
+        "problem": "从一副标准扑克牌（52张）中随机抽一张牌，求抽到红桃的概率。",
+        "solution": "红桃有13张，总共52张\n概率 = 13/52 = 1/4 = 0.25 = 25%"
+      }
+    ],
+    "learning_resources": [
+      {
+        "title": "统计学基础概念",
+        "type": "video",
+        "url": "/resources/statistics/basics"
+      },
+      {
+        "title": "数据分析方法",
+        "type": "article",
+        "url": "/resources/statistics/data_analysis"
+      },
+      {
+        "title": "概率计算与应用",
+        "type": "practice",
+        "url": "/resources/statistics/probability"
+      }
+    ]
+  }
+] 
