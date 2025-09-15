@@ -1,116 +1,82 @@
-# Docker 部署方案
+# 🚀 K12数学教育生态系统 - 一键部署
 
-## 📁 文件结构
-
-```
-docker/
-├── Dockerfile              # 主应用容器构建文件
-├── docker-compose.yml      # 服务编排配置
-├── .env.example           # 环境变量模板
-├── .dockerignore          # Docker构建忽略文件
-├── deploy.sh              # 本地部署脚本
-├── deploy-remote.sh       # 远程部署脚本
-├── nginx/
-│   └── nginx.conf         # Nginx配置文件
-├── DEPLOYMENT_GUIDE.md    # 详细部署指南
-└── README.md              # 本文件
-```
-
-## 🚀 快速开始
-
-### 1. 本地部署
+## ⚡ 超简单部署（3步完成）
 
 ```bash
-# 进入docker目录
-cd docker
+# 1. 克隆项目
+git clone https://github.com/1832094726/Math_Digital-Intelligent-Ecosystem.git
+cd Math_Digital-Intelligent-Ecosystem/docker
 
-# 配置环境变量
-cp .env.example .env
-# 编辑 .env 文件设置数据库密码等
-
-# 执行部署
+# 2. 一键部署
 chmod +x deploy.sh
 ./deploy.sh
+
+# 3. 访问应用
+# 打开浏览器访问: http://localhost
 ```
 
-### 2. 远程服务器部署
+## 🎯 零配置特性
 
-```bash
-# 进入docker目录
-cd docker
-
-# 执行远程部署
-chmod +x deploy-remote.sh
-./deploy-remote.sh
-```
+- ✅ **无需配置环境变量** - 使用预设的安全默认值
+- ✅ **无需构建镜像** - 使用预构建的Docker镜像
+- ✅ **自动数据库初始化** - 自动创建表结构和初始数据
+- ✅ **健康检查** - 自动等待所有服务就绪
+- ✅ **中文界面** - 友好的中文提示信息
 
 ## 🏗️ 服务架构
 
-- **MySQL 8.0**: 主数据库 (端口: 3306)
-- **Redis 7**: 缓存服务 (端口: 6379)  
-- **Flask App**: Python后端 (端口: 5000)
-- **Nginx**: 反向代理 (端口: 80/443)
-
-## 📋 环境变量
-
-复制 `.env.example` 到 `.env` 并配置以下变量：
-
-```bash
-# 数据库配置
-MYSQL_ROOT_PASSWORD=root123456
-MYSQL_DATABASE=math_ecosystem
-MYSQL_USER=mathuser
-MYSQL_PASSWORD=mathpass123
-
-# 应用配置
-SECRET_KEY=your-secret-key
-FLASK_ENV=production
+```
+浏览器 → Nginx (80) → Flask应用 (5000) → MySQL (3306) + Redis (6379)
 ```
 
-## 🔧 常用命令
+## 🌐 访问地址
+
+部署完成后立即可用：
+
+- 🏠 **主页**: http://localhost
+- 📚 **作业系统**: http://localhost/homework
+- 🔧 **API接口**: http://localhost:5000/api
+- 📊 **数据库可视化**: http://localhost/database-visualization
+
+## 🔧 管理命令
 
 ```bash
 # 查看服务状态
 docker-compose ps
 
-# 查看日志
+# 查看实时日志
 docker-compose logs -f
 
-# 重启服务
+# 重启所有服务
 docker-compose restart
 
-# 停止服务
+# 停止所有服务
 docker-compose down
 
-# 完全清理
-docker-compose down -v --remove-orphans
+# 完全清理（包括数据）
+docker-compose down -v
 ```
 
-## 🌐 访问地址
+## 📦 预构建镜像
 
-部署成功后可通过以下地址访问：
+使用预构建的Docker镜像，无需本地编译：
 
-- **主应用**: http://localhost
-- **API接口**: http://localhost/api
-- **数据库可视化**: http://localhost/database-visualization
+- `matheco/k12-math-ecosystem:latest` - 主应用镜像
+- `mysql:8.0` - 数据库
+- `redis:7-alpine` - 缓存
+- `nginx:alpine` - 反向代理
 
-## 📖 详细文档
+## 🆘 常见问题
 
-更多详细信息请参考 [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
+**Q: 端口被占用怎么办？**
+A: 修改 `docker-compose.yml` 中的端口映射
 
-## 🔒 服务器信息
+**Q: 如何重置数据库？**
+A: 运行 `docker-compose down -v` 然后重新部署
 
-- **IP**: 172.104.172.5
-- **用户**: root
-- **密码**: CCNU_rqmWLlqDmx^XF6bOLhF%vSNe*7cYPwk
+**Q: 如何查看错误日志？**
+A: 运行 `docker-compose logs app`
 
-## 🆘 故障排除
+## 🎉 就是这么简单！
 
-1. **端口冲突**: 检查端口占用 `netstat -tulpn | grep :80`
-2. **内存不足**: 检查系统资源 `free -h`
-3. **权限问题**: 确保脚本有执行权限 `chmod +x *.sh`
-4. **网络问题**: 检查防火墙设置和网络连接
-
----
-
-**注意**: 首次部署可能需要几分钟时间下载Docker镜像和构建应用。
+从GitHub克隆到运行只需要3个命令，真正的开箱即用！

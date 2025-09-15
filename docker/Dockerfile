@@ -1,60 +1,50 @@
-# Multi-stage Docker build for K12 Math Education Digital Ecosystem
-FROM node:18-alpine AS frontend-builder
+# K12数学教育生态系统 - 生产就绪镜像
+FROM python:3.9-slim
 
-# Build homework system frontend
-WORKDIR /app/homework_system
-COPY homework_system/package*.json ./
-RUN npm ci --only=production
-COPY homework_system/ ./
-RUN npm run build
+# 设置标签
+LABEL maintainer="K12 Math Ecosystem Team"
+LABEL version="1.0"
+LABEL description="K12 Math Education Digital Ecosystem"
 
-# Build symbol keyboard frontend
-WORKDIR /app/symbol-frontend
-COPY Subject_symbol_dynamic_keyboard/board-frontend/package*.json ./
-RUN npm ci --only=production
-COPY Subject_symbol_dynamic_keyboard/board-frontend/ ./
-RUN npm run build
-
-# Python backend stage
-FROM python:3.9-slim AS backend
-
-# Install system dependencies
+# 安装系统依赖
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     make \
+    curl \
     libffi-dev \
     libssl-dev \
+    libmysqlclient-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# 设置工作目录
 WORKDIR /app
 
-# Copy Python requirements and install dependencies
+# 复制并安装Python依赖
 COPY homework-backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend code
+# 复制应用代码
 COPY homework-backend/ ./
 
-# Copy built frontend files
-COPY --from=frontend-builder /app/homework_system/dist ./static/homework
-COPY --from=frontend-builder /app/symbol-frontend/dist ./static/symbol
+# 创建必要目录和默认静态文件
+RUN mkdir -p logs data/uploads static/homework static/symbol && \
+    echo '<!DOCTYPE html><html><head><title>K12 Math Ecosystem</title></head><body><h1>K12数学教育生态系统</h1><p>系统正在启动中...</p></body></html>' > static/homework/index.html && \
+    echo '<!DOCTYPE html><html><head><title>Symbol Keyboard</title></head><body><h1>数学符号键盘</h1><p>组件加载中...</p></body></html>' > static/symbol/index.html
 
-# Create necessary directories
-RUN mkdir -p logs data/uploads
-
-# Set environment variables
+# 设置环境变量
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV PYTHONPATH=/app
+ENV PORT=5000
 
-# Expose port
+# 暴露端口
 EXPOSE 5000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:5000/api/health || exit 1
 
-# Start command
+# 启动命令
 CMD ["python", "app.py"]

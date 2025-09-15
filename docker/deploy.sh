@@ -1,194 +1,138 @@
 #!/bin/bash
 
-# K12 Math Education Digital Ecosystem Deployment Script
-# Usage: ./deploy.sh [environment]
-# Environment: dev, staging, prod (default: dev)
+# 🚀 K12数学教育生态系统 - 一键部署脚本
+# 使用方法: ./deploy.sh
 
 set -e
 
-ENVIRONMENT=${1:-dev}
-PROJECT_NAME="math-ecosystem"
-COMPOSE_FILE="docker/docker-compose.yml"
+echo "🎯 K12数学教育数字化智能生态系统"
+echo "=================================="
+echo "🚀 开始一键部署..."
 
-echo "🚀 Starting deployment for environment: $ENVIRONMENT"
-
-# Color codes for output
+# 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Function to print colored output
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
+print_info() { echo -e "${BLUE}[信息]${NC} $1"; }
+print_success() { echo -e "${GREEN}[成功]${NC} $1"; }
+print_warning() { echo -e "${YELLOW}[警告]${NC} $1"; }
+print_error() { echo -e "${RED}[错误]${NC} $1"; }
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Check if Docker is installed and running
+# 检查Docker
 check_docker() {
-    print_status "Checking Docker installation..."
+    print_info "检查Docker环境..."
     if ! command -v docker &> /dev/null; then
-        print_error "Docker is not installed. Please install Docker first."
+        print_error "Docker未安装，请先安装Docker"
+        echo "安装命令: curl -fsSL https://get.docker.com | sh"
         exit 1
     fi
-    
+
     if ! docker info &> /dev/null; then
-        print_error "Docker is not running. Please start Docker first."
+        print_error "Docker未运行，请启动Docker"
         exit 1
     fi
-    
-    print_success "Docker is installed and running"
+    print_success "Docker环境正常"
 }
 
-# Check if Docker Compose is installed
-check_docker_compose() {
-    print_status "Checking Docker Compose installation..."
+# 检查Docker Compose
+check_compose() {
+    print_info "检查Docker Compose..."
     if ! command -v docker-compose &> /dev/null; then
-        print_error "Docker Compose is not installed. Please install Docker Compose first."
-        exit 1
-    fi
-    print_success "Docker Compose is installed"
-}
-
-# Create environment file if it doesn't exist
-setup_environment() {
-    print_status "Setting up environment configuration..."
-    
-    if [ ! -f docker/.env ]; then
-        if [ -f docker/.env.example ]; then
-            cp docker/.env.example docker/.env
-            print_warning "Created docker/.env file from docker/.env.example. Please review and update the configuration."
-        else
-            print_error "docker/.env.example file not found. Please create environment configuration."
+        print_warning "Docker Compose未安装，尝试使用docker compose"
+        if ! docker compose version &> /dev/null; then
+            print_error "Docker Compose不可用，请安装Docker Compose"
             exit 1
         fi
-    fi
-    
-    # Create necessary directories
-    mkdir -p data/uploads logs docker/nginx/ssl
-    
-    print_success "Environment setup completed"
-}
-
-# Build and start services
-deploy_services() {
-    print_status "Building and starting services..."
-    
-    # Stop existing services
-    docker-compose -f $COMPOSE_FILE down
-    
-    # Build images
-    print_status "Building Docker images..."
-    docker-compose -f $COMPOSE_FILE build --no-cache
-    
-    # Start services
-    print_status "Starting services..."
-    docker-compose -f $COMPOSE_FILE up -d
-    
-    print_success "Services started successfully"
-}
-
-# Wait for services to be ready
-wait_for_services() {
-    print_status "Waiting for services to be ready..."
-    
-    # Wait for MySQL
-    print_status "Waiting for MySQL to be ready..."
-    timeout=60
-    while ! docker-compose exec mysql mysqladmin ping -h"localhost" --silent; do
-        timeout=$((timeout - 1))
-        if [ $timeout -eq 0 ]; then
-            print_error "MySQL failed to start within 60 seconds"
-            exit 1
-        fi
-        sleep 1
-    done
-    
-    # Wait for Redis
-    print_status "Waiting for Redis to be ready..."
-    timeout=30
-    while ! docker-compose exec redis redis-cli ping; do
-        timeout=$((timeout - 1))
-        if [ $timeout -eq 0 ]; then
-            print_error "Redis failed to start within 30 seconds"
-            exit 1
-        fi
-        sleep 1
-    done
-    
-    # Wait for application
-    print_status "Waiting for application to be ready..."
-    timeout=60
-    while ! curl -f http://localhost:5000/api/health &> /dev/null; do
-        timeout=$((timeout - 1))
-        if [ $timeout -eq 0 ]; then
-            print_error "Application failed to start within 60 seconds"
-            exit 1
-        fi
-        sleep 1
-    done
-    
-    print_success "All services are ready"
-}
-
-# Run database migrations
-run_migrations() {
-    print_status "Running database migrations..."
-    
-    # Check if migration script exists
-    if [ -f "homework-backend/scripts/migrate.py" ]; then
-        docker-compose exec app python scripts/migrate.py
-        print_success "Database migrations completed"
+        COMPOSE_CMD="docker compose"
     else
-        print_warning "No migration script found, skipping migrations"
+        COMPOSE_CMD="docker-compose"
     fi
+    print_success "Docker Compose可用"
 }
 
-# Show deployment status
-show_status() {
-    print_status "Deployment Status:"
-    echo ""
-    docker-compose ps
-    echo ""
-    print_success "🎉 Deployment completed successfully!"
-    echo ""
-    print_status "Access URLs:"
-    echo "  📱 Main Application: http://localhost"
-    echo "  🔧 API Documentation: http://localhost/api/docs"
-    echo "  📊 Database Visualization: http://localhost/database-visualization"
-    echo ""
-    print_status "Useful Commands:"
-    echo "  📋 View logs: docker-compose logs -f"
-    echo "  🔄 Restart services: docker-compose restart"
-    echo "  🛑 Stop services: docker-compose down"
-    echo "  🗑️  Remove all: docker-compose down -v --remove-orphans"
+# 创建必要目录
+setup_dirs() {
+    print_info "创建必要目录..."
+    mkdir -p ../data/uploads ../logs
+    print_success "目录创建完成"
 }
 
-# Main deployment flow
+# 拉取最新镜像
+pull_images() {
+    print_info "拉取最新镜像..."
+    $COMPOSE_CMD pull
+    print_success "镜像拉取完成"
+}
+
+# 启动服务
+start_services() {
+    print_info "启动服务..."
+    $COMPOSE_CMD up -d
+    print_success "服务启动完成"
+}
+
+# 等待服务就绪
+wait_services() {
+    print_info "等待服务就绪..."
+
+    # 等待MySQL
+    print_info "等待数据库启动..."
+    for i in {1..30}; do
+        if $COMPOSE_CMD exec -T mysql mysqladmin ping -h localhost --silent 2>/dev/null; then
+            break
+        fi
+        sleep 2
+        echo -n "."
+    done
+    echo ""
+
+    # 等待应用
+    print_info "等待应用启动..."
+    for i in {1..30}; do
+        if curl -f http://localhost:5000/api/health &>/dev/null; then
+            break
+        fi
+        sleep 2
+        echo -n "."
+    done
+    echo ""
+    print_success "所有服务已就绪"
+}
+
+# 显示部署结果
+show_result() {
+    echo ""
+    echo "🎉 部署完成！"
+    echo "===================="
+    echo ""
+    echo "📱 访问地址:"
+    echo "   主应用: http://localhost"
+    echo "   API接口: http://localhost:5000/api"
+    echo "   作业系统: http://localhost/homework"
+    echo ""
+    echo "🔧 管理命令:"
+    echo "   查看状态: $COMPOSE_CMD ps"
+    echo "   查看日志: $COMPOSE_CMD logs -f"
+    echo "   重启服务: $COMPOSE_CMD restart"
+    echo "   停止服务: $COMPOSE_CMD down"
+    echo ""
+    echo "📊 服务状态:"
+    $COMPOSE_CMD ps
+}
+
+# 主函数
 main() {
-    echo "🏗️  K12 Math Education Digital Ecosystem Deployment"
-    echo "=================================================="
-    
     check_docker
-    check_docker_compose
-    setup_environment
-    deploy_services
-    wait_for_services
-    run_migrations
-    show_status
+    check_compose
+    setup_dirs
+    pull_images
+    start_services
+    wait_services
+    show_result
 }
 
-# Run main function
+# 执行部署
 main
