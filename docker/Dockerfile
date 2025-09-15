@@ -35,7 +35,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     libffi-dev \
     libssl-dev \
-    libmysqlclient-dev \
+    libmariadb-dev \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
