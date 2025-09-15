@@ -12,9 +12,10 @@ venv/
 /learning-front
 
 # Large model files and datasets
-Subject_symbol_dynamic_keyboard/test/best_models/*.pt
+Subject_symbol_dynamic_keyboard/test/best_models/
 Subject_symbol_dynamic_keyboard/test/chinese-bert-wwm-ext/pytorch_model.bin
 Subject_symbol_dynamic_keyboard/test/new_data/train/user_similarity.csv
+Subject_symbol_dynamic_keyboard/test/new_data/train/
 
 # Other large files
 *.pt
@@ -23,10 +24,19 @@ Subject_symbol_dynamic_keyboard/test/new_data/train/user_similarity.csv
 *.pth
 *.ckpt
 *.h5
-# Ignore large data files
-*.csv
+*.safetensors
+
+# Ignore large data files (but keep small config files)
+**/user_similarity.csv
+**/rating_data*.csv
 *.parquet
 *.feather
 *.hdf5
 *.sqlite
 *.db
+
+# Model directories
+models/
+checkpoints/
+best_models/
+saved_models/
