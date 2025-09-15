@@ -9,3 +9,24 @@ __pycache__/
 venv/
 *.swp
 .DS_Store
+/learning-front
+
+# Large model files and datasets
+Subject_symbol_dynamic_keyboard/test/best_models/*.pt
+Subject_symbol_dynamic_keyboard/test/chinese-bert-wwm-ext/pytorch_model.bin
+Subject_symbol_dynamic_keyboard/test/new_data/train/user_similarity.csv
+
+# Other large files
+*.pt
+*.bin
+*.model
+*.pth
+*.ckpt
+*.h5
+# Ignore large data files
+*.csv
+*.parquet
+*.feather
+*.hdf5
+*.sqlite
+*.db
