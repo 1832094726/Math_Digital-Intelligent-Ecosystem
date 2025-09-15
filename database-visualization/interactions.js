@@ -595,6 +595,16 @@ class DatabaseInteractions {
     }
 
     getRelationshipExplanation(tableName, relationship) {
+        // 首先检查是否有designReason详细说明
+        if (relationship.designReason) {
+            const reason = relationship.designReason;
+            return `设计原因详解：\n\n` +
+                   `字段用途：${reason.fieldPurpose}\n\n` +
+                   `业务逻辑：${reason.businessLogic}\n\n` +
+                   `数据完整性：${reason.dataIntegrity}\n\n` +
+                   `性能优势：${reason.performanceBenefit}`;
+        }
+
         const explanations = {
             'users': {
                 'user_sessions': '🔐 为什么需要会话管理？\n• 支持多设备同时登录（手机、电脑、平板）\n• 实现安全的登录状态跟踪和超时控制\n• 防止账号被盗用，提供登录历史审计\n• 支持"踢出其他设备"等安全功能',

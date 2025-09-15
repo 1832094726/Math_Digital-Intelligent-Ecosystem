@@ -1,2 +1,11 @@
 /homework_system/node_modules
 /node_modules
+/paper
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+*.swp
+.DS_Store

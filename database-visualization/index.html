@@ -126,34 +126,100 @@
                     </div>
 
                     <div class="category" data-category="knowledge">
-                        <h4><i class="fas fa-brain"></i> 知识图谱系统 (4张表)</h4>
+                        <h4><i class="fas fa-brain"></i> 知识图谱系统 (3张表)</h4>
                         <ul class="table-list">
                             <li class="table-item" data-table="knowledge_points">
                                 <i class="fas fa-lightbulb"></i> knowledge_points - 知识点
                             </li>
-                            <li class="table-item" data-table="knowledge_relations">
-                                <i class="fas fa-project-diagram"></i> knowledge_relations - 知识关系
+                            <li class="table-item" data-table="knowledge_relationships">
+                                <i class="fas fa-project-diagram"></i> knowledge_relationships - 知识关系
                             </li>
-                            <li class="table-item" data-table="math_symbols">
-                                <i class="fas fa-calculator"></i> math_symbols - 数学符号
-                            </li>
-                            <li class="table-item" data-table="learning_paths">
-                                <i class="fas fa-route"></i> learning_paths - 学习路径
+                            <li class="table-item" data-table="concept_maps">
+                                <i class="fas fa-sitemap"></i> concept_maps - 概念图
                             </li>
                         </ul>
                     </div>
 
-                    <div class="category" data-category="recommendation">
-                        <h4><i class="fas fa-magic"></i> 智能推荐系统 (3张表)</h4>
+                    <div class="category" data-category="course">
+                        <h4><i class="fas fa-book-open"></i> 课程体系 (5张表)</h4>
                         <ul class="table-list">
-                            <li class="table-item" data-table="user_behavior_logs">
-                                <i class="fas fa-chart-area"></i> user_behavior_logs - 行为日志
+                            <li class="table-item" data-table="courses">
+                                <i class="fas fa-book"></i> courses - 课程信息
                             </li>
-                            <li class="table-item" data-table="recommendation_results">
-                                <i class="fas fa-thumbs-up"></i> recommendation_results - 推荐结果
+                            <li class="table-item" data-table="course_modules">
+                                <i class="fas fa-puzzle-piece"></i> course_modules - 课程模块
                             </li>
-                            <li class="table-item" data-table="system_configs">
-                                <i class="fas fa-cogs"></i> system_configs - 系统配置
+                            <li class="table-item" data-table="chapters">
+                                <i class="fas fa-bookmark"></i> chapters - 章节信息
+                            </li>
+                            <li class="table-item" data-table="lessons">
+                                <i class="fas fa-play-circle"></i> lessons - 课时信息
+                            </li>
+                            <li class="table-item" data-table="class_schedules">
+                                <i class="fas fa-calendar-alt"></i> class_schedules - 课程安排
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="category" data-category="learning">
+                        <h4><i class="fas fa-route"></i> 学习路径系统 (1张表)</h4>
+                        <ul class="table-list">
+                            <li class="table-item" data-table="learning_paths">
+                                <i class="fas fa-map-marked-alt"></i> learning_paths - 学习路径
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="category" data-category="ai_recommendation">
+                        <h4><i class="fas fa-robot"></i> AI智能推荐 (3张表)</h4>
+                        <ul class="table-list">
+                            <li class="table-item" data-table="symbol_recommendations">
+                                <i class="fas fa-magic"></i> symbol_recommendations - 符号推荐
+                            </li>
+                            <li class="table-item" data-table="problem_recommendations">
+                                <i class="fas fa-lightbulb"></i> problem_recommendations - 题目推荐
+                            </li>
+                            <li class="table-item" data-table="learning_path_recommendations">
+                                <i class="fas fa-compass"></i> learning_path_recommendations - 路径推荐
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="category" data-category="learning_analytics">
+                        <h4><i class="fas fa-chart-line"></i> 学习分析系统 (3张表)</h4>
+                        <ul class="table-list">
+                            <li class="table-item" data-table="learning_behaviors">
+                                <i class="fas fa-user-chart"></i> learning_behaviors - 学习行为
+                            </li>
+                            <li class="table-item" data-table="interaction_logs">
+                                <i class="fas fa-mouse-pointer"></i> interaction_logs - 交互日志
+                            </li>
+                            <li class="table-item" data-table="engagement_metrics">
+                                <i class="fas fa-tachometer-alt"></i> engagement_metrics - 参与度指标
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="category" data-category="error_analysis">
+                        <h4><i class="fas fa-exclamation-triangle"></i> 错误分析系统 (2张表)</h4>
+                        <ul class="table-list">
+                            <li class="table-item" data-table="error_patterns">
+                                <i class="fas fa-bug"></i> error_patterns - 错误模式
+                            </li>
+                            <li class="table-item" data-table="misconception_analysis">
+                                <i class="fas fa-question"></i> misconception_analysis - 误解分析
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="category" data-category="adaptive_learning">
+                        <h4><i class="fas fa-brain"></i> 自适应学习 (2张表)</h4>
+                        <ul class="table-list">
+                            <li class="table-item" data-table="adaptive_paths">
+                                <i class="fas fa-random"></i> adaptive_paths - 自适应路径
+                            </li>
+                            <li class="table-item" data-table="mastery_tracking">
+                                <i class="fas fa-chart-pie"></i> mastery_tracking - 掌握度跟踪
                             </li>
                         </ul>
                     </div>
@@ -193,16 +259,36 @@
                             <span>学校组织架构</span>
                         </div>
                         <div class="legend-item">
+                            <div class="legend-color course-color"></div>
+                            <span>课程体系</span>
+                        </div>
+                        <div class="legend-item">
                             <div class="legend-color homework-color"></div>
                             <span>作业管理系统</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color learning-color"></div>
+                            <span>学习路径系统</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color knowledge-color"></div>
                             <span>知识图谱系统</span>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-color recommendation-color"></div>
-                            <span>智能推荐系统</span>
+                            <div class="legend-color ai-recommendation-color"></div>
+                            <span>AI智能推荐</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color learning-analytics-color"></div>
+                            <span>学习分析系统</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color error-analysis-color"></div>
+                            <span>错误分析系统</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color adaptive-learning-color"></div>
+                            <span>自适应学习</span>
                         </div>
                     </div>
                     <div class="legend-relationships">

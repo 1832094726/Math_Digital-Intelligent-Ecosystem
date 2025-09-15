@@ -30,11 +30,71 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'hasMany', table: 'user_sessions', localKey: 'id', description: '用户有多个会话' },
-                { type: 'hasMany', table: 'notifications', localKey: 'id', description: '用户有多个通知' },
-                { type: 'hasMany', table: 'homework_submissions', localKey: 'id', description: '用户有多个作业提交' },
-                { type: 'hasMany', table: 'homework_progress', localKey: 'id', description: '用户有多个答题进度' },
-                { type: 'hasMany', table: 'class_students', localKey: 'id', description: '用户可以是多个班级的学生' }
+                {
+                    type: 'hasMany',
+                    table: 'user_sessions',
+                    localKey: 'id',
+                    foreignKey: 'user_id',
+                    description: '用户有多个会话记录',
+                    designReason: {
+                        fieldPurpose: 'user_id字段标识会话所属的用户',
+                        businessLogic: '一个用户可以在多个设备（手机、电脑、平板）上同时登录',
+                        dataIntegrity: '确保每个会话都有明确的用户归属，支持会话管理和安全审计',
+                        performanceBenefit: '便于按用户查询所有会话，支持强制下线和异常登录检测'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'notifications',
+                    localKey: 'id',
+                    foreignKey: 'user_id',
+                    description: '用户有多个通知记录',
+                    designReason: {
+                        fieldPurpose: 'user_id字段标识通知的接收用户',
+                        businessLogic: '系统需要向用户发送作业提醒、成绩通知、系统公告等多种通知',
+                        dataIntegrity: '确保通知能准确送达目标用户，避免通知错发或丢失',
+                        performanceBenefit: '支持按用户查询未读通知，便于消息推送和批量操作'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'homework_submissions',
+                    localKey: 'id',
+                    foreignKey: 'student_id',
+                    description: '用户（学生）有多个作业提交记录',
+                    designReason: {
+                        fieldPurpose: 'student_id字段标识提交作业的学生',
+                        businessLogic: '一个学生在学期内需要提交多次作业，每次提交都是独立记录',
+                        dataIntegrity: '确保作业提交与学生身份绑定，支持成绩统计和学习分析',
+                        performanceBenefit: '便于查询学生的所有作业记录，支持学习进度跟踪'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'homework_progress',
+                    localKey: 'id',
+                    foreignKey: 'student_id',
+                    description: '用户（学生）有多个答题进度记录',
+                    designReason: {
+                        fieldPurpose: 'student_id字段标识答题进度所属的学生',
+                        businessLogic: '学生可能同时进行多个作业，每个作业都有独立的答题进度',
+                        dataIntegrity: '确保答题进度与学生绑定，支持断点续答和进度恢复',
+                        performanceBenefit: '便于实时保存和恢复学生的答题状态，提升用户体验'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'class_students',
+                    localKey: 'id',
+                    foreignKey: 'student_id',
+                    description: '用户（学生）可以属于多个班级',
+                    designReason: {
+                        fieldPurpose: 'student_id字段标识班级中的学生成员',
+                        businessLogic: '学生可能因为选修课、兴趣班等原因同时属于多个班级',
+                        dataIntegrity: '支持灵活的班级管理，避免学生信息重复存储',
+                        performanceBenefit: '便于按班级查询学生列表，支持批量作业分发和成绩统计'
+                    }
+                }
             ]
         },
 
@@ -56,7 +116,18 @@ const databaseSchema = {
                 { name: 'created_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP', description: '创建时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '会话属于用户' }
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'user_id',
+                    description: '会话属于特定用户',
+                    designReason: {
+                        fieldPurpose: 'user_id外键确保每个会话都关联到具体的用户账户',
+                        businessLogic: '会话是用户登录后的状态记录，必须与用户身份绑定',
+                        dataIntegrity: '防止孤立的会话记录，确保会话安全性和可追溯性',
+                        performanceBenefit: '支持快速验证用户身份，便于会话管理和权限控制'
+                    }
+                }
             ]
         },
 
@@ -80,7 +151,18 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '通知属于用户' }
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'user_id',
+                    description: '通知发送给特定用户',
+                    designReason: {
+                        fieldPurpose: 'user_id外键指定通知的接收用户',
+                        businessLogic: '通知系统需要精确投递消息给目标用户，如作业截止提醒、成绩发布通知',
+                        dataIntegrity: '确保通知不会错发给其他用户，保护用户隐私和信息安全',
+                        performanceBenefit: '支持按用户查询未读通知数量，便于消息中心和推送服务'
+                    }
+                }
             ]
         },
 
@@ -121,8 +203,31 @@ const databaseSchema = {
                 { name: 'created_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP', description: '创建时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'schools', foreignKey: 'school_id', description: '年级属于学校' },
-                { type: 'hasMany', table: 'classes', localKey: 'id', description: '年级有多个班级' }
+                {
+                    type: 'belongsTo',
+                    table: 'schools',
+                    foreignKey: 'school_id',
+                    description: '年级属于特定学校',
+                    designReason: {
+                        fieldPurpose: 'school_id外键标识年级所属的学校',
+                        businessLogic: '年级是学校组织架构的重要组成部分，必须归属于具体学校',
+                        dataIntegrity: '确保年级与学校的正确关联，支持多校区管理',
+                        performanceBenefit: '便于按学校查询年级列表，支持学校级别的统计分析'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'classes',
+                    localKey: 'id',
+                    foreignKey: 'grade_id',
+                    description: '年级包含多个班级',
+                    designReason: {
+                        fieldPurpose: 'grade_id外键将班级归属到具体年级',
+                        businessLogic: '一个年级通常包含多个平行班级，如一年级1班、2班等',
+                        dataIntegrity: '确保班级与年级的层级关系正确，支持年级管理',
+                        performanceBenefit: '便于按年级查询所有班级，支持年级级别的批量操作'
+                    }
+                }
             ]
         },
 
@@ -143,10 +248,55 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'schools', foreignKey: 'school_id', description: '班级属于学校' },
-                { type: 'belongsTo', table: 'grades', foreignKey: 'grade_id', description: '班级属于年级' },
-                { type: 'belongsTo', table: 'users', foreignKey: 'head_teacher_id', description: '班级有班主任' },
-                { type: 'hasMany', table: 'class_students', localKey: 'id', description: '班级有多个学生关联' }
+                {
+                    type: 'belongsTo',
+                    table: 'schools',
+                    foreignKey: 'school_id',
+                    description: '班级属于特定学校',
+                    designReason: {
+                        fieldPurpose: 'school_id外键标识班级所属的学校',
+                        businessLogic: '班级是学校的基本教学单位，必须归属于具体学校',
+                        dataIntegrity: '确保班级与学校的正确关联，支持多校区管理',
+                        performanceBenefit: '便于按学校查询班级列表，支持学校级别的管理'
+                    }
+                },
+                {
+                    type: 'belongsTo',
+                    table: 'grades',
+                    foreignKey: 'grade_id',
+                    description: '班级属于特定年级',
+                    designReason: {
+                        fieldPurpose: 'grade_id外键标识班级所属的年级',
+                        businessLogic: '班级必须归属于具体年级，如一年级、二年级等',
+                        dataIntegrity: '确保班级与年级的层级关系正确，支持年级管理',
+                        performanceBenefit: '便于按年级查询班级，支持年级级别的统计分析'
+                    }
+                },
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'head_teacher_id',
+                    description: '班级配置班主任教师',
+                    designReason: {
+                        fieldPurpose: 'head_teacher_id外键指定班级的班主任教师',
+                        businessLogic: '每个班级需要配置班主任负责班级管理和学生指导',
+                        dataIntegrity: '确保班主任是系统中的有效教师用户',
+                        performanceBenefit: '便于查询教师负责的班级，支持班主任工作管理'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'class_students',
+                    localKey: 'id',
+                    foreignKey: 'class_id',
+                    description: '班级包含多个学生关联记录',
+                    designReason: {
+                        fieldPurpose: 'class_id外键将学生关联到具体班级',
+                        businessLogic: '一个班级包含多名学生，需要维护班级成员关系',
+                        dataIntegrity: '支持学生转班、退学等状态变更管理',
+                        performanceBenefit: '便于查询班级学生名单，支持班级管理操作'
+                    }
+                }
             ]
         },
 
@@ -165,15 +315,37 @@ const databaseSchema = {
                 { name: 'created_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP', description: '创建时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'classes', foreignKey: 'class_id', description: '关联属于班级' },
-                { type: 'belongsTo', table: 'users', foreignKey: 'student_id', description: '关联属于学生' }
+                {
+                    type: 'belongsTo',
+                    table: 'classes',
+                    foreignKey: 'class_id',
+                    description: '学生关联记录属于特定班级',
+                    designReason: {
+                        fieldPurpose: 'class_id外键标识学生所属的班级',
+                        businessLogic: '学生必须归属于具体的班级，便于班级管理和课程安排',
+                        dataIntegrity: '确保学生与班级的正确关联，支持班级学生名单管理',
+                        performanceBenefit: '便于按班级查询学生列表，支持批量操作和统计分析'
+                    }
+                },
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'student_id',
+                    description: '班级关联记录对应特定学生',
+                    designReason: {
+                        fieldPurpose: 'student_id外键标识班级中的具体学生',
+                        businessLogic: '班级成员必须是系统中的注册学生，确保身份有效性',
+                        dataIntegrity: '防止无效的学生记录，确保班级成员的真实性',
+                        performanceBenefit: '便于查询学生的班级归属，支持跨班级学生管理'
+                    }
+                }
             ]
         },
 
         curriculum_standards: {
             name: 'curriculum_standards',
             displayName: '课程标准',
-            category: 'course',
+            category: 'school',
             description: '课程标准定义',
             fields: [
                 { name: 'id', type: 'bigint(20)', isPrimary: true, description: '标准ID' },
@@ -192,7 +364,7 @@ const databaseSchema = {
         subjects: {
             name: 'subjects',
             displayName: '学科信息',
-            category: 'course',
+            category: 'school',
             description: '学科基本信息',
             fields: [
                 { name: 'id', type: 'bigint(20)', isPrimary: true, description: '学科ID' },
@@ -355,10 +527,58 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'hasMany', table: 'questions', localKey: 'id', description: '作业有多个题目' },
-                { type: 'hasMany', table: 'homework_assignments', localKey: 'id', description: '作业有多个分配记录' },
-                { type: 'hasMany', table: 'homework_submissions', localKey: 'id', description: '作业有多个提交记录' },
-                { type: 'hasMany', table: 'homework_progress', localKey: 'id', description: '作业有多个进度记录' }
+                {
+                    type: 'hasMany',
+                    table: 'questions',
+                    localKey: 'id',
+                    foreignKey: 'homework_id',
+                    description: '作业包含多个题目',
+                    designReason: {
+                        fieldPurpose: 'homework_id外键将题目归属到具体的作业',
+                        businessLogic: '一份作业通常包含多道题目，每道题目都有独立的内容、分值和难度',
+                        dataIntegrity: '确保题目与作业的强关联，删除作业时可以级联删除相关题目',
+                        performanceBenefit: '便于按作业查询所有题目，支持作业内容的完整展示'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'homework_assignments',
+                    localKey: 'id',
+                    foreignKey: 'homework_id',
+                    description: '作业有多个分配记录',
+                    designReason: {
+                        fieldPurpose: 'homework_id外键标识被分配的作业',
+                        businessLogic: '同一份作业可以分配给不同的班级、学生或年级，每次分配都是独立记录',
+                        dataIntegrity: '支持灵活的作业分发策略，避免重复创建相同内容的作业',
+                        performanceBenefit: '便于统计作业的分配范围和完成情况'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'homework_submissions',
+                    localKey: 'id',
+                    foreignKey: 'homework_id',
+                    description: '作业有多个学生提交记录',
+                    designReason: {
+                        fieldPurpose: 'homework_id外键标识提交的是哪份作业',
+                        businessLogic: '每个学生对同一份作业可能有多次提交（如允许重做），需要独立记录',
+                        dataIntegrity: '确保提交记录与作业内容匹配，支持成绩统计和分析',
+                        performanceBenefit: '便于按作业查询所有提交情况，支持批量评分和统计分析'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'homework_progress',
+                    localKey: 'id',
+                    foreignKey: 'homework_id',
+                    description: '作业有多个学生答题进度记录',
+                    designReason: {
+                        fieldPurpose: 'homework_id外键标识进度记录对应的作业',
+                        businessLogic: '学生在答题过程中需要实时保存进度，支持断点续答',
+                        dataIntegrity: '确保进度记录与作业内容同步，避免数据不一致',
+                        performanceBenefit: '便于快速恢复学生的答题状态，提升用户体验'
+                    }
+                }
             ]
         },
 
@@ -383,7 +603,18 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'timestamp', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'homeworks', foreignKey: 'homework_id', description: '题目属于作业' }
+                {
+                    type: 'belongsTo',
+                    table: 'homeworks',
+                    foreignKey: 'homework_id',
+                    description: '题目属于特定作业',
+                    designReason: {
+                        fieldPurpose: 'homework_id外键确保每道题目都归属于具体的作业',
+                        businessLogic: '题目不能独立存在，必须作为作业的组成部分',
+                        dataIntegrity: '防止孤立的题目记录，确保题目与作业内容的一致性',
+                        performanceBenefit: '支持按作业快速查询所有题目，便于作业内容管理'
+                    }
+                }
             ]
         },
 
@@ -439,9 +670,42 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'homework_assignments', foreignKey: 'assignment_id', description: '提交属于分配' },
-                { type: 'belongsTo', table: 'users', foreignKey: 'student_id', description: '提交属于学生' },
-                { type: 'belongsTo', table: 'homeworks', foreignKey: 'homework_id', description: '提交属于作业' }
+                {
+                    type: 'belongsTo',
+                    table: 'homework_assignments',
+                    foreignKey: 'assignment_id',
+                    description: '提交记录关联到具体的作业分配',
+                    designReason: {
+                        fieldPurpose: 'assignment_id外键标识这次提交对应的作业分配记录',
+                        businessLogic: '学生只能提交已分配给自己的作业，需要验证分配关系',
+                        dataIntegrity: '确保提交的合法性，防止学生提交未分配的作业',
+                        performanceBenefit: '便于按分配记录查询提交情况，支持班级作业统计'
+                    }
+                },
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'student_id',
+                    description: '提交记录属于特定学生',
+                    designReason: {
+                        fieldPurpose: 'student_id外键标识提交作业的学生身份',
+                        businessLogic: '每次作业提交都必须有明确的学生身份，用于成绩记录和学习分析',
+                        dataIntegrity: '确保提交记录与学生账户绑定，支持个人成绩查询',
+                        performanceBenefit: '便于按学生查询所有作业提交记录，支持学习进度跟踪'
+                    }
+                },
+                {
+                    type: 'belongsTo',
+                    table: 'homeworks',
+                    foreignKey: 'homework_id',
+                    description: '提交记录对应特定作业',
+                    designReason: {
+                        fieldPurpose: 'homework_id外键标识提交的作业内容',
+                        businessLogic: '提交记录需要关联到具体的作业，用于答案验证和评分',
+                        dataIntegrity: '确保提交内容与作业要求匹配，支持自动评分系统',
+                        performanceBenefit: '便于按作业查询所有提交记录，支持作业完成情况统计'
+                    }
+                }
             ]
         },
 
@@ -460,8 +724,30 @@ const databaseSchema = {
                 { name: 'created_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP', description: '创建时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'student_id', description: '进度属于学生' },
-                { type: 'belongsTo', table: 'homeworks', foreignKey: 'homework_id', description: '进度属于作业' }
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'student_id',
+                    description: '答题进度属于特定学生',
+                    designReason: {
+                        fieldPurpose: 'student_id外键标识进度记录的所有者',
+                        businessLogic: '每个学生的答题进度都是独立的，需要准确记录个人的答题状态',
+                        dataIntegrity: '确保进度记录与学生身份绑定，支持个性化的断点续答功能',
+                        performanceBenefit: '便于快速查询和恢复学生的答题状态，提升用户体验'
+                    }
+                },
+                {
+                    type: 'belongsTo',
+                    table: 'homeworks',
+                    foreignKey: 'homework_id',
+                    description: '答题进度对应特定作业',
+                    designReason: {
+                        fieldPurpose: 'homework_id外键标识进度记录对应的作业内容',
+                        businessLogic: '进度记录必须与具体的作业关联，确保答题内容的一致性',
+                        dataIntegrity: '防止进度记录与作业内容不匹配，支持作业更新时的数据同步',
+                        performanceBenefit: '便于按作业查询所有学生的答题进度，支持教师监控'
+                    }
+                }
             ]
         },
 
@@ -523,7 +809,18 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'student_id', description: '路径属于学生' }
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'student_id',
+                    description: '学习路径属于特定学生',
+                    designReason: {
+                        fieldPurpose: 'student_id外键标识学习路径的所有者',
+                        businessLogic: '每个学生都有个性化的学习路径，基于其学习能力、兴趣和目标定制',
+                        dataIntegrity: '确保学习路径与学生身份绑定，支持个性化学习分析和进度跟踪',
+                        performanceBenefit: '便于查询学生的学习路径，支持自适应学习算法和智能推荐'
+                    }
+                }
             ]
         },
 
@@ -548,9 +845,44 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'subjects', foreignKey: 'subject_id', description: '属于学科' },
-                { type: 'hasMany', table: 'knowledge_relationships', description: '知识点关系' },
-                { type: 'hasMany', table: 'mastery_tracking', description: '掌握度跟踪' }
+                {
+                    type: 'belongsTo',
+                    table: 'subjects',
+                    foreignKey: 'subject_id',
+                    description: '知识点属于特定学科',
+                    designReason: {
+                        fieldPurpose: 'subject_id外键标识知识点所属的学科领域',
+                        businessLogic: '知识点必须归属于具体学科，如数学中的函数、几何等',
+                        dataIntegrity: '确保知识点与学科的正确分类，支持学科知识体系构建',
+                        performanceBenefit: '便于按学科查询知识点，支持学科级别的知识管理'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'knowledge_relationships',
+                    localKey: 'id',
+                    foreignKey: 'source_point_id',
+                    description: '知识点作为源点有多个关系',
+                    designReason: {
+                        fieldPurpose: 'source_point_id外键标识关系的起始知识点',
+                        businessLogic: '知识点之间存在前置、包含、相关等多种关系，构建知识图谱',
+                        dataIntegrity: '建立完整的知识关系网络，支持学习路径规划',
+                        performanceBenefit: '便于查询知识点的关联关系，支持智能推荐和学习路径生成'
+                    }
+                },
+                {
+                    type: 'hasMany',
+                    table: 'mastery_tracking',
+                    localKey: 'id',
+                    foreignKey: 'knowledge_point_id',
+                    description: '知识点有多个掌握度跟踪记录',
+                    designReason: {
+                        fieldPurpose: 'knowledge_point_id外键标识被跟踪的知识点',
+                        businessLogic: '需要跟踪每个学生对各知识点的掌握程度，支持个性化学习',
+                        dataIntegrity: '确保掌握度记录与知识点的正确关联，支持学习分析',
+                        performanceBenefit: '便于查询知识点的掌握情况，支持学习效果评估'
+                    }
+                }
             ]
         },
 
@@ -594,7 +926,18 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'subjects', foreignKey: 'subject_id', description: '属于学科' },
+                { 
+                    type: 'belongsTo', 
+                    table: 'subjects', 
+                    foreignKey: 'subject_id', 
+                    description: '记录属于特定学科',
+                    designReason: {
+                        fieldPurpose: 'subject_id外键标识记录所属的学科领域',
+                        businessLogic: '需要按学科分类管理，支持学科级别的操作',
+                        dataIntegrity: '确保记录与学科的正确分类，支持学科管理',
+                        performanceBenefit: '便于按学科查询记录，支持学科级别的统计'
+                    }
+                },
                 { type: 'belongsTo', table: 'users', foreignKey: 'created_by', description: '创建者' }
             ]
         },
@@ -617,7 +960,18 @@ const databaseSchema = {
                 { name: 'created_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP', description: '创建时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '属于用户' }
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'user_id',
+                    description: '符号推荐记录属于特定用户',
+                    designReason: {
+                        fieldPurpose: 'user_id外键标识接收推荐的用户',
+                        businessLogic: '符号推荐需要基于用户的输入习惯和使用历史进行个性化推荐',
+                        dataIntegrity: '确保推荐记录与用户身份绑定，支持个性化学习分析',
+                        performanceBenefit: '便于查询用户的推荐历史，支持推荐算法优化和效果评估'
+                    }
+                }
             ]
         },
 
@@ -640,8 +994,30 @@ const databaseSchema = {
                 { name: 'completed_at', type: 'datetime', description: '完成时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '属于用户' },
-                { type: 'belongsTo', table: 'questions', foreignKey: 'question_id', description: '推荐题目' }
+                { 
+                    type: 'belongsTo', 
+                    table: 'users', 
+                    foreignKey: 'user_id', 
+                    description: '记录属于特定用户',
+                    designReason: {
+                        fieldPurpose: 'user_id外键标识记录所属的用户',
+                        businessLogic: '需要将数据与具体用户关联，支持个性化分析',
+                        dataIntegrity: '确保数据与用户身份绑定，保护用户隐私',
+                        performanceBenefit: '便于按用户查询相关数据，支持个性化服务'
+                    }
+                },
+                {
+                    type: 'belongsTo',
+                    table: 'questions',
+                    foreignKey: 'question_id',
+                    description: '推荐记录关联到具体题目',
+                    designReason: {
+                        fieldPurpose: 'question_id外键标识被推荐的具体题目',
+                        businessLogic: 'AI推荐系统需要基于学生的知识掌握情况推荐合适的题目，实现个性化学习',
+                        dataIntegrity: '确保推荐记录与题目内容匹配，支持推荐效果分析和算法优化',
+                        performanceBenefit: '便于分析题目的推荐效果，支持智能推荐算法的持续改进'
+                    }
+                }
             ]
         },
 
@@ -663,7 +1039,18 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '属于用户' }
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'user_id',
+                    description: '学习路径推荐属于特定学生',
+                    designReason: {
+                        fieldPurpose: 'user_id外键标识接收路径推荐的学生',
+                        businessLogic: 'AI系统基于学生的知识状态、学习习惯和目标生成个性化学习路径推荐',
+                        dataIntegrity: '确保推荐路径与学生身份绑定，支持自适应学习算法的持续优化',
+                        performanceBenefit: '便于查询学生的路径推荐历史，支持学习效果分析和路径调整'
+                    }
+                }
             ]
         },
 
@@ -685,7 +1072,18 @@ const databaseSchema = {
                 { name: 'device_info', type: 'json', description: '设备信息' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '属于用户' }
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'user_id',
+                    description: '学习行为记录属于特定学生',
+                    designReason: {
+                        fieldPurpose: 'user_id外键标识产生学习行为的学生',
+                        businessLogic: '系统需要采集和分析学生的学习行为模式，为智能推荐和个性化教学提供数据支持',
+                        dataIntegrity: '确保行为数据与学生身份绑定，保护学生隐私并支持行为分析的准确性',
+                        performanceBenefit: '便于分析学生的学习习惯和行为模式，支持学习效果预测和干预策略'
+                    }
+                }
             ]
         },
 
@@ -709,9 +1107,42 @@ const databaseSchema = {
                 { name: 'created_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP', description: '创建时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '属于用户' },
-                { type: 'belongsTo', table: 'homeworks', foreignKey: 'homework_id', description: '属于作业' },
-                { type: 'belongsTo', table: 'questions', foreignKey: 'question_id', description: '属于题目' }
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'user_id',
+                    description: '交互日志属于特定学生',
+                    designReason: {
+                        fieldPurpose: 'user_id外键标识产生交互行为的学生',
+                        businessLogic: '系统需要详细记录学生与题目的交互过程，分析学习模式和解题策略',
+                        dataIntegrity: '确保交互数据与学生身份绑定，支持个性化学习分析和行为建模',
+                        performanceBenefit: '便于分析学生的解题过程和思维模式，支持智能辅导和错误诊断'
+                    }
+                },
+                {
+                    type: 'belongsTo',
+                    table: 'homeworks',
+                    foreignKey: 'homework_id',
+                    description: '交互日志关联到特定作业',
+                    designReason: {
+                        fieldPurpose: 'homework_id外键标识交互发生的作业上下文',
+                        businessLogic: '需要在作业维度分析学生的交互行为，评估作业设计的有效性',
+                        dataIntegrity: '确保交互记录与作业内容匹配，支持作业完成情况的准确统计',
+                        performanceBenefit: '便于按作业分析学生表现，支持作业难度评估和优化'
+                    }
+                },
+                {
+                    type: 'belongsTo',
+                    table: 'questions',
+                    foreignKey: 'question_id',
+                    description: '交互日志关联到具体题目',
+                    designReason: {
+                        fieldPurpose: 'question_id外键标识交互涉及的具体题目',
+                        businessLogic: '需要在题目级别分析学生的解题过程，识别题目的难点和学生的薄弱环节',
+                        dataIntegrity: '确保交互数据与题目内容匹配，支持题目质量评估和改进',
+                        performanceBenefit: '便于分析题目的解答情况，支持题目推荐和个性化学习路径'
+                    }
+                }
             ]
         },
 
@@ -734,7 +1165,18 @@ const databaseSchema = {
                 { name: 'created_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP', description: '创建时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '属于用户' }
+                { 
+                    type: 'belongsTo', 
+                    table: 'users', 
+                    foreignKey: 'user_id', 
+                    description: '记录属于特定用户',
+                    designReason: {
+                        fieldPurpose: 'user_id外键标识记录所属的用户',
+                        businessLogic: '需要将数据与具体用户关联，支持个性化分析',
+                        dataIntegrity: '确保数据与用户身份绑定，保护用户隐私',
+                        performanceBenefit: '便于按用户查询相关数据，支持个性化服务'
+                    }
+                }
             ]
         },
 
@@ -780,7 +1222,18 @@ const databaseSchema = {
                 { name: 'resolved_at', type: 'datetime', description: '解决时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '属于用户' },
+                { 
+                    type: 'belongsTo', 
+                    table: 'users', 
+                    foreignKey: 'user_id', 
+                    description: '记录属于特定用户',
+                    designReason: {
+                        fieldPurpose: 'user_id外键标识记录所属的用户',
+                        businessLogic: '需要将数据与具体用户关联，支持个性化分析',
+                        dataIntegrity: '确保数据与用户身份绑定，保护用户隐私',
+                        performanceBenefit: '便于按用户查询相关数据，支持个性化服务'
+                    }
+                },
                 { type: 'belongsTo', table: 'knowledge_points', foreignKey: 'knowledge_point_id', description: '相关知识点' },
                 { type: 'belongsTo', table: 'error_patterns', foreignKey: 'error_pattern_id', description: '错误模式' }
             ]
@@ -805,7 +1258,18 @@ const databaseSchema = {
                 { name: 'last_updated', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '最后更新时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '属于用户' }
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'user_id',
+                    description: '自适应路径属于特定学生',
+                    designReason: {
+                        fieldPurpose: 'user_id外键标识自适应路径的所有者',
+                        businessLogic: '系统根据学生的实时学习表现动态调整学习路径，实现真正的个性化教育',
+                        dataIntegrity: '确保自适应路径与学生身份绑定，支持学习轨迹的连续性和一致性',
+                        performanceBenefit: '便于实时查询和更新学生的学习路径，支持智能化的学习指导'
+                    }
+                }
             ]
         },
 
@@ -829,8 +1293,30 @@ const databaseSchema = {
                 { name: 'updated_at', type: 'datetime', defaultValue: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', description: '更新时间' }
             ],
             relationships: [
-                { type: 'belongsTo', table: 'users', foreignKey: 'user_id', description: '属于用户' },
-                { type: 'belongsTo', table: 'knowledge_points', foreignKey: 'knowledge_point_id', description: '相关知识点' }
+                {
+                    type: 'belongsTo',
+                    table: 'users',
+                    foreignKey: 'user_id',
+                    description: '掌握度跟踪属于特定学生',
+                    designReason: {
+                        fieldPurpose: 'user_id外键标识被跟踪学生的身份',
+                        businessLogic: '系统需要实时跟踪每个学生对各知识点的掌握程度，支持个性化学习分析',
+                        dataIntegrity: '确保掌握度数据与学生身份绑定，支持学习轨迹的连续性跟踪',
+                        performanceBenefit: '便于查询学生的知识掌握状况，支持自适应学习算法和智能推荐'
+                    }
+                },
+                {
+                    type: 'belongsTo',
+                    table: 'knowledge_points',
+                    foreignKey: 'knowledge_point_id',
+                    description: '掌握度跟踪对应特定知识点',
+                    designReason: {
+                        fieldPurpose: 'knowledge_point_id外键标识被跟踪的具体知识点',
+                        businessLogic: '需要精确跟踪学生对每个知识点的掌握程度，构建完整的知识掌握图谱',
+                        dataIntegrity: '确保掌握度记录与知识点内容匹配，支持知识体系的完整性',
+                        performanceBenefit: '便于按知识点分析掌握情况，支持知识点难度评估和学习路径优化'
+                    }
+                }
             ]
         }
     },

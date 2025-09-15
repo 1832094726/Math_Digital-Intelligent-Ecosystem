@@ -16,6 +16,11 @@ from collections import defaultdict, Counter
 from .collaborative_filtering import CollaborativeFiltering
 from .knowledge_graph import KnowledgeGraph, KnowledgeGraphRecommender
 from .learning_analytics import LearningAnalytics
+try:
+    from .deep_learning_recommender import DeepLearningRecommender
+except ImportError:
+    # 如果PyTorch不可用，使用轻量级版本
+    from .lightweight_dl_recommender import LightweightDeepLearningRecommender as DeepLearningRecommender
 
 class EnhancedSymbolService:
     """增强的符号推荐服务类"""
@@ -36,6 +41,19 @@ class EnhancedSymbolService:
 
         # 初始化学习分析系统
         self.learning_analytics = LearningAnalytics()
+
+        # 初始化深度学习推荐器（优先使用轻量级版本）
+        try:
+            from .lightweight_dl_recommender import LightweightDeepLearningRecommender
+            self.deep_learning_recommender = LightweightDeepLearningRecommender()
+            print("✅ 使用轻量级深度学习推荐器")
+        except Exception as e:
+            try:
+                self.deep_learning_recommender = DeepLearningRecommender()
+                print("✅ 使用完整版深度学习推荐器")
+            except Exception as e2:
+                print(f"深度学习推荐器初始化失败: {e2}")
+                self.deep_learning_recommender = None
 
         # 初始化jieba
         self._init_jieba()
@@ -112,11 +130,16 @@ class EnhancedSymbolService:
         # 获取知识图谱推荐
         knowledge_graph_recommendations = self._get_knowledge_graph_recommendations(context)
 
+        # 获取深度学习推荐
+        deep_learning_recommendations = self._get_deep_learning_recommendations(
+            user_id, question_text, basic_recommendations + context_recommendations
+        )
+
         # 合并和排序
         all_recommendations = self._merge_and_rank_recommendations(
             basic_recommendations, context_recommendations,
             personalized_recommendations, collaborative_recommendations,
-            knowledge_graph_recommendations
+            knowledge_graph_recommendations, deep_learning_recommendations
         )
         
         return {
@@ -124,7 +147,20 @@ class EnhancedSymbolService:
             "context": math_context,
             "total_count": len(all_recommendations)
         }
-    
+
+    def get_recommendations(self, user_id: int, question_text: str, current_input: str = '',
+                          current_topic: str = '', difficulty_level: str = 'medium', limit: int = 20) -> List[Dict]:
+        """获取推荐结果（简化接口）"""
+        context = {
+            'question_text': question_text,
+            'current_input': current_input,
+            'current_topic': current_topic,
+            'difficulty_level': difficulty_level
+        }
+
+        result = self.get_symbol_recommendations(user_id, context)
+        return result.get('symbols', [])
+
     def get_symbol_completions(self, user_id: int, partial_input: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """获取符号补全建议"""
         return self.completion_engine.get_completions(
@@ -332,10 +368,68 @@ class EnhancedSymbolService:
             print(f"知识图谱推荐失败: {e}")
             return []
 
+    def _get_deep_learning_recommendations(self, user_id: int, context_text: str, candidate_symbols: List[Dict]) -> List[Dict]:
+        """获取深度学习推荐"""
+        if not self.deep_learning_recommender:
+            print("深度学习推荐器未初始化")
+            return []
+
+        if not candidate_symbols:
+            # 使用默认符号集
+            candidate_symbols = [
+                {"id": 1, "symbol": "=", "latex": "=", "category": "运算符"},
+                {"id": 2, "symbol": "+", "latex": "+", "category": "运算符"},
+                {"id": 3, "symbol": "-", "latex": "-", "category": "运算符"},
+                {"id": 4, "symbol": "×", "latex": "\\times", "category": "运算符"},
+                {"id": 5, "symbol": "÷", "latex": "\\div", "category": "运算符"},
+                {"id": 6, "symbol": "²", "latex": "^2", "category": "指数"},
+                {"id": 7, "symbol": "x", "latex": "x", "category": "变量"},
+                {"id": 8, "symbol": "∫", "latex": "\\int", "category": "积分"},
+                {"id": 9, "symbol": "sin", "latex": "\\sin", "category": "三角函数"},
+                {"id": 10, "symbol": "∠", "latex": "\\angle", "category": "几何"}
+            ]
+
+        try:
+            # 使用深度学习模型获取推荐
+            dl_recommendations = self.deep_learning_recommender.get_recommendations(
+                user_id=str(user_id),
+                context_text=context_text,
+                candidate_symbols=candidate_symbols,
+                top_k=15
+            )
+
+            # 为深度学习推荐添加额外信息
+            enhanced_recommendations = []
+            for rec in dl_recommendations:
+                enhanced_rec = rec.copy()
+                enhanced_rec['source'] = 'deep_learning'
+                enhanced_rec['dl_confidence'] = rec.get('score', 0.5)
+                enhanced_rec['model_explanation'] = self._generate_dl_explanation(rec)
+                enhanced_recommendations.append(enhanced_rec)
+
+            return enhanced_recommendations
+
+        except Exception as e:
+            print(f"深度学习推荐失败: {e}")
+            return []
+
+    def _generate_dl_explanation(self, recommendation: Dict) -> str:
+        """生成深度学习推荐解释"""
+        score = recommendation.get('score', 0.5)
+        model_type = recommendation.get('model_type', 'BERT-NCF-MLP')
+
+        if score > 0.8:
+            return f"{model_type}模型高度推荐此符号"
+        elif score > 0.6:
+            return f"{model_type}模型认为此符号相关性较高"
+        elif score > 0.4:
+            return f"{model_type}模型识别出此符号的潜在相关性"
+        else:
+            return f"{model_type}模型基础推荐"
+
     def _merge_and_rank_recommendations(self, *recommendation_lists) -> List[Dict]:
         """合并和排序推荐结果"""
-        all_recommendations = []
-        seen_symbols = set()
+        symbol_map = {}  # 使用字典来存储每个符号的最佳推荐
 
         # 为不同来源的推荐设置权重
         source_weights = {
@@ -343,26 +437,33 @@ class EnhancedSymbolService:
             'context': 1.2,
             'personalized': 1.3,
             'collaborative_filtering': 1.1,
-            'knowledge_graph': 1.25
+            'knowledge_graph': 1.25,
+            'deep_learning': 1.4  # 深度学习推荐权重最高
         }
 
         for rec_list in recommendation_lists:
             for rec in rec_list:
                 symbol_key = rec.get('symbol', '') + rec.get('latex', '')
-                if symbol_key not in seen_symbols:
-                    seen_symbols.add(symbol_key)
+                source = rec.get('source', 'basic')
 
-                    # 应用来源权重
-                    source = rec.get('source', 'basic')
-                    weight = source_weights.get(source, 1.0)
-                    weighted_score = rec.get('score', 0) * weight
+                # 应用来源权重
+                weight = source_weights.get(source, 1.0)
+                weighted_score = rec.get('score', 0) * weight
 
-                    rec_copy = rec.copy()
-                    rec_copy['weighted_score'] = weighted_score
-                    rec_copy['original_score'] = rec.get('score', 0)
+                rec_copy = rec.copy()
+                rec_copy['weighted_score'] = weighted_score
+                rec_copy['original_score'] = rec.get('score', 0)
 
-                    all_recommendations.append(rec_copy)
+                # 如果符号已存在，比较权重分数，保留更高的
+                if symbol_key in symbol_map:
+                    existing_score = symbol_map[symbol_key].get('weighted_score', 0)
+                    if weighted_score > existing_score:
+                        symbol_map[symbol_key] = rec_copy
+                else:
+                    symbol_map[symbol_key] = rec_copy
 
+        # 转换为列表并排序
+        all_recommendations = list(symbol_map.values())
         return sorted(all_recommendations, key=lambda x: x.get('weighted_score', 0), reverse=True)
     
     def _analyze_input_patterns(self, current_input: str) -> Dict[str, bool]:

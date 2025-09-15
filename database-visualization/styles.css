@@ -325,11 +325,17 @@ body {
     border-radius: 3px;
 }
 
+/* 模块颜色定义 - 与data.js中的modules颜色保持一致 */
 .user-color { background: #ff6b6b; }
 .school-color { background: #4ecdc4; }
-.homework-color { background: #45b7d1; }
-.knowledge-color { background: #96ceb4; }
-.recommendation-color { background: #feca57; }
+.course-color { background: #45b7d1; }
+.homework-color { background: #96ceb4; }
+.learning-color { background: #feca57; }
+.knowledge-color { background: #a29bfe; }
+.ai-recommendation-color { background: #fd79a8; }
+.learning-analytics-color { background: #00b894; }
+.error-analysis-color { background: #e17055; }
+.adaptive-learning-color { background: #6c5ce7; }
 
 .legend-line {
     width: 20px;
