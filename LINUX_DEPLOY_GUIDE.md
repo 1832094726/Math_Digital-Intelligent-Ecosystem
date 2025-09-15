@@ -1,11 +1,10 @@
-# 🐧 Linux服务器部署指南
+# 🐧 K12数学教育生态系统 - Linux部署指南
 
-## 🎯 适用环境
+## 🎯 服务器环境
 - **服务器**: 172.104.172.5 (CentOS 7)
-- **架构**: x86_64
 - **Docker**: 已安装
 
-## 🚀 方案一：Linux服务器直接构建（推荐）
+## 🚀 一键部署
 
 ### 1️⃣ 克隆项目
 ```bash
@@ -42,132 +41,7 @@ chmod +x deploy-linux.sh
 API:  http://172.104.172.5:8081/api
 ```
 
----
 
-## 🚀 方案二：Windows构建推送
-
-### Windows端操作
-
-#### 1️⃣ 安装Docker Desktop
-- 下载: https://www.docker.com/products/docker-desktop
-- 安装并启动Docker Desktop
-
-#### 2️⃣ 构建全栈镜像
-```cmd
-# 在Windows项目目录
-cd "E:\program development\The Digital and Intelligent Ecosystem for K-12 Mathematics Education\docker"
-
-# 运行全栈构建脚本
-build-windows.bat
-```
-
-**构建内容**：
-- ✅ **Vue.js前端** (homework_system)
-- ✅ **Flask后端** (homework-backend)
-- ✅ **数学符号键盘**
-- ✅ **静态资源整合**
-
-#### 3️⃣ 推送到Docker Hub
-- 脚本会询问是否推送
-- 选择 `y` 推送到Docker Hub
-- 需要Docker Hub账号登录
-
-### Linux端操作
-
-#### 1️⃣ 拉取镜像
-```bash
-# 拉取预构建镜像
-docker pull matheco/k12-math-ecosystem:latest
-```
-
-#### 2️⃣ 创建部署配置
-```bash
-# 创建docker-compose.yml
-cat > docker-compose.yml << 'EOF'
-version: '3.8'
-
-services:
-  redis:
-    image: redis:7-alpine
-    container_name: math_redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-
-  app:
-    image: matheco/k12-math-ecosystem:latest
-    container_name: math_app
-    restart: unless-stopped
-    ports:
-      - "8081:5000"  # API端口
-    environment:
-      - FLASK_ENV=production
-      - DB_HOST=obmt6zg485miazb4-mi.aliyun-cn-beijing-internet.oceanbase.cloud
-      - DB_PORT=3306
-      - DB_USER=hcj
-      - DB_PASSWORD=Xv0Mu8_:
-      - DB_NAME=testccnu
-      - REDIS_URL=redis://redis:6379/0
-    depends_on:
-      - redis
-
-  nginx:
-    image: nginx:alpine
-    container_name: math_nginx
-    restart: unless-stopped
-    ports:
-      - "8080:80"   # Web端口
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - app
-
-volumes:
-  redis_data:
-EOF
-```
-
-#### 3️⃣ 创建Nginx配置
-```bash
-cat > nginx.conf << 'EOF'
-events {
-    worker_connections 1024;
-}
-
-http {
-    upstream backend {
-        server app:5000;
-    }
-
-    server {
-        listen 80;
-        server_name _;
-
-        location / {
-            proxy_pass http://backend;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        }
-
-        location /api/ {
-            proxy_pass http://backend/api/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-        }
-    }
-}
-EOF
-```
-
-#### 4️⃣ 启动服务
-```bash
-docker-compose up -d
-```
-
----
 
 ## 🔧 管理命令
 
@@ -228,4 +102,4 @@ firewall-cmd --reload
 
 ---
 
-**推荐使用方案一（Linux直接构建），更简单快捷！** 🎯
+**一个脚本完成Vue前端 + Flask后端的完整部署！** 🎯

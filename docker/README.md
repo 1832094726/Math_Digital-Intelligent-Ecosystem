@@ -1,27 +1,28 @@
 # 🚀 K12数学教育生态系统 - 一键部署
 
-## ⚡ 超简单部署（3步完成）
+## ⚡ 一键部署（Linux服务器）
 
 ```bash
 # 1. 克隆项目
 git clone https://github.com/1832094726/Math_Digital-Intelligent-Ecosystem.git
 cd Math_Digital-Intelligent-Ecosystem/docker
 
-# 2. 一键部署
-chmod +x deploy.sh
-./deploy.sh
+# 2. 一键部署（全栈构建）
+chmod +x deploy-linux.sh
+./deploy-linux.sh
 
 # 3. 访问应用
-# 打开浏览器访问: http://localhost
+# http://172.104.172.5:8080 (Web端口)
+# http://172.104.172.5:8081 (API端口)
 ```
 
-## 🎯 零配置特性
+## 🎯 全栈构建特性
 
-- ✅ **无需配置环境变量** - 使用预设的安全默认值
-- ✅ **无需构建镜像** - 使用预构建的Docker镜像
+- ✅ **Vue前端自动构建** - 自动构建homework_system前端项目
+- ✅ **Flask后端集成** - 包含完整的API服务
 - ✅ **云端数据库** - 连接远程OceanBase，无需本地数据库
+- ✅ **端口自定义** - 避免与现有服务冲突
 - ✅ **健康检查** - 自动等待所有服务就绪
-- ✅ **中文界面** - 友好的中文提示信息
 
 ## 🏗️ 服务架构
 
@@ -63,26 +64,17 @@ docker-compose down
 docker-compose down -v
 ```
 
-## 📦 预构建镜像
-
-使用预构建的Docker镜像，无需本地编译：
-
-- `matheco/k12-math-ecosystem:latest` - 主应用镜像
-- `redis:7-alpine` - 本地缓存
-- `nginx:alpine` - 反向代理
-- 远程OceanBase数据库 - 云端数据库服务
-
 ## 🆘 常见问题
 
 **Q: 端口被占用怎么办？**
-A: 修改 `docker-compose.yml` 中的端口映射
-
-**Q: 如何重置数据库？**
-A: 运行 `docker-compose down -v` 然后重新部署
+A: 部署脚本会询问端口配置，选择其他端口即可
 
 **Q: 如何查看错误日志？**
-A: 运行 `docker-compose logs app`
+A: 运行 `docker-compose -f docker-compose-linux.yml logs -f`
+
+**Q: 如何重启服务？**
+A: 运行 `docker-compose -f docker-compose-linux.yml restart`
 
 ## 🎉 就是这么简单！
 
-从GitHub克隆到运行只需要3个命令，真正的开箱即用！
+一个脚本完成Vue前端 + Flask后端的完整部署！
