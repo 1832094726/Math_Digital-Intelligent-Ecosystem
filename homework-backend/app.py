@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, redirect
+from flask import Flask, jsonify, request, redirect, send_from_directory, send_file
 from flask_cors import CORS
 import os
 import json
@@ -52,6 +52,23 @@ if not os.path.exists(DATA_ROOT):
 @app.route('/')
 def hello_world():
     return 'Homework System API'
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """健康检查端点"""
+    try:
+        # 简单的健康检查，返回服务状态
+        return jsonify({
+            'status': 'healthy',
+            'service': 'homework-backend',
+            'message': '作业管理系统API正常运行'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'service': 'homework-backend',
+            'message': f'服务异常: {str(e)}'
+        }), 500
 
 # 重定向旧路由到新API路由
 @app.route('/homework/list', methods=['GET'])
@@ -148,5 +165,46 @@ def update_user():
     data = request.get_json()
     return jsonify(update_user_model(data))
 
+# 静态文件服务 - 服务Vue前端
+@app.route('/static/homework/<path:filename>')
+def serve_homework_static(filename):
+    """服务Vue前端静态文件"""
+    return send_from_directory('static/homework', filename)
+
+@app.route('/static/symbol/<path:filename>')
+def serve_symbol_static(filename):
+    """服务符号键盘静态文件"""
+    return send_from_directory('static/symbol', filename)
+
+# 前端路由处理 - 所有非API路由都返回Vue应用
+@app.route('/')
+@app.route('/homework')
+@app.route('/login')
+@app.route('/register')
+def serve_frontend():
+    """服务Vue前端应用"""
+    try:
+        return send_file('static/homework/index.html')
+    except FileNotFoundError:
+        return jsonify({
+            'error': '前端文件未找到',
+            'message': '请确保Vue前端已正确构建并复制到static/homework目录'
+        }), 404
+
+# 处理Vue Router的history模式 - 所有未匹配的路由都返回index.html
+@app.errorhandler(404)
+def not_found(error):
+    # 如果是API请求，返回JSON错误
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'API端点不存在'}), 404
+    # 否则返回Vue应用（用于前端路由）
+    try:
+        return send_file('static/homework/index.html')
+    except FileNotFoundError:
+        return jsonify({
+            'error': '前端文件未找到',
+            'message': '请确保Vue前端已正确构建'
+        }), 404
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000) 
+    app.run(debug=True, host='0.0.0.0', port=5000)

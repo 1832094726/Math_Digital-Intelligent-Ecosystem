@@ -119,8 +119,7 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      app:
-        condition: service_healthy
+      - app
     networks:
       - math_network
 

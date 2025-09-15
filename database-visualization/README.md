@@ -24,7 +24,14 @@
 
 ## 🚀 快速开始
 
-### 1. 启动API服务器
+### 一键启动（推荐）
+
+#### Linux/Mac用户
+```bash
+# 一键启动（自动安装依赖）
+chmod +x start-visualization.sh
+./start-visualization.sh
+```
 
 #### Windows用户
 ```bash
@@ -35,19 +42,15 @@ start-api.bat
 python api-server.py
 ```
 
-#### Linux/Mac用户
+### 手动启动
 ```bash
-# 安装依赖
-pip install flask flask-cors pymysql
+# 1. 安装依赖
+pip3 install flask flask-cors pymysql
 
-# 启动服务器
-python api-server.py
-```
+# 2. 启动API服务器
+python3 api-server.py
 
-### 2. 打开可视化界面
-```bash
-# 在浏览器中打开
-index.html
+# 3. 在浏览器中打开 index.html
 ```
 
 ## 📡 API接口

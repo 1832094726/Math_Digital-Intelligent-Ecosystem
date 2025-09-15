@@ -15,7 +15,7 @@ RUN npm install
 
 # 复制前端源码并构建
 COPY homework_system/ ./
-RUN npm run build
+RUN chmod +x node_modules/.bin/* && npm run build
 
 # ================================
 # 阶段2: 后端Flask + 前端静态文件
@@ -76,4 +76,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:5000/api/health || exit 1
 
 # 启动命令
-CMD ["python", "app.py"]
+CMD ["python", "-c", "from app import app; app.run(host='0.0.0.0', port=5000, debug=False)"]
