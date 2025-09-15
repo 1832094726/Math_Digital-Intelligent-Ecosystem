@@ -1,0 +1,14 @@
+/* 移除固定高度，让内容自适应 */
+
+/* 确保problem-content不会有固定高度 */
+.problem-content {
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+}
+
+/* 确保collapse-item内容区域自适应 */
+.el-collapse-item__content {
+  height: auto !important;
+  min-height: auto !important;
+}

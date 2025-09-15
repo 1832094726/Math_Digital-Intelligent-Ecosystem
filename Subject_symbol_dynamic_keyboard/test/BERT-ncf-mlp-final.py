@@ -1,3 +1,5 @@
+import time
+
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -11,6 +13,8 @@ from calculate_metrics import evaluate_symbol_predictions, evaluate_per_symbol_p
 import datetime
 import os
 from sklearn.decomposition import TruncatedSVD
+from transformers import AutoTokenizer, AutoConfig
+from adapters import AutoAdapterModel, BertAdapterModel, PredictionHead
 
 nowTime = datetime.datetime.now().strftime('%m-%d-%H-%M')
 
@@ -87,8 +91,8 @@ def negative_sampling(user_item_matrix, other1_ratings_matrix, other2_ratings_ma
               other2_ratings_matrix[user_id, negative_items[idx].item()].item(),
               question_vector) for idx in sampled_negatives_indices]
         )
-
-    # 合并正例和负例
+    # breakpoint()
+    # 合并正例和负例    22070 + 22070
     all_samples = positive_samples + negative_samples
 
     np.random.shuffle(all_samples)
@@ -148,7 +152,7 @@ def process_matrix_data(rating_file, user_file, item_file):
 
     return ratings_matrix, user_dict, item_dict, user_df['question'], item_df['symbol']
 
-def matrix_factorization(ratings_matrix, num_latent_factors=10):
+def matrix_factorization(ratings_matrix, num_latent_factors=30):
     # 使用SVD进行矩阵分解
     svd = TruncatedSVD(n_components=num_latent_factors, random_state=42)
     U = svd.fit_transform(ratings_matrix)  # 用户特征矩阵
@@ -162,6 +166,9 @@ def reconstruct_matrix(U, S, V):
     S_matrix = np.diag(S)
     reconstructed_matrix = np.dot(np.dot(U, S_matrix), V)
     return reconstructed_matrix
+
+def sigmoid_transform(data, scale=5):
+    return 1 / (1 + torch.exp(-scale * (data - 0.5)))
 
 ##################### 以下为计算评估和画图函数 #####################
 def calculate_recommendation_cover(predictions, test_data):
@@ -341,8 +348,8 @@ def evaluate_model_on_test_set(model, test_data, item_similarity_matrix,symbol_t
             item_similarity_vector = item_similarity_matrix[item_ids]
             item_similarity_vector = torch.tensor(item_similarity_vector, dtype=torch.float).to(device)
 
-            preds = model(user_batch, item_batch, question_similarity_vector, item_similarity_vector)
-            predictions.append(preds.cpu())
+            pred1,_,_ = model(user_batch, item_batch, question_similarity_vector, item_similarity_vector)
+            predictions.append(pred1.cpu())
 
     predictions = torch.cat(predictions, dim=0)  # (num_users * num_items,)
 
@@ -362,8 +369,11 @@ def evaluate_model_on_test_set(model, test_data, item_similarity_matrix,symbol_t
 class RecommendModel(nn.Module):
     def __init__(self):
         super(RecommendModel, self).__init__()
-        self.tokenizer = BertTokenizer.from_pretrained('chinese-bert-wwm-ext')
-        self.encoder = BertModel.from_pretrained('chinese-bert-wwm-ext')
+        # self.tokenizer = BertTokenizer.from_pretrained('chinese-bert-wwm-ext')
+        # self.encoder = BertModel.from_pretrained('chinese-bert-wwm-ext')
+
+        self.tokenizer = AutoTokenizer.from_pretrained('chinese-bert-wwm-ext')
+        self.encoder = BertAdapterModel.from_pretrained('chinese-bert-wwm-ext')
 
         # for param in self.encoder.parameters():
         #     param.requires_grad = False
@@ -372,22 +382,23 @@ class RecommendModel(nn.Module):
         self.question_projection = nn.Linear(9348, 768)  # 将相似度矩阵调整为768维
         self.item_projection = nn.Linear(132, 768)  # 将相似度矩阵调整为768维
 
-        self.MLP_user_projection = nn.Linear(768 + 768, 768)
-        self.MLP_item_projection = nn.Linear(768 + 768, 768)
-        self.MF_user_projection = nn.Linear(768 + 768, 768)
-        self.MF_item_projection = nn.Linear(768 + 768, 768)
+        # 保留备用 如果相加的形式不好的话
+        # self.MLP_user_projection = nn.Linear(768 + 768, 768)
+        # self.MLP_item_projection = nn.Linear(768 + 768, 768)
+        # self.MF_user_projection = nn.Linear(768 + 768, 768)
+        # self.MF_item_projection = nn.Linear(768 + 768, 768)
 
         # 输入为[64, 3072]
         self.MLP = nn.Sequential(
-            nn.Linear(3072, 2048),
+            nn.Linear(1536, 1024),
             nn.ReLU(),
-            nn.Linear(2048, 768),
+            nn.Linear(1024, 768),
             nn.LayerNorm(768),
             nn.ReLU(),
         )
-        # 神经协同过滤网络NeuMF用于生成最终的预测
+        # 神经协同过滤网络NeuMF用于生成最终的预测 f1+f2+f3 768 + 320 + 768 = 1856
         self.NeuMF = nn.Sequential(
-            nn.Linear(1536, 768),
+            nn.Linear(1856, 768),
             nn.ReLU(),
             nn.Linear(768, 256),
             nn.LayerNorm(256),
@@ -400,62 +411,94 @@ class RecommendModel(nn.Module):
         )
 
     def forward(self, user_data, item_data, question_similarity_vector, item_similarity_vector, T1 = 4, T2 = 4):
+        # start_total = time.time()
+
+        start_user = time.time()
         # 这个是得到相应的问题输入 然后将其进行分词和编码 转化成相应的token 这里转化成了512
-        user_data_inputs = self.tokenizer(user_data, return_tensors='pt', padding=True, truncation=True, max_length=512)
+        user_data_inputs = self.tokenizer(user_data, return_tensors='pt', padding='max_length', truncation=True, max_length=320)
         # 移动相应的token到gpu上
         user_data_inputs = {key: val.to(device) for key, val in user_data_inputs.items()}
-        # 获取question的第一个CLS的token嵌入向量
-        usr_outputs = self.encoder(**user_data_inputs).last_hidden_state[:, 0, :]
+
+        # 维度确认  ([64, 320, 768])  还要在得到其不平均的值
+        usr_outputs =  self.encoder(**user_data_inputs, output_hidden_states=True)
+
+        usr_outputs = usr_outputs.hidden_states[-1]
+
+        # 512*768 爆显存 所以改成320维度
+        usr_outputs_mean = usr_outputs.mean(dim=1)
+        # user_time = time.time() - start_user
 
         # 这个是符号输入
-        item_data_inputs = self.tokenizer(item_data, return_tensors='pt', padding=True, truncation=True, max_length=512)
+        # start_item = time.time()
+        item_data_inputs = self.tokenizer(item_data, return_tensors='pt', padding='max_length', truncation=True, max_length=320)
         item_data_inputs = {key: val.to(device) for key, val in item_data_inputs.items()}
-        item_outputs = self.encoder(**item_data_inputs).last_hidden_state[:, 0, :]
+        #[64,320, 768]
+        item_outputs = self.encoder(**item_data_inputs, output_hidden_states=True)
 
-        # 将得到的两个嵌入 相乘得到combined1  [64, 768]
-        combined1 = usr_outputs * item_outputs
-        # combined1 = usr_outputs[:, :768] * item_outputs[:, :768]  # Assuming [CLS] token embeddings are the first part of usr_outputs and item_outputs
-        # breakpoint()
-        # 两个维度应该相同
-        # print(f"usr_outputs shape: {usr_outputs.shape}")  # DEBUG
-        # print(f"question_similarity_vector shape: {question_similarity_vector.shape}")  # DEBUG
-        # print(f"item_outputs shape: {item_outputs.shape}")  # DEBUG
-        # print(f"item_similarity_vector shape: {item_similarity_vector.shape}")  # DEBUG
+        item_outputs = item_outputs.hidden_states[-1]
 
-        # 调整相似度向量的维度
+        # 同上[64, 768]
+        item_outputs_mean = item_outputs.mean(dim=1)
+        # item_time = time.time() - start_item
+
+
+        # 调整相似度向量的维度 降维操作
+        # [64, 768]
+        # start_sim = time.time()
         adjusted_question_similarity_vector = self.question_projection(question_similarity_vector)
+        # [64, 768]
         adjusted_item_similarity_vector = self.item_projection(item_similarity_vector)
+        # sim_time = time.time() - start_sim
 
-        # 将其和相似矩阵合并
-        usr_outputs = torch.cat((usr_outputs, adjusted_question_similarity_vector), dim=1)
-        # 将符号也和相似矩阵合并
-        item_outputs = torch.cat((item_outputs, adjusted_item_similarity_vector), dim=1)
+        # 将mean向量和调整后的相似度向量相加   1已经得到
+        # start_features = time.time()
+        updated_question_embedding = usr_outputs_mean + adjusted_question_similarity_vector
+        # 得到更新特征后的新的item信息
+        updated_item_embedding = item_outputs_mean + adjusted_item_similarity_vector
 
-        MLP_usr_outputs = self.MLP_user_projection(usr_outputs)
-        MF_usr_outputs = self.MF_user_projection(usr_outputs)
 
-        MLP_item_outputs = self.MLP_item_projection(item_outputs)
-        MF_item_outputs = self.MF_item_projection(item_outputs)
+        #这里点乘  [64, 768]
+        feature1 = updated_question_embedding * updated_item_embedding  # [hidden_size]
 
-        # 将得到的问题和符号的向进行拼接或者串联 combined2  [64, 1536]
-        ui_combined = torch.cat([MLP_usr_outputs, MLP_item_outputs], dim=1)
-        # 点乘的方法  combined3  [64, 768]
-        ui_mu = MF_usr_outputs * MF_item_outputs
+        # 对于feature2的计算，需要调整维度
+        # [64, 768] -> [64, 768, 1]
+        combined_item_vector = updated_item_embedding.unsqueeze(2)
+        # 执行矩阵乘法  3得到
+        # [64, 320, 768] @ [64, 768, 1] = [64, 320, 1]
+        feature2 = torch.matmul(usr_outputs, combined_item_vector)
+        # 把feature2压缩到二维 [64, 320]
+        feature2 = feature2.squeeze(-1)
 
-        # 将前面得到的123 都进行合并操作  [64, 3072]
-        final_combined = torch.cat([combined1, ui_combined, ui_mu], dim=1)
-        # breakpoint()
-        # ui_combined = self.MLP(ui_combined)  [64, 1536]
-        ui_combined = self.MLP(final_combined)
+        # [64, 768]  串联
+        # 先将两个embedding拼接[64, 768] + [64, 768] -> [64, 1536]
+        concatenated_embeddings = torch.cat((updated_question_embedding, updated_item_embedding), dim=1)
+        # sum_embedding = updated_question_embedding + updated_item_embedding  # [hidden_size]
+        # 通过MLP降维到768
+        # [64, 1536] -> [64, 768]
+        feature3 = self.MLP(concatenated_embeddings)
+        # features_time = time.time() - start_features
 
-        # 将输出拼接  [64, 1536]
-        combined = torch.cat([ui_combined, ui_mu], dim=1)
 
-        logit = self.NeuMF(combined)
-
+        # feature1: [64, 768]
+        # feature2: [64, 320]
+        # feature3: [64, 768]
+        #然后进行拼接操作  64*1856
+        # start_pred = time.time()
+        combined_features = torch.cat((feature1, feature2, feature3), dim=1)
+        logit = self.NeuMF(combined_features)
         predictions1 = torch.sigmoid(logit).squeeze()
         predictions2 = torch.sigmoid(logit / T1).squeeze()
         predictions3 = torch.sigmoid(logit / T2).squeeze()
+        # pred_time = time.time() - start_pred
+        # total_time = time.time() - start_total
+
+        # print(f"用户数据处理时间: {user_time:.4f}s")
+        # print(f"项目数据处理时间: {item_time:.4f}s")
+        # print(f"相似度向量处理时间: {sim_time:.4f}s")
+        # print(f"特征计算时间: {features_time:.4f}s")
+        # print(f"预测时间: {pred_time:.4f}s")
+        # print(f"总执行时间: {total_time:.4f}s")
+
         return predictions1, predictions2, predictions3
 
 
@@ -503,12 +546,14 @@ def reorder_similarity_matrices(test_data, question_similarity_matrix, item_simi
 
 
 if __name__ == "__main__":
+    # cluster矩阵
     cluster_ratings_matrix, _, _, _, _ = process_matrix_data(
     'new_data/train/rating_data_cluster.csv',
     'new_data/train/user_data.csv',
     'new_data/item_data.csv'
     )
 
+    # 真实01矩阵
     train_ratings_matrix, train_users_dict, train_items_dict, train_user, train_item = process_matrix_data(
         'new_data/train/rating_data.csv',
         'new_data/train/user_data.csv',
@@ -520,12 +565,12 @@ if __name__ == "__main__":
         'new_data/test/user_data.csv',
         'new_data/item_data.csv'
     )
-    # 矩阵分解
+    # SVD矩阵
     num_latent_factors = 30
     U, S, V = matrix_factorization(train_ratings_matrix, num_latent_factors)
-
-    # 重构评分矩阵
     emb_ratings_matrix = reconstruct_matrix(U, S, V)
+    emb_ratings_matrix = torch.tensor(emb_ratings_matrix, dtype=torch.float32)
+    emb_ratings_matrix = sigmoid_transform(emb_ratings_matrix, scale=10)
 
     # 因为符号后面一直需要使用 所以引入相应的映射关系
     # 读取 item_data.csv，构建符号与 item_id 的映射
@@ -541,7 +586,6 @@ if __name__ == "__main__":
     # 符号矩阵为132*132
     train_data = negative_sampling(train_ratings_matrix, emb_ratings_matrix, cluster_ratings_matrix, train_users_dict, train_items_dict, question_similarity_train_matrix, neg_ratio=1)
 
-    # breakpoint()
     test_data, id_samples = full_sampling(test_ratings_matrix, test_users_dict, test_items_dict,
                                           question_similarity_test_matrix)
 
@@ -560,16 +604,18 @@ if __name__ == "__main__":
     criterion2 = nn.BCELoss()
     criterion3 = nn.BCELoss()
     learning_rate_bert = 1e-5
-    learning_rate_others = 5e-5
+    learning_rate_others = 3e-5
     weight_decay = 0.001
 
     # 优化器 Adam 和 AdamW
     optimizer = optim.AdamW([
         {'params': recommend_model.encoder.parameters(), 'lr': learning_rate_bert},
-        {'params': recommend_model.MLP_user_projection.parameters()},
-        {'params': recommend_model.MLP_item_projection.parameters()},
-        {'params': recommend_model.MF_item_projection.parameters()},
-        {'params': recommend_model.MF_user_projection.parameters()},
+        {'params':recommend_model.question_projection.parameters()},
+        {'params': recommend_model.item_projection.parameters()},
+        # {'params': recommend_model.MLP_user_projection.parameters()},
+        # {'params': recommend_model.MLP_item_projection.parameters()},
+        # {'params': recommend_model.MF_item_projection.parameters()},
+        # {'params': recommend_model.MF_user_projection.parameters()},
         {'params': recommend_model.MLP.parameters()},
         {'params': recommend_model.NeuMF.parameters()},
     ], lr=learning_rate_others, weight_decay=weight_decay)
@@ -577,14 +623,15 @@ if __name__ == "__main__":
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=0.01)
 
-    epochs = 40  # 80
+    epochs = 60  # 80
     batch_size = 64
     top_k = 10
     T1 = 4
     T2 = 4
-    lambda_1 = 0.25
-    lambda_2 = 0.25
+    lambda_1 = 0.2
+    lambda_2 = 0.2
 
+    logging.info(f"Scale = 10, lamda1: {lambda_1}, lambda2: {lambda_2}, T1: {T1}, T2: {T2}, learning_rate_bert: {learning_rate_bert}, learning_rate_others: {learning_rate_others}, weight_decay: {weight_decay}, num_latent_factors: {num_latent_factors}, epochs: {epochs}, batch_size: {batch_size}, top_k: {top_k}")
     ##################### 以下为训练部分 #####################
     recommend_model.train()
 
@@ -595,10 +642,13 @@ if __name__ == "__main__":
     best_epoch = 0  # 初始化最好的epoch为0
 
     for epoch in range(epochs):
+        # epoch_start_time = time.time()
         epoch_loss = 0
         epoch_accuracy = 0
 
+        # start_batch_time = time.time()
         for i in range(0, len(train_user), batch_size):
+            # start_user = time.time()
             optimizer.zero_grad()
 
             user_batch = train_user[i:i + batch_size]
@@ -625,18 +675,25 @@ if __name__ == "__main__":
             loss2 = criterion2(predictions2, emb_ratings_batch)
             loss3 = criterion3(predictions3, cluster_rating_batch)
             total_loss = (1 - lambda_2 - lambda_1) * loss1 + lambda_1 * loss2 + lambda_2 * loss3
-
+            # backtime = time.time()
             total_loss.backward()
+            # backend = time.time()-backtime
+            # breakpoint()
+            # backtime2 = time.time()
             optimizer.step()
 
             epoch_loss += total_loss.item()
+            # endtime = time.time()
+
+            # batchtime = endtime - start_user
+
+        # end_batch_time = time.time()-start_batch_time
 
         scheduler.step()
 
         # 计算loss和accuracy
         train_loss = epoch_loss / (len(train_user) // batch_size)
         train_losses.append(train_loss)
-
         # 在每个epoch结束后用测试集评估模型的准确率
         _, test_loss, test_accuracy, _ = evaluate_model_on_test_set(recommend_model, test_data,
                                                                     item_similarity_matrix,
@@ -655,14 +712,23 @@ if __name__ == "__main__":
             # best_model_state = recommend_model.state_dict()  # 保存当前模型的状态
             # 保存最好的模型
             best_model = f"best_models/{model_name}.pt"
-            torch.save(recommend_model, best_model)
+            # torch.save(recommend_model, best_model)
+            torch.save({
+                'model_state_dict': recommend_model.state_dict()
+            }, best_model)
+            
 
     logging.info(f"Best model saved at epoch {best_epoch + 1} with accuracy {best_accuracy}")
 
     plot_metrics(train_losses, train_accuracies)
 
     ########################### 以下为测试部分 ############################
-    recommend_model = torch.load(best_model)
+    # recommend_model = torch.load(best_model)
+    checkpoint = torch.load(best_model)
+    
+    # 恢复模型状态
+    recommend_model.load_state_dict(checkpoint['model_state_dict'])
+
 
     test_ratings, test_loss, test_accuracy, predictions = evaluate_model_on_test_set(recommend_model, test_data,
                                                                                      item_similarity_matrix,

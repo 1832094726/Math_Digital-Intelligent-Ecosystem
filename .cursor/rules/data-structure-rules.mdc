@@ -1,0 +1,162 @@
+---
+globs: **/data/*.json,**/data/*.xlsx,**/data/*.jsonl
+description: 数据结构和数据管理规则
+---
+
+# 数据结构和数据管理规则
+
+## 核心数据文件
+
+### 作业相关数据
+- [homework-backend/data/homework.json](mdc:homework-backend/data/homework.json) - 作业题目、截止时间、知识点标签
+- [homework-backend/data/users.json](mdc:homework-backend/data/users.json) - 学生信息、登录凭证
+- [homework-backend/data/user_models.json](mdc:homework-backend/data/user_models.json) - 学习偏好、能力评估模型
+
+### 知识图谱数据
+- [homework-backend/data/knowledge.json](mdc:homework-backend/data/knowledge.json) - 知识点关系、依赖关系
+- [homework-backend/data/Knowledge_Point_detail.xlsx](mdc:homework-backend/data/Knowledge_Point_detail.xlsx) - 详细知识点信息
+- [homework-backend/data/小学数学.xlsx](mdc:homework-backend/data/小学数学.xlsx) - 小学数学知识点体系
+
+### 符号和算法数据
+- [homework-backend/data/symbols.json](mdc:homework-backend/data/symbols.json) - 数学符号库、使用频率
+- [homework-backend/data/complete_math_equation_dataset.jsonl](mdc:homework-backend/data/complete_math_equation_dataset.jsonl) - 数学方程训练数据
+- [homework-backend/data/math_equation_training_dataset.jsonl](mdc:homework-backend/data/math_equation_training_dataset.jsonl) - 数学方程训练数据集
+
+### 符号键盘数据
+- [Subject_symbol_dynamic_keyboard/board-backend/data/dict.json](mdc:Subject_symbol_dynamic_keyboard/board-backend/data/dict.json) - 符号字典
+- [Subject_symbol_dynamic_keyboard/board-backend/data/problems.json](mdc:Subject_symbol_dynamic_keyboard/board-backend/data/problems.json) - 问题数据
+- [Subject_symbol_dynamic_keyboard/board-backend/data/idf_dict.txt](mdc:Subject_symbol_dynamic_keyboard/board-backend/data/idf_dict.txt) - IDF权重字典
+
+## 数据结构规范
+
+### JSON数据格式
+所有JSON文件应遵循以下格式：
+```json
+{
+  "version": "1.0",
+  "timestamp": "2024-01-01T00:00:00Z",
+  "data": {
+    // 具体数据内容
+  },
+  "metadata": {
+    "description": "数据描述",
+    "source": "数据来源",
+    "count": 100
+  }
+}
+```
+
+### 作业数据结构
+```json
+{
+  "homework_id": "hw_001",
+  "title": "线性方程练习",
+  "subject": "数学",
+  "grade": 7,
+  "difficulty": 3,
+  "knowledge_points": ["linear_equations", "basic_algebra"],
+  "questions": [
+    {
+      "question_id": "q_001",
+      "type": "calculation",
+      "content": "解方程：2x + 3 = 7",
+      "answer": "x = 2",
+      "symbols_used": ["x", "=", "+"],
+      "difficulty": 2
+    }
+  ],
+  "due_date": "2024-01-15T23:59:59Z",
+  "created_by": "teacher_001"
+}
+```
+
+### 用户模型数据结构
+```json
+{
+  "user_id": "student_001",
+  "profile": {
+    "grade": 7,
+    "math_level": 3,
+    "learning_style": "visual",
+    "preferred_symbols": ["=", "+", "-", "×", "÷"],
+    "weak_areas": ["fractions", "geometry"]
+  },
+  "learning_history": [
+    {
+      "timestamp": "2024-01-01T10:00:00Z",
+      "activity": "homework_completion",
+      "subject": "algebra",
+      "performance": 0.85
+    }
+  ],
+  "recommendations": {
+    "next_topics": ["quadratic_equations"],
+    "practice_areas": ["linear_equations"],
+    "symbols_to_learn": ["√", "²"]
+  }
+}
+```
+
+### 知识图谱数据结构
+```json
+{
+  "knowledge_point_id": "linear_equations",
+  "name": "线性方程",
+  "description": "一元一次方程的解法",
+  "grade_level": [6, 7, 8],
+  "difficulty": 3,
+  "prerequisites": ["basic_operations", "algebraic_expressions"],
+  "related_topics": ["systems_of_equations", "inequalities"],
+  "symbols_required": ["x", "y", "=", "+", "-"],
+  "learning_objectives": [
+    "理解线性方程的概念",
+    "掌握解一元一次方程的方法",
+    "能够验证方程的解"
+  ],
+  "common_errors": [
+    "符号错误",
+    "移项错误",
+    "计算错误"
+  ]
+}
+```
+
+## 数据管理规范
+
+### 数据一致性
+- 所有ID字段使用统一的命名规范（如user_id, homework_id）
+- 时间戳统一使用ISO 8601格式
+- 文本内容统一使用UTF-8编码
+- 数值类型保持一致（整数、浮点数）
+
+### 数据验证
+- 每次数据更新都要验证JSON格式正确性
+- 检查必需字段是否存在
+- 验证数据类型和取值范围
+- 检查外键关联的完整性
+
+### 数据备份
+- 定期备份所有数据文件
+- 保留数据变更历史记录
+- 实施数据版本控制
+- 建立数据恢复机制
+
+### 性能优化
+- 大数据集使用JSONL格式（如训练数据）
+- 建立适当的索引结构
+- 实施数据分片策略
+- 使用缓存减少文件IO
+
+## 数据隐私和安全
+
+### 隐私保护
+- 学生个人信息需要脱敏处理
+- 敏感数据进行加密存储
+- 实施数据访问权限控制
+- 遵循数据保护法规要求
+
+### 数据审计
+- 记录所有数据访问和修改操作
+- 建立数据使用追踪机制
+- 定期进行数据安全审计
+- 监控异常数据访问行为

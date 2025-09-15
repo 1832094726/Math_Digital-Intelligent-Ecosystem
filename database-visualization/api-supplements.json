@@ -1,0 +1,1442 @@
+{
+    "routes_login": {
+        "description": "用户登录认证，支持学生、教师、管理员登录",
+        "parameters": {
+            "username": "用户名或邮箱",
+            "password": "用户密码",
+            "device_type": "设备类型",
+            "device_id": "设备唯一标识"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "access_token": "string",
+                "refresh_token": "string",
+                "user": "object",
+                "expires_in": "number"
+            },
+            "401": {
+                "success": "boolean",
+                "message": "string",
+                "error": "object"
+            }
+        },
+        "database_tables": ["users", "user_sessions"],
+        "example_request": {
+            "username": "test_student_001",
+            "password": "student123",
+            "device_type": "web"
+        },
+        "example_response": {
+            "success": true,
+            "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+            "user": {
+                "id": 2,
+                "username": "test_student_001",
+                "role": "student",
+                "real_name": "测试学生"
+            }
+        }
+    },
+    "routes_register": {
+        "description": "用户注册，创建新的学生、教师或管理员账户",
+        "parameters": {
+            "username": "用户名",
+            "email": "邮箱地址",
+            "password": "密码",
+            "real_name": "真实姓名",
+            "role": "用户角色：student/teacher/admin",
+            "grade": "年级（学生必填）",
+            "school": "学校名称",
+            "class_name": "班级名称"
+        },
+        "responses": {
+            "201": {
+                "success": "boolean",
+                "message": "string",
+                "user_id": "number"
+            },
+            "400": {
+                "success": "boolean",
+                "message": "string",
+                "errors": "object"
+            }
+        },
+        "database_tables": ["users"]
+    },
+    "routes_create_homework": {
+        "description": "创建新作业，教师可以创建包含多个题目的作业",
+        "parameters": {
+            "title": "作业标题",
+            "description": "作业描述",
+            "subject": "学科",
+            "grade": "年级",
+            "difficulty_level": "难度等级1-5",
+            "questions": "题目列表",
+            "due_date": "截止日期",
+            "max_score": "总分"
+        },
+        "responses": {
+            "201": {
+                "success": "boolean",
+                "homework_id": "number",
+                "message": "string"
+            },
+            "400": {
+                "success": "boolean",
+                "message": "string",
+                "errors": "array"
+            }
+        },
+        "database_tables": ["homeworks", "questions", "homework_questions"]
+    },
+    "routes_list_homeworks": {
+        "description": "获取作业列表，支持分页和筛选",
+        "parameters": {
+            "page": "页码，默认1",
+            "limit": "每页数量，默认10",
+            "subject": "学科筛选",
+            "grade": "年级筛选",
+            "keyword": "关键词搜索",
+            "category": "分类筛选"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "homeworks": "array",
+                "total": "number",
+                "page": "number",
+                "total_pages": "number"
+            }
+        },
+        "database_tables": ["homeworks", "users"]
+    },
+    "blueprints_recommend_knowledge_points": {
+        "description": "基于AI的知识点推荐，根据用户学习状态和上下文推荐相关知识点",
+        "parameters": {
+            "question_id": "题目ID，基于题目推荐",
+            "context": "学习上下文内容",
+            "limit": "推荐数量限制，默认5"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "recommendations": "array",
+                "total": "number",
+                "timestamp": "string"
+            }
+        },
+        "database_tables": ["knowledge_points", "knowledge_relationships", "users"],
+        "example_request": {
+            "context": "解一元二次方程",
+            "limit": 3
+        },
+        "example_response": {
+            "success": true,
+            "recommendations": [
+                {
+                    "id": 2,
+                    "name": "代数表达式",
+                    "description": "用字母和数字表示的数学表达式",
+                    "grade_level": 2,
+                    "difficulty_level": 2,
+                    "relevance_score": 0.8,
+                    "recommendation_reason": "与输入内容相关"
+                }
+            ],
+            "total": 1
+        }
+    },
+    "blueprints_recommend_symbols": {
+        "description": "数学符号智能推荐，基于上下文和用户习惯推荐合适的数学符号",
+        "parameters": {
+            "context": "当前输入上下文",
+            "question_text": "题目文本",
+            "limit": "推荐数量，默认5"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "recommendations": "array",
+                "context_analysis": "object"
+            }
+        },
+        "database_tables": ["symbol_recommendations", "users"]
+    },
+    "routes_grade_submission": {
+        "description": "自动评分学生作业提交，支持多种题型的智能评分",
+        "parameters": {
+            "submission_id": "提交ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "grading_result": "object",
+                "total_score": "number",
+                "max_score": "number"
+            },
+            "404": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["homework_submissions", "grading_results", "questions"]
+    },
+    "db_viz_table_data": {
+        "description": "获取数据库表的实时数据，支持分页和筛选",
+        "parameters": {
+            "table_name": "表名（路径参数）",
+            "limit": "查询数量限制，默认10",
+            "offset": "偏移量，默认0"
+        },
+        "responses": {
+            "200": {
+                "data": "array",
+                "limit": "number",
+                "offset": "number",
+                "count": "number",
+                "table": "string",
+                "source": "string"
+            }
+        },
+        "database_tables": ["dynamic"]
+    },
+    "routes_refresh": {
+        "description": "刷新用户访问令牌，延长登录会话",
+        "parameters": {
+            "refresh_token": "刷新令牌"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "access_token": "string",
+                "expires_in": "number"
+            }
+        },
+        "database_tables": ["user_sessions"]
+    },
+    "routes_logout": {
+        "description": "用户登出，清除会话信息",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["user_sessions"]
+    },
+    "routes_profile": {
+        "description": "获取用户个人资料信息",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "user": "object"
+            }
+        },
+        "database_tables": ["users"]
+    },
+    "routes_update_profile": {
+        "description": "更新用户个人资料信息",
+        "parameters": {
+            "real_name": "真实姓名",
+            "email": "邮箱地址",
+            "phone": "手机号码",
+            "school": "学校名称"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["users"]
+    },
+    "routes_sessions": {
+        "description": "获取用户活跃会话列表",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "sessions": "array"
+            }
+        },
+        "database_tables": ["user_sessions"]
+    },
+    "routes_get_homework": {
+        "description": "获取指定作业的详细信息",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "homework": "object"
+            }
+        },
+        "database_tables": ["homeworks", "questions"]
+    },
+    "routes_get_homework_questions": {
+        "description": "获取作业的所有题目列表",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "questions": "array"
+            }
+        },
+        "database_tables": ["questions", "homeworks"]
+    },
+    "routes_update_homework": {
+        "description": "更新作业信息，包括标题、描述、题目等",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）",
+            "title": "作业标题",
+            "description": "作业描述",
+            "due_date": "截止日期"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["homeworks"]
+    },
+    "routes_delete_homework": {
+        "description": "删除指定作业及其相关数据",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["homeworks", "questions", "homework_submissions"]
+    },
+    "routes_publish_homework": {
+        "description": "发布作业，使学生可以看到并完成作业",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["homeworks"]
+    },
+    "routes_unpublish_homework": {
+        "description": "取消发布作业，隐藏作业不让学生看到",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["homeworks"]
+    },
+    "routes_get_statistics": {
+        "description": "获取作业统计信息，包括完成率、平均分等",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "statistics": "object"
+            }
+        },
+        "database_tables": ["homeworks", "homework_submissions"]
+    },
+    "routes_search_homeworks": {
+        "description": "搜索作业，支持关键词、学科、年级等条件搜索",
+        "parameters": {
+            "keyword": "搜索关键词",
+            "subject": "学科筛选",
+            "grade": "年级筛选"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "homeworks": "array",
+                "total": "number"
+            }
+        },
+        "database_tables": ["homeworks"]
+    },
+    "routes_get_homework_list": {
+        "description": "获取学生可见的作业列表",
+        "parameters": {
+            "page": "页码",
+            "limit": "每页数量"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "homeworks": "array"
+            }
+        },
+        "database_tables": ["homework_assignments", "homeworks"]
+    },
+    "routes_get_homework_detail": {
+        "description": "获取作业详细信息，包括题目和学生提交状态",
+        "parameters": {
+            "assignment_id": "作业分配ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "homework": "object",
+                "questions": "array",
+                "submission_status": "object"
+            }
+        },
+        "database_tables": ["homework_assignments", "homeworks", "questions", "homework_submissions"]
+    },
+    "routes_toggle_homework_favorite": {
+        "description": "切换作业收藏状态，添加或移除收藏",
+        "parameters": {
+            "assignment_id": "作业分配ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "is_favorite": "boolean"
+            }
+        },
+        "database_tables": ["homework_favorites"]
+    },
+    "routes_get_favorite_homeworks": {
+        "description": "获取用户收藏的作业列表",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "favorites": "array"
+            }
+        },
+        "database_tables": ["homework_favorites", "homework_assignments"]
+    },
+    "routes_get_homework_progress": {
+        "description": "获取作业完成进度信息",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "progress": "object"
+            }
+        },
+        "database_tables": ["homework_progress"]
+    },
+    "routes_save_homework_progress": {
+        "description": "保存作业完成进度，支持断点续做",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）",
+            "answers": "答案数据",
+            "progress": "完成进度"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["homework_progress"]
+    },
+    "routes_get_homework_reminders": {
+        "description": "获取作业提醒列表，包括即将到期的作业",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "reminders": "array"
+            }
+        },
+        "database_tables": ["homework_reminders", "homework_assignments"]
+    },
+    "routes_get_homework_dashboard": {
+        "description": "获取学生作业仪表板数据，包括统计信息",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "dashboard": "object"
+            }
+        },
+        "database_tables": ["homework_assignments", "homework_submissions"]
+    },
+    "routes_get_filter_options": {
+        "description": "获取作业筛选选项，如可用的学科、年级等",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "options": "object"
+            }
+        },
+        "database_tables": ["homeworks", "subjects", "grades"]
+    },
+    "routes_submit_homework": {
+        "description": "提交作业答案，完成作业",
+        "parameters": {
+            "assignment_id": "作业分配ID（路径参数）",
+            "answers": "答案数据"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "submission_id": "number"
+            }
+        },
+        "database_tables": ["homework_submissions"]
+    },
+    "auth_profile_get": {
+        "description": "获取当前用户的个人资料信息",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "user": "object",
+                "profile": "object"
+            }
+        },
+        "database_tables": ["users"],
+        "example_response": {
+            "success": true,
+            "user": {
+                "id": 1,
+                "username": "student001",
+                "name": "张三",
+                "email": "zhangsan@example.com",
+                "role": "student"
+            }
+        }
+    },
+    "auth_sessions": {
+        "description": "获取用户的活跃会话列表，用于会话管理和安全监控",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "sessions": "array",
+                "current_session": "object"
+            }
+        },
+        "database_tables": ["user_sessions"],
+        "example_response": {
+            "success": true,
+            "sessions": [
+                {
+                    "id": "session_123",
+                    "device": "Chrome on Windows",
+                    "ip": "192.168.1.100",
+                    "last_active": "2024-01-15 10:30:00"
+                }
+            ]
+        }
+    },
+    "homework_assign": {
+        "description": "教师分配作业给指定班级或学生",
+        "parameters": {
+            "homework_id": "作业ID",
+            "class_ids": "班级ID列表",
+            "student_ids": "学生ID列表（可选）",
+            "due_date": "截止日期",
+            "instructions": "特殊说明"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "assignment_count": "number"
+            }
+        },
+        "database_tables": ["homework_assignments", "classes", "users"]
+    },
+    "homework_class_get": {
+        "description": "获取指定班级的作业列表",
+        "parameters": {
+            "class_id": "班级ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "homeworks": "array"
+            }
+        },
+        "database_tables": ["homeworks", "homework_assignments", "classes"]
+    },
+    "homework_teacher_my": {
+        "description": "获取教师创建的所有作业列表",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "homeworks": "array"
+            }
+        },
+        "database_tables": ["homeworks", "users"]
+    },
+    "homework_status_update": {
+        "description": "更新作业状态（发布、暂停、结束等）",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）",
+            "status": "新状态"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["homeworks"]
+    },
+    "homework_classes_my": {
+        "description": "获取教师管理的班级列表",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "classes": "array"
+            }
+        },
+        "database_tables": ["classes", "users"]
+    },
+    "homework_classes_students": {
+        "description": "获取指定班级的学生列表",
+        "parameters": {
+            "class_id": "班级ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "students": "array"
+            }
+        },
+        "database_tables": ["class_students", "users"]
+    },
+    "homework_notifications_my": {
+        "description": "获取用户的通知列表",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "notifications": "array"
+            }
+        },
+        "database_tables": ["notifications"]
+    },
+    "homework_notifications_read": {
+        "description": "标记通知为已读",
+        "parameters": {
+            "notification_id": "通知ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean"
+            }
+        },
+        "database_tables": ["notifications"]
+    },
+    "homework_statistics_get": {
+        "description": "获取作业统计信息（完成率、平均分等）",
+        "parameters": {
+            "homework_id": "作业ID（路径参数，可选）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "statistics": "object"
+            }
+        },
+        "database_tables": ["homework_submissions", "homeworks"]
+    },
+    "homework_rules_get": {
+        "description": "获取作业评分规则",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "rules": "object"
+            }
+        },
+        "database_tables": ["homeworks"]
+    },
+    "homework_rules_post": {
+        "description": "设置作业评分规则",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）",
+            "rules": "评分规则配置"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean"
+            }
+        },
+        "database_tables": ["homeworks"]
+    },
+    "blueprints_get_recommendation_stats": {
+        "description": "获取推荐系统统计信息，包括推荐准确率、使用频率等数据",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "stats": "object"
+            }
+        },
+        "database_tables": ["symbol_recommendations", "problem_recommendations"]
+    },
+    "blueprints_recommend_exercises": {
+        "description": "基于学生学习状态推荐练习题，支持难度自适应调整",
+        "parameters": {
+            "student_id": "学生ID",
+            "subject": "学科",
+            "difficulty": "难度级别",
+            "count": "推荐数量"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "exercises": "array"
+            }
+        },
+        "database_tables": ["problem_recommendations", "questions", "users"]
+    },
+    "blueprints_recommend_learning_path": {
+        "description": "为学生推荐个性化学习路径，基于知识图谱和学习进度",
+        "parameters": {
+            "student_id": "学生ID",
+            "target_knowledge": "目标知识点",
+            "current_level": "当前水平"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "learning_path": "array"
+            }
+        },
+        "database_tables": ["learning_path_recommendations", "knowledge_points"]
+    },
+    "blueprints_record_symbol_usage": {
+        "description": "记录学生使用数学符号的行为数据，用于优化推荐算法",
+        "parameters": {
+            "symbol": "使用的符号",
+            "context": "使用上下文",
+            "user_id": "用户ID"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean"
+            }
+        },
+        "database_tables": ["symbol_recommendations", "interaction_logs"]
+    },
+    "main_hello_world": {
+        "description": "系统首页接口，返回系统基本信息和状态",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "message": "string",
+                "system_info": "object"
+            }
+        },
+        "database_tables": []
+    },
+    "main_homework_detail": {
+        "description": "获取指定作业的详细信息，包括题目、提交状态等",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "homework": "object",
+                "questions": "array"
+            }
+        },
+        "database_tables": ["homeworks", "questions", "homework_submissions"]
+    },
+    "main_homework_list": {
+        "description": "获取作业列表，支持分页和筛选条件",
+        "parameters": {
+            "page": "页码",
+            "limit": "每页数量",
+            "status": "作业状态筛选"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "homeworks": "array",
+                "total": "number"
+            }
+        },
+        "database_tables": ["homeworks", "homework_assignments"]
+    },
+    "main_question_knowledge": {
+        "description": "获取题目相关的知识点信息，支持知识点查询和关联分析",
+        "parameters": {
+            "question_id": "题目ID",
+            "knowledge_point": "知识点名称"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "knowledge_points": "array",
+                "relationships": "array"
+            }
+        },
+        "database_tables": ["questions", "knowledge_points", "knowledge_relationships"]
+    },
+    "main_recommend_exercises": {
+        "description": "主要的练习推荐接口，整合多种推荐算法",
+        "parameters": {
+            "user_id": "用户ID",
+            "preferences": "用户偏好",
+            "difficulty_range": "难度范围"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "recommendations": "array"
+            }
+        },
+        "database_tables": ["problem_recommendations", "questions", "learning_behaviors"]
+    },
+    "main_recommend_knowledge": {
+        "description": "知识点推荐接口，基于学习进度推荐相关知识点",
+        "parameters": {
+            "user_id": "用户ID",
+            "current_topic": "当前学习主题",
+            "learning_goal": "学习目标"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "knowledge_recommendations": "array"
+            }
+        },
+        "database_tables": ["knowledge_points", "knowledge_relationships", "learning_behaviors"]
+    },
+    "main_recommend_symbols": {
+        "description": "数学符号推荐接口，根据输入上下文推荐合适的符号",
+        "parameters": {
+            "context": "输入上下文",
+            "subject": "学科领域",
+            "user_level": "用户水平"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "symbols": "array"
+            }
+        },
+        "database_tables": ["symbol_recommendations", "interaction_logs"]
+    },
+    "main_redirect_homework_detail": {
+        "description": "作业详情页面重定向接口，用于页面路由跳转",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "302": {
+                "redirect_url": "string"
+            }
+        },
+        "database_tables": ["homeworks"]
+    },
+    "main_redirect_homework_list": {
+        "description": "作业列表页面重定向接口，用于页面路由跳转",
+        "parameters": {},
+        "responses": {
+            "302": {
+                "redirect_url": "string"
+            }
+        },
+        "database_tables": []
+    },
+    "main_redirect_knowledge_question": {
+        "description": "知识点题目页面重定向接口，用于页面路由跳转",
+        "parameters": {},
+        "responses": {
+            "302": {
+                "redirect_url": "string"
+            }
+        },
+        "database_tables": []
+    },
+    "main_save": {
+        "description": "保存作业进度接口，支持断点续做功能",
+        "parameters": {
+            "homework_id": "作业ID",
+            "answers": "当前答案数据",
+            "progress": "完成进度"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "saved_at": "string"
+            }
+        },
+        "database_tables": ["homework_progress", "homework_submissions"]
+    },
+    "main_submit": {
+        "description": "提交作业答案接口，完成作业并触发自动评分",
+        "parameters": {
+            "homework_id": "作业ID",
+            "answers": "完整答案数据",
+            "submit_time": "提交时间"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "submission_id": "number",
+                "score": "number"
+            }
+        },
+        "database_tables": ["homework_submissions", "homeworks"]
+    },
+    "main_update_user": {
+        "description": "更新用户信息接口，支持个人资料修改",
+        "parameters": {
+            "name": "姓名",
+            "email": "邮箱",
+            "phone": "电话",
+            "avatar": "头像"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "user": "object"
+            }
+        },
+        "database_tables": ["users"]
+    },
+    "main_user_info": {
+        "description": "获取指定用户的基本信息",
+        "parameters": {
+            "user_id": "用户ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "user": "object"
+            }
+        },
+        "database_tables": ["users"]
+    },
+    "routes_assign_homework": {
+        "description": "教师分配作业给班级或学生",
+        "parameters": {
+            "homework_id": "作业ID",
+            "target_type": "分配类型（class/student）",
+            "target_ids": "目标ID列表",
+            "due_date": "截止时间"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "assignment_count": "number"
+            }
+        },
+        "database_tables": ["homework_assignments", "classes", "users"]
+    },
+    "routes_batch_grade": {
+        "description": "批量评分接口，支持多份作业同时评分",
+        "parameters": {
+            "submission_ids": "提交ID列表",
+            "grading_rules": "评分规则"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "graded_count": "number",
+                "results": "array"
+            }
+        },
+        "database_tables": ["homework_submissions", "homeworks"]
+    },
+    "routes_get_profile": {
+        "description": "获取当前用户的个人资料信息，包括基本信息和偏好设置",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "profile": "object"
+            }
+        },
+        "database_tables": ["users"]
+    },
+    "routes_get_sessions": {
+        "description": "获取用户的活跃会话列表，用于会话管理和安全监控",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "sessions": "array"
+            }
+        },
+        "database_tables": ["user_sessions"]
+    },
+    "routes_get_class_assignments": {
+        "description": "获取指定班级的作业分配情况，教师查看班级作业状态",
+        "parameters": {
+            "class_id": "班级ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "assignments": "array"
+            }
+        },
+        "database_tables": ["homework_assignments", "classes"]
+    },
+    "routes_get_my_assignments": {
+        "description": "获取教师创建的所有作业分配，用于教师管理界面",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "assignments": "array"
+            }
+        },
+        "database_tables": ["homework_assignments", "homeworks"]
+    },
+    "routes_get_assignment_detail": {
+        "description": "获取作业分配的详细信息，包括完成情况和统计数据",
+        "parameters": {
+            "assignment_id": "分配ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "assignment": "object"
+            }
+        },
+        "database_tables": ["homework_assignments"]
+    },
+    "routes_update_assignment_status": {
+        "description": "更新作业分配状态，如开启、关闭、延期等操作",
+        "parameters": {
+            "assignment_id": "分配ID（路径参数）",
+            "status": "新状态"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean"
+            }
+        },
+        "database_tables": ["homework_assignments"]
+    },
+    "routes_get_my_classes": {
+        "description": "获取教师负责的班级列表，用于班级管理",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "classes": "array"
+            }
+        },
+        "database_tables": ["classes"]
+    },
+    "routes_get_class_students": {
+        "description": "获取指定班级的学生名单，用于作业分配和管理",
+        "parameters": {
+            "class_id": "班级ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "students": "array"
+            }
+        },
+        "database_tables": ["class_students", "users"]
+    },
+    "routes_get_my_notifications": {
+        "description": "获取用户的通知消息列表，包括作业提醒、系统通知等",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "notifications": "array"
+            }
+        },
+        "database_tables": ["notifications"]
+    },
+    "routes_mark_notification_read": {
+        "description": "标记指定通知为已读状态，更新通知状态",
+        "parameters": {
+            "notification_id": "通知ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean"
+            }
+        },
+        "database_tables": ["notifications"]
+    },
+    "routes_get_assignment_statistics": {
+        "description": "获取作业分配的统计信息，包括完成率、平均分、提交时间分布等",
+        "parameters": {
+            "assignment_id": "分配ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "statistics": "object"
+            }
+        },
+        "database_tables": ["homework_assignments", "homework_submissions"]
+    },
+    "routes_get_homework_statistics": {
+        "description": "获取整体作业统计信息，教师查看所有作业的完成情况",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "statistics": "object"
+            }
+        },
+        "database_tables": ["homeworks", "homework_submissions"]
+    },
+    "routes_get_grading_rules": {
+        "description": "获取指定作业的评分规则配置，包括评分标准和权重",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "rules": "object"
+            }
+        },
+        "database_tables": ["homeworks"]
+    },
+    "routes_update_grading_rules": {
+        "description": "更新作业的评分规则，教师可以自定义评分标准",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）",
+            "rules": "评分规则配置"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean"
+            }
+        },
+        "database_tables": ["homeworks"]
+    },
+    "routes_get_symbol_recommendations": {
+        "description": "获取数学符号推荐，基于当前输入上下文推荐相关符号",
+        "parameters": {
+            "context": "输入上下文",
+            "subject": "学科领域"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "recommendations": "array"
+            }
+        },
+        "database_tables": ["symbol_recommendations"]
+    },
+    "routes_get_explained_symbol_recommendations": {
+        "description": "获取带解释的符号推荐，包含推荐理由和使用说明",
+        "parameters": {
+            "context": "输入上下文",
+            "explain": "是否需要详细解释"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "recommendations": "array",
+                "explanations": "array"
+            }
+        },
+        "database_tables": ["symbol_recommendations"]
+    },
+    "routes_get_symbol_completions": {
+        "description": "获取符号自动补全建议，帮助用户快速输入数学表达式",
+        "parameters": {
+            "partial_input": "部分输入内容",
+            "limit": "返回数量限制"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "completions": "array"
+            }
+        },
+        "database_tables": ["symbol_recommendations"]
+    },
+    "routes_get_context_aware_recommendations": {
+        "description": "获取上下文感知的符号推荐，基于当前题目和学习进度",
+        "parameters": {
+            "context": "当前上下文",
+            "user_level": "用户水平",
+            "subject": "学科"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "recommendations": "array"
+            }
+        },
+        "database_tables": ["symbol_recommendations", "users"]
+    },
+    "routes_record_symbol_usage": {
+        "description": "记录用户符号使用行为，用于优化推荐算法和学习分析",
+        "parameters": {
+            "symbol": "使用的符号",
+            "context": "使用上下文",
+            "timestamp": "使用时间"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean"
+            }
+        },
+        "database_tables": ["interaction_logs", "symbol_recommendations"]
+    },
+    "routes_get_symbol_categories": {
+        "description": "获取数学符号分类列表，用于符号选择界面的分类显示",
+        "parameters": {},
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "categories": "array"
+            }
+        },
+        "database_tables": ["symbol_recommendations"]
+    },
+    "routes_get_symbols_by_category": {
+        "description": "获取指定分类下的所有数学符号，支持分类浏览",
+        "parameters": {
+            "category_id": "分类ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "symbols": "array"
+            }
+        },
+        "database_tables": ["symbol_recommendations"]
+    },
+    "routes_search_symbols": {
+        "description": "搜索数学符号，支持按名称、描述、LaTeX代码等条件搜索",
+        "parameters": {
+            "query": "搜索关键词",
+            "category": "分类筛选",
+            "limit": "结果数量限制"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "symbols": "array"
+            }
+        },
+        "database_tables": ["symbol_recommendations"]
+    },
+    "routes_get_user_symbol_stats": {
+        "description": "获取用户的符号使用统计信息，包括常用符号、使用频率等",
+        "parameters": {
+            "user_id": "用户ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "stats": "object"
+            }
+        },
+        "database_tables": ["interaction_logs", "users"]
+    },
+    "routes_get_user_learning_analytics": {
+        "description": "获取用户学习分析数据，包括学习行为、进度、偏好等",
+        "parameters": {
+            "user_id": "用户ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "analytics": "object"
+            }
+        },
+        "database_tables": ["learning_behaviors", "users"]
+    },
+    "routes_get_adaptive_recommendations": {
+        "description": "获取自适应推荐结果，基于用户学习状态动态调整推荐内容",
+        "parameters": {
+            "user_id": "用户ID",
+            "context": "当前学习上下文",
+            "difficulty": "期望难度"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "recommendations": "array"
+            }
+        },
+        "database_tables": ["learning_behaviors", "symbol_recommendations"]
+    },
+    "routes_get_learning_insights": {
+        "description": "获取学习洞察报告，分析用户学习模式和改进建议",
+        "parameters": {
+            "user_id": "用户ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "insights": "object"
+            }
+        },
+        "database_tables": ["learning_behaviors", "engagement_metrics"]
+    },
+    "routes_get_grading_result": {
+        "description": "获取作业提交的评分结果，包括得分、错误分析、改进建议",
+        "parameters": {
+            "submission_id": "提交ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "result": "object"
+            }
+        },
+        "database_tables": ["homework_submissions"]
+    },
+    "routes_review_grading": {
+        "description": "教师复查自动评分结果，可以调整分数和添加评语",
+        "parameters": {
+            "submission_id": "提交ID（路径参数）",
+            "adjustments": "评分调整",
+            "comments": "教师评语"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean"
+            }
+        },
+        "database_tables": ["homework_submissions"]
+    },
+    "routes_get_submission_result": {
+        "description": "获取学生作业提交的完整结果，包括答案、评分、反馈",
+        "parameters": {
+            "submission_id": "提交ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "submission": "object"
+            }
+        },
+        "database_tables": ["homework_submissions"]
+    },
+    "simple_feedback_get_simple_homework_feedback": {
+        "description": "获取作业反馈信息（学生版），包括个人成绩、班级统计、错误分析和学习建议",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "data": {
+                    "homework_info": "object",
+                    "personal_performance": "object",
+                    "class_statistics": "object",
+                    "question_feedback": "array",
+                    "learning_suggestions": "array",
+                    "error_analysis": "object"
+                }
+            },
+            "404": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["homework_submissions", "homeworks", "questions", "users"],
+        "example_request": {},
+        "example_response": {
+            "success": true,
+            "data": {
+                "homework_info": {
+                    "id": 1,
+                    "title": "七年级数学第一单元测试（更新版）",
+                    "subject": "数学",
+                    "grade_level": 7
+                },
+                "personal_performance": {
+                    "total_score": 85.5,
+                    "max_score": 100.0,
+                    "percentage": 85.5,
+                    "completion_time": 1800,
+                    "submitted_at": "2025-09-14T19:55:42"
+                },
+                "class_statistics": {
+                    "total_students": 7,
+                    "class_average": 84.2,
+                    "student_rank": 3,
+                    "percentile": 71.4
+                }
+            }
+        }
+    },
+    "simple_analytics_get_simple_homework_analytics": {
+        "description": "获取作业分析数据（教师版），包括基础统计、分数分布、题目分析和学生表现",
+        "parameters": {
+            "homework_id": "作业ID（路径参数）"
+        },
+        "responses": {
+            "200": {
+                "success": "boolean",
+                "data": {
+                    "homework_info": "object",
+                    "basic_statistics": "object",
+                    "score_distribution": "array",
+                    "question_analysis": "array",
+                    "student_performance": "array",
+                    "teaching_suggestions": "array"
+                }
+            },
+            "404": {
+                "success": "boolean",
+                "message": "string"
+            }
+        },
+        "database_tables": ["homework_submissions", "homeworks", "questions", "users"],
+        "example_request": {},
+        "example_response": {
+            "success": true,
+            "data": {
+                "homework_info": {
+                    "id": 1,
+                    "title": "七年级数学第一单元测试（更新版）",
+                    "subject": "数学",
+                    "grade": 7,
+                    "max_score": 100.0
+                },
+                "basic_statistics": {
+                    "total_submissions": 7,
+                    "graded_count": 6,
+                    "completion_rate": 85.7,
+                    "average_score": 84.2
+                },
+                "score_distribution": [
+                    {
+                        "range": "90-100",
+                        "count": 1,
+                        "percentage": 16.7
+                    }
+                ]
+            }
+        }
+    }
+}

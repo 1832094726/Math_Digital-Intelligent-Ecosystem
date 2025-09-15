@@ -1,0 +1,89 @@
+---
+globs: **/test/*.py,**/models/*.py,**/*algorithm*.py,**/*recommendation*.py
+description: AI/ML算法和推荐系统开发规则
+---
+
+# AI/ML算法开发规则
+
+## 核心AI组件
+
+### 符号推荐系统
+主要位置：[Subject_symbol_dynamic_keyboard/](mdc:Subject_symbol_dynamic_keyboard/)
+- 后端实现：[Subject_symbol_dynamic_keyboard/board-backend/](mdc:Subject_symbol_dynamic_keyboard/board-backend/)
+- 预测模型：[Subject_symbol_dynamic_keyboard/board-backend/predict.py](mdc:Subject_symbol_dynamic_keyboard/board-backend/predict.py)
+- 训练和测试：[Subject_symbol_dynamic_keyboard/test/](mdc:Subject_symbol_dynamic_keyboard/test/)
+
+### BERT-NCF-MLP融合模型
+核心训练文件：
+- [Subject_symbol_dynamic_keyboard/test/BERT-ncf-mlp-final.py](mdc:Subject_symbol_dynamic_keyboard/test/BERT-ncf-mlp-final.py)
+- [Subject_symbol_dynamic_keyboard/test/embeddeding.py](mdc:Subject_symbol_dynamic_keyboard/test/embeddeding.py)
+
+### 数学批改算法
+专门的数学应用题自动批改系统：
+- 主目录：[基于解答路径列举的小学数学应用题的自动批改/](mdc:基于解答路径列举的小学数学应用题的自动批改/)
+- 详细实现文档：[基于隐式列举解答路径模块详细实现文档.md](mdc:基于隐式列举解答路径模块详细实现文档.md)
+
+## 推荐算法架构
+
+### 1. 协同过滤算法
+- 实现位置：[homework-backend/services/collaborative_filtering.py](mdc:homework-backend/services/collaborative_filtering.py)
+- 基于用户行为和相似度计算进行推荐
+
+### 2. 知识图谱推荐
+- 实现位置：[homework-backend/services/knowledge_graph.py](mdc:homework-backend/services/knowledge_graph.py)
+- 基于数学知识点关联进行智能推荐
+
+### 3. 增强符号服务
+- 实现位置：[homework-backend/services/enhanced_symbol_service.py](mdc:homework-backend/services/enhanced_symbol_service.py)
+- 集成多种算法的符号推荐服务
+
+## 数据集和训练
+
+### 训练数据
+- 数学方程数据集：[homework-backend/data/complete_math_equation_dataset.jsonl](mdc:homework-backend/data/complete_math_equation_dataset.jsonl)
+- 符号使用数据：[homework-backend/data/symbols.json](mdc:homework-backend/data/symbols.json)
+- 知识点数据：[homework-backend/data/Knowledge_Point_detail.xlsx](mdc:homework-backend/data/Knowledge_Point_detail.xlsx)
+
+### 模型训练配置
+- BERT模型：chinese-bert-wwm-ext
+- 训练记录：[Subject_symbol_dynamic_keyboard/test/record/](mdc:Subject_symbol_dynamic_keyboard/test/record/)
+- 最佳模型：[Subject_symbol_dynamic_keyboard/test/best_models/](mdc:Subject_symbol_dynamic_keyboard/test/best_models/)
+
+## 开发规范
+
+### 模型开发
+- 使用PyTorch/TensorFlow进行深度学习模型开发
+- 遵循标准的机器学习项目结构
+- 模型训练过程需要记录详细日志
+- 使用交叉验证评估模型性能
+
+### 数据处理
+- 数据预处理统一使用pandas和numpy
+- 文本处理使用jieba分词
+- 特征工程需要详细文档说明
+- 数据增强策略要考虑数学领域特点
+
+### 评估指标
+- 推荐系统：准确率、召回率、F1分数、NDCG
+- 符号预测：Top-K准确率、平均倒数排名（MRR）
+- 数学批改：准确率、错误检测率、反馈质量
+
+### 算法优化
+- 定期进行A/B测试评估算法效果
+- 监控模型性能指标和业务指标
+- 实施在线学习机制，持续优化模型
+- 考虑计算效率和响应时间要求
+
+## 特殊注意事项
+
+### 数学领域特性
+- 考虑数学符号的语义和语法规则
+- 处理数学表达式的结构化特征
+- 理解数学知识点的层次关系
+- 支持多种数学表示法（LaTeX、MathML等）
+
+### 教育场景适配
+- 根据学生年级和能力水平调整推荐策略
+- 考虑教学进度和课程安排
+- 融入教育心理学原理
+- 支持差异化教学需求

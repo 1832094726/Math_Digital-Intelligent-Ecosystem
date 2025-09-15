@@ -1,0 +1,55 @@
+---
+globs: *.vue,*.js,homework_system/**/*
+description: Vue.js前端开发规则和最佳实践
+---
+
+# Vue.js前端开发规则
+
+## 主要前端项目
+- 作业系统前端：[homework_system/](mdc:homework_system/)
+- 学习前端系统：[learing-front/](mdc:learing-front/)
+
+## 核心Vue组件结构
+作业系统包含11个核心组件：
+- [IntegratedHomeworkPage.vue](mdc:homework_system/src/components/IntegratedHomeworkPage.vue) - 主集成页面
+- [HomeworkManagement.vue](mdc:homework_system/src/components/HomeworkManagement.vue) - 作业管理
+- [HomeworkList.vue](mdc:homework_system/src/components/HomeworkList.vue) - 作业列表
+- [FormulaEditor.vue](mdc:homework_system/src/components/FormulaEditor.vue) - 公式编辑器
+- [SymbolRecommendation.vue](mdc:homework_system/src/components/SymbolRecommendation.vue) - 符号推荐
+- [EnhancedSymbolRecommendation.vue](mdc:homework_system/src/components/EnhancedSymbolRecommendation.vue) - 增强符号推荐
+- [SmartSymbolCompletion.vue](mdc:homework_system/src/components/SmartSymbolCompletion.vue) - 智能符号补全
+- [KnowledgeRecommendation.vue](mdc:homework_system/src/components/KnowledgeRecommendation.vue) - 知识推荐
+- [ExerciseRecommendation.vue](mdc:homework_system/src/components/ExerciseRecommendation.vue) - 练习推荐
+- [FeedbackModule.vue](mdc:homework_system/src/components/FeedbackModule.vue) - 反馈模块
+- [LearningAnalyticsDashboard.vue](mdc:homework_system/src/components/LearningAnalyticsDashboard.vue) - 学习分析仪表板
+
+## 技术配置
+- Package配置：[homework_system/package.json](mdc:homework_system/package.json)
+- Vue配置：[homework_system/vue.config.js](mdc:homework_system/vue.config.js)
+- 路由配置：[homework_system/src/router/index.js](mdc:homework_system/src/router/index.js)
+- 状态管理：[homework_system/src/store/index.js](mdc:homework_system/src/store/index.js)
+
+## 开发规范
+- 使用Element UI组件库
+- 采用Vuex进行状态管理
+- 使用Vue Router管理路由
+- 组件文件名使用PascalCase
+- 样式使用scoped CSS
+- 所有用户界面文本使用中文
+- API调用使用axios，统一封装在services目录
+
+## API服务层
+- 服务文件位置：[homework_system/src/services/](mdc:homework_system/src/services/)
+- 主要服务包括：作业服务、推荐服务、知识服务、用户服务
+
+## 构建和部署
+```bash
+# 开发环境
+npm run serve
+
+# 生产构建
+npm run build
+
+# 代码检查
+npm run lint
+```

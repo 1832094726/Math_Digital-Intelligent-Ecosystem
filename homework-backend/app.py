@@ -6,10 +6,41 @@ from services.homework_service import get_homework_list, get_homework_detail, su
 from services.recommendation_service import get_recommended_symbols, get_recommended_knowledge, get_recommended_exercises
 from services.user_service import get_user_info, update_user_model
 from services.knowledge_service import get_question_knowledge_points
+from routes.enhanced_symbol_routes import enhanced_symbol_bp
+from routes.auth_routes import auth_bp
+from routes.homework_routes import homework_bp
+from routes.assignment_routes import assignment_bp
+from routes.student_homework_routes import student_homework_bp
+from routes.submission_routes import submission_bp
+from routes.grading_routes import grading_bp
+from routes.feedback_routes import feedback_bp
+from routes.analytics_routes import analytics_bp
+from routes.simple_feedback_routes import simple_feedback_bp
+from routes.simple_analytics_routes import simple_analytics_bp
+from blueprints.recommendation_bp import recommendation_bp
+from config import config
 
 app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False
+
+# 加载配置
+env = os.environ.get('FLASK_ENV', 'development')
+app.config.from_object(config[env])
+
 CORS(app, resources={r"/*": {'origins': '*'}})
+
+# 注册蓝图
+app.register_blueprint(enhanced_symbol_bp)
+app.register_blueprint(auth_bp)
+app.register_blueprint(homework_bp)
+app.register_blueprint(assignment_bp)
+app.register_blueprint(student_homework_bp)
+app.register_blueprint(submission_bp)
+app.register_blueprint(grading_bp)
+app.register_blueprint(feedback_bp)
+app.register_blueprint(analytics_bp)
+app.register_blueprint(simple_feedback_bp)
+app.register_blueprint(simple_analytics_bp)
+app.register_blueprint(recommendation_bp)
 
 # 数据路径
 DATA_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), "data")

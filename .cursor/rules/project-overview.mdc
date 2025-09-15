@@ -1,0 +1,43 @@
+---
+alwaysApply: true
+description: K-12数学教育数字化智能生态系统项目概览和架构指南
+---
+
+# K-12数学教育数字化智能生态系统项目规则
+
+## 项目概述
+这是一个基于推荐技术提升学生作业效率的K-12数学教育智能数字生态系统（DIEM）。项目采用三层架构：云基础设施层、AI服务层和场景应用层。
+
+## 核心架构文档
+- 详细项目文档：[PROJECT_DOCUMENTATION.md](mdc:PROJECT_DOCUMENTATION.md)
+- 系统架构：[architecture.md](mdc:architecture.md)
+- 集成计划：[integration_plan.md](mdc:integration_plan.md)
+- 系统总结：[系统总结.md](mdc:系统总结.md)
+
+## 主要技术栈
+- **前端**：Vue.js 2.6.11 + Vuex + Vue Router + Element UI
+- **后端**：Flask 2.1.3 + Python 3.7+
+- **AI/ML**：TensorFlow/PyTorch + BERT + 协同过滤算法
+- **数据库**：SQLite/MongoDB（开发）+ Redis（缓存）
+
+## 项目结构
+```
+├── homework_system/          # Vue.js前端作业系统
+├── homework-backend/         # Flask后端API服务
+├── Subject_symbol_dynamic_keyboard/  # 数学符号动态键盘
+├── learing-front/           # 学习前端系统
+├── IEEE-conference-template-062824/  # 学术论文模板
+└── 基于解答路径列举的小学数学应用题的自动批改/  # 数学批改算法
+```
+
+## 八大应用场景
+1. 课堂授课 2. 自学 3. 备课 4. 家庭学习
+5. 同伴学习 6. 做作业（核心实现） 7. 小组学习 8. 小组作业
+
+## 开发指导原则
+- 所有用户界面文本使用中文
+- 遵循Vue.js 2.x最佳实践
+- API设计遵循RESTful规范
+- 代码注释使用中文
+- 组件命名采用PascalCase
+- 文件命名采用kebab-case

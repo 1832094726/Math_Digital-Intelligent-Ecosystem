@@ -1,0 +1,72 @@
+---
+globs: *.py,homework-backend/**/*,**/services/*.py
+description: Flask后端开发规则和API设计规范
+---
+
+# Flask后端开发规则
+
+## 主要后端项目
+- 作业后端系统：[homework-backend/](mdc:homework-backend/)
+- 符号键盘后端：[Subject_symbol_dynamic_keyboard/board-backend/](mdc:Subject_symbol_dynamic_keyboard/board-backend/)
+
+## 核心服务架构
+后端采用微服务架构，主要服务包括：
+- [homework_service.py](mdc:homework-backend/services/homework_service.py) - 作业管理服务
+- [recommendation_service.py](mdc:homework-backend/services/recommendation_service.py) - 推荐服务
+- [knowledge_service.py](mdc:homework-backend/services/knowledge_service.py) - 知识图谱服务
+- [user_service.py](mdc:homework-backend/services/user_service.py) - 用户管理服务
+- [learning_analytics.py](mdc:homework-backend/services/learning_analytics.py) - 学习分析服务
+- [collaborative_filtering.py](mdc:homework-backend/services/collaborative_filtering.py) - 协同过滤算法
+- [enhanced_symbol_service.py](mdc:homework-backend/services/enhanced_symbol_service.py) - 增强符号服务
+- [knowledge_graph.py](mdc:homework-backend/services/knowledge_graph.py) - 知识图谱处理
+
+## 技术配置
+- 依赖管理：[homework-backend/requirements.txt](mdc:homework-backend/requirements.txt)
+- 主应用入口：[homework-backend/app.py](mdc:homework-backend/app.py)
+- API路由：[homework-backend/routes/](mdc:homework-backend/routes/)
+
+## API设计规范
+### RESTful API端点
+- 作业管理：`/api/homework/*`
+- 推荐系统：`/api/recommend/*`
+- 知识图谱：`/api/knowledge/*`
+- 用户管理：`/api/user/*`
+
+### 响应格式
+所有API响应应遵循统一格式：
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "操作成功",
+  "timestamp": "2024-01-01T00:00:00Z"
+}
+```
+
+## 数据存储
+- 作业数据：[homework-backend/data/homework.json](mdc:homework-backend/data/homework.json)
+- 用户数据：[homework-backend/data/users.json](mdc:homework-backend/data/users.json)
+- 用户模型：[homework-backend/data/user_models.json](mdc:homework-backend/data/user_models.json)
+- 知识图谱：[homework-backend/data/knowledge.json](mdc:homework-backend/data/knowledge.json)
+- 符号库：[homework-backend/data/symbols.json](mdc:homework-backend/data/symbols.json)
+- 数学训练数据：[homework-backend/data/complete_math_equation_dataset.jsonl](mdc:homework-backend/data/complete_math_equation_dataset.jsonl)
+
+## 开发规范
+- 使用Flask 2.1.3框架
+- 遵循PEP8代码规范
+- 函数命名使用snake_case
+- 类命名使用PascalCase
+- 所有API文档和注释使用中文
+- 错误处理使用统一的异常处理机制
+- 日志记录使用Python logging模块
+
+## AI/ML集成
+- 推荐算法基于协同过滤和知识图谱
+- 支持BERT模型进行自然语言处理
+- 数学表达式解析和符号推荐
+- 学习路径优化和个性化推荐
+
+## 测试和部署
+- 单元测试文件：[homework-backend/test_api.py](mdc:homework-backend/test_api.py)
+- 数据验证：[homework-backend/validate_dataset.py](mdc:homework-backend/validate_dataset.py)
+- 数据生成：[homework-backend/generate_equation_dataset.py](mdc:homework-backend/generate_equation_dataset.py)

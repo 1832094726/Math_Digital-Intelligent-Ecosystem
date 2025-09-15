@@ -1,7 +1,14 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import axios from 'axios';
 
 Vue.use(Vuex);
+
+// 初始化axios配置
+const token = localStorage.getItem('token');
+if (token) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
 
 export default new Vuex.Store({
   state: {
@@ -66,20 +73,28 @@ export default new Vuex.Store({
   
   actions: {
     // 登录
-    async login({ commit }) {
+    async login({ commit }, credentials) {
       try {
-        // 实际应用中应调用API进行登录
-        // 这里使用模拟数据
-        const user = {
-          id: 'user123',
-          name: '张三',
-          avatar: 'https://example.com/avatar.jpg',
-          grade: '初二',
-          class: '3班'
-        };
-        
-        commit('SET_USER', user);
-        return user;
+        // 调用后端登录API
+        const response = await axios.post('http://localhost:5000/api/auth/login', {
+          username: credentials.username || 'student',
+          password: credentials.password || 'password'
+        });
+
+        if (response.data.success) {
+          const { user, access_token } = response.data.data;
+
+          // 保存token到localStorage
+          localStorage.setItem('token', access_token);
+
+          // 设置axios默认header
+          axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+
+          commit('SET_USER', user);
+          return user;
+        } else {
+          throw new Error(response.data.message || '登录失败');
+        }
       } catch (error) {
         console.error('登录失败', error);
         throw error;
@@ -89,14 +104,16 @@ export default new Vuex.Store({
     // 获取作业列表
     async fetchHomeworks({ commit }) {
       try {
-        // 实际应用中应调用API获取作业列表
-        // 这里使用模拟数据
-        const response = await import('../services/homeworkService').then(
-          module => module.fetchHomeworkList()
-        );
-        
-        commit('SET_HOMEWORKS', response.data);
-        return response.data;
+        // 调用后端API获取作业列表
+        const response = await axios.get('http://localhost:5000/api/homework/list');
+
+        if (response.data.success) {
+          const homeworks = response.data.data.homeworks || [];
+          commit('SET_HOMEWORKS', homeworks);
+          return homeworks;
+        } else {
+          throw new Error(response.data.message || '获取作业列表失败');
+        }
       } catch (error) {
         console.error('获取作业列表失败', error);
         throw error;
@@ -106,14 +123,36 @@ export default new Vuex.Store({
     // 获取作业详情
     async fetchHomeworkDetail({ commit }, homeworkId) {
       try {
-        // 实际应用中应调用API获取作业详情
-        // 这里使用模拟数据
-        const response = await import('../services/homeworkService').then(
-          module => module.fetchHomeworkDetail(homeworkId)
-        );
-        
-        commit('SET_CURRENT_HOMEWORK', response.data);
-        return response.data;
+        // 先获取作业详情
+        const homeworkResponse = await axios.get(`http://localhost:5000/api/homework/${homeworkId}`);
+
+        if (!homeworkResponse.data.success) {
+          throw new Error(homeworkResponse.data.message || '获取作业详情失败');
+        }
+
+        const homework = homeworkResponse.data.data;
+
+        // 尝试获取题目，如果失败则使用空数组
+        let questions = [];
+        try {
+          const questionsResponse = await axios.get(`http://localhost:5000/api/homework/${homeworkId}/questions`);
+          if (questionsResponse.data.success) {
+            questions = questionsResponse.data.data.questions || [];
+          }
+        } catch (questionsError) {
+          console.warn('获取题目失败，使用空题目列表', questionsError);
+          questions = [];
+        }
+
+        // 合并作业详情和题目数据
+        const homeworkWithQuestions = {
+          ...homework,
+          questions: questions,
+          problems: questions  // 前端期望的字段名
+        };
+
+        commit('SET_CURRENT_HOMEWORK', homeworkWithQuestions);
+        return homeworkWithQuestions;
       } catch (error) {
         console.error('获取作业详情失败', error);
         throw error;

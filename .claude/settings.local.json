@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdflatex IEEE-conference-template-062824ieee.tex)",
+      "Bash(pdflatex \"E:\\program development\\The Digital and Intelligent Ecosystem for K-12 Mathematics Education\\IEEE-conference-template-062824\\ieee.tex\")",
+      "Bash(sed -i \"s/\\x08//g\" \"E:\\program development\\The Digital and Intelligent Ecosystem for K-12 Mathematics Education\\IEEE-conference-template-062824\\ieee.tex\")",
+      "Bash(sed -i 's/[\\x00-\\x1F]//g' \"E:\\program development\\The Digital and Intelligent Ecosystem for K-12 Mathematics Education\\IEEE-conference-template-062824\\ieee.tex\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

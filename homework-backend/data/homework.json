@@ -144,5 +144,165 @@
         "knowledge_points": ["集合", "并集", "补集", "应用题"]
       }
     ]
+  },
+  {
+    "id": 4,
+    "title": "函数与方程进阶",
+    "subject": "数学",
+    "grade": "初中三年级",
+    "description": "本作业重点练习二次函数与二次方程的关系及应用",
+    "deadline": "2023-08-10 23:59:59",
+    "teacher_id": 101,
+    "teacher_name": "李老师",
+    "status": "active",
+    "created_at": "2023-07-05 11:30:00",
+    "questions": [
+      {
+        "id": 401,
+        "type": "calculation",
+        "content": "已知二次函数f(x)=ax²+bx+c的图像过点(1,3)、(2,0)、(3,3)，求该函数的解析式。",
+        "answer": "f(x)=2x²-8x+9",
+        "score": 20,
+        "knowledge_points": ["二次函数", "函数图像", "待定系数法"]
+      },
+      {
+        "id": 402,
+        "type": "application",
+        "content": "某商品的单价为p元，销售量为q件，已知p与q之间满足关系式p=100-0.5q。求销售总收入R=pq的最大值，以及此时的单价和销售量。",
+        "answer": "最大收入5000元，单价50元，销售量100件",
+        "score": 20,
+        "knowledge_points": ["二次函数", "函数最值", "经济应用"]
+      },
+      {
+        "id": 403,
+        "type": "choice",
+        "content": "下列关于二次函数y=ax²+bx+c(a≠0)的说法中，正确的是：",
+        "options": [
+          "当a>0时，图像开口向上，有最小值",
+          "当a<0时，图像开口向下，有最大值",
+          "当b²-4ac>0时，图像与x轴有两个交点",
+          "以上说法都正确"
+        ],
+        "answer": "以上说法都正确",
+        "score": 10,
+        "knowledge_points": ["二次函数", "函数图像", "判别式"]
+      },
+      {
+        "id": 404,
+        "type": "calculation",
+        "content": "已知抛物线y=ax²+bx+c过点(0,1)、(1,0)、(2,1)，求该抛物线的对称轴方程。",
+        "answer": "x=1",
+        "score": 15,
+        "knowledge_points": ["二次函数", "抛物线", "对称轴"]
+      },
+      {
+        "id": 405,
+        "type": "application",
+        "content": "一个长方形的周长为20厘米，求长方形的面积的最大值及此时的长和宽。",
+        "answer": "面积最大值为25平方厘米，长宽均为5厘米",
+        "score": 15,
+        "knowledge_points": ["二次函数", "函数最值", "几何应用"]
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "三角函数基础",
+    "subject": "数学",
+    "grade": "高中一年级",
+    "description": "本作业主要练习三角函数的基本概念和性质",
+    "deadline": "2023-08-15 23:59:59",
+    "teacher_id": 103,
+    "teacher_name": "王老师",
+    "status": "active",
+    "created_at": "2023-07-10 09:00:00",
+    "questions": [
+      {
+        "id": 501,
+        "type": "calculation",
+        "content": "计算：sin30° + cos60° + tan45°",
+        "answer": "2",
+        "score": 10,
+        "knowledge_points": ["三角函数", "特殊角"]
+      },
+      {
+        "id": 502,
+        "type": "fill",
+        "content": "已知sinα=0.6，且α在第一象限，则cosα=?",
+        "answer": "0.8",
+        "score": 10,
+        "knowledge_points": ["三角函数", "勾股定理"]
+      },
+      {
+        "id": 503,
+        "type": "calculation",
+        "content": "化简：sin²α + cos²α",
+        "answer": "1",
+        "score": 10,
+        "knowledge_points": ["三角函数", "三角恒等式"]
+      },
+      {
+        "id": 504,
+        "type": "application",
+        "content": "一个人距离一座高塔100米，测得塔顶的仰角为30°，求该塔的高度。",
+        "answer": "57.7米",
+        "score": 15,
+        "knowledge_points": ["三角函数", "实际应用", "高度测量"]
+      },
+      {
+        "id": 505,
+        "type": "calculation",
+        "content": "求函数y=2sinx+cosx的最大值和最小值。",
+        "answer": "最大值为√5，最小值为-√5",
+        "score": 20,
+        "knowledge_points": ["三角函数", "函数最值", "正弦余弦合成"]
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "概率统计进阶",
+    "subject": "数学",
+    "grade": "高中二年级",
+    "description": "本作业重点练习概率计算和统计数据分析",
+    "deadline": "2023-08-20 23:59:59",
+    "teacher_id": 103,
+    "teacher_name": "王老师",
+    "status": "active",
+    "created_at": "2023-07-15 14:00:00",
+    "questions": [
+      {
+        "id": 601,
+        "type": "calculation",
+        "content": "袋中有3个红球，4个白球，5个蓝球，随机取出2个球，求取出的两个球都是红球的概率。",
+        "answer": "1/12",
+        "score": 15,
+        "knowledge_points": ["概率论", "古典概型", "组合计数"]
+      },
+      {
+        "id": 602,
+        "type": "application",
+        "content": "某班级有40名学生，其中男生25名，女生15名。从中随机选出3名学生参加比赛，求选出的学生中至少有一名女生的概率。",
+        "answer": "0.7846",
+        "score": 20,
+        "knowledge_points": ["概率论", "古典概型", "组合计数"]
+      },
+      {
+        "id": 603,
+        "type": "calculation",
+        "content": "已知随机变量X的分布列为P(X=1)=0.3，P(X=2)=0.5，P(X=3)=0.2，求E(X)和D(X)。",
+        "answer": "E(X)=1.9，D(X)=0.49",
+        "score": 20,
+        "knowledge_points": ["概率论", "随机变量", "数学期望", "方差"]
+      },
+      {
+        "id": 604,
+        "type": "application",
+        "content": "某校对100名学生进行了数学测试，成绩的平均值为75分，标准差为8分。假设成绩服从正态分布，估计成绩在80分以上的学生人数。",
+        "answer": "约27人",
+        "score": 20,
+        "knowledge_points": ["统计", "正态分布", "标准差"]
+      }
+    ]
   }
 ] 

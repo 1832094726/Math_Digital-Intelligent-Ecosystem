@@ -1,0 +1,1052 @@
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>师生教学交互系统架构图</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        teacher: '#EC4899',
+                        student: '#6366F1',
+                        // 后端模块颜色
+                        auth: '#14B8A6',         // 认证模块
+                        question: '#8B5CF6',     // 出题模块
+                        answer: '#F59E0B',       // 作答模块（原提交模块）
+                        grading: '#EC4899',      // 批改模块
+                        notification: '#F97316', // 通知模块
+                        resource: '#60A5FA',     // 资源模块（原知识点模块）
+                        frontend: '#38BDF8',     // 前端设计
+                        cache: '#84CC16',        // 缓存模块
+                        database: '#EF4444'      // 数据库
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .flow-line {
+                @apply absolute border-l-2 border-dashed border-gray-400 h-full left-1/2 transform -translate-x-1/2;
+            }
+            .step-card {
+                @apply bg-white rounded-lg shadow-md p-4 transition-all duration-300 hover:shadow-lg;
+            }
+            .actor-column {
+                @apply flex flex-col gap-6 p-4;
+            }
+            .module-call {
+                @apply text-sm text-gray-600 italic border-l-2 pl-2 my-1;
+            }
+            .db-operation {
+                @apply text-sm text-gray-600 italic border-l-2 border-database pl-2 my-1;
+            }
+            .cache-operation {
+                @apply text-sm text-gray-600 italic border-l-2 border-cache pl-2 my-1;
+            }
+            .frontend-component {
+                @apply text-sm text-gray-600 italic border-l-2 border-frontend pl-2 my-1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-gray-800 mb-4">
+                师生教学交互系统架构图
+            </h1>
+            <p class="text-gray-600 max-w-3xl mx-auto">
+                包含认证、资源、出题、作答、批改和通知六大核心模块的系统架构设计
+            </p>
+<p class="text-gray-600 max-w-3xl mx-auto">
+                实现教师出题、学生作答，相互反馈的完整教学交互流程
+            </p>
+        </header>
+
+        <!-- 图例说明 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-10">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">图例说明</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-frontend rounded-sm"></div>
+                    <span>前端设计</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-teacher rounded-sm"></div>
+                    <span>教师操作</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-student rounded-sm"></div>
+                    <span>学生操作</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-auth rounded-sm"></div>
+                    <span>认证模块</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-resource rounded-sm"></div>
+                    <span>资源模块</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-question rounded-sm"></div>
+                    <span>出题模块</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-answer rounded-sm"></div>
+                    <span>作答模块</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-grading rounded-sm"></div>
+                    <span>批改模块</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-notification rounded-sm"></div>
+                    <span>通知模块</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-database rounded-sm"></div>
+                    <span>数据库操作</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-cache rounded-sm"></div>
+                    <span>缓存操作</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 后端模块概览 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-10">
+            <h2 class="text-xl font-semibold mb-6 text-gray-800">后端模块概览</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <!-- 认证模块 -->
+                <div class="border border-auth rounded-lg p-4">
+                    <h3 class="font-bold text-auth mb-3 flex items-center">
+                        <i class="fa fa-lock mr-2"></i>认证模块
+                    </h3>
+                    <ul class="text-sm space-y-1 text-gray-700">
+                        <li>用户登录/注销</li>
+                        <li>身份验证与授权</li>
+                        <li>令牌管理</li>
+                        <li>用户信息管理</li>
+                    </ul>
+                </div>
+                
+                <!-- 资源模块 -->
+                <div class="border border-resource rounded-lg p-4">
+                    <h3 class="font-bold text-resource mb-3 flex items-center">
+                        <i class="fa fa-book mr-2"></i>资源模块
+                    </h3>
+                    <ul class="text-sm space-y-1 text-gray-700">
+                        <li>知识点管理</li>
+                        <li>教学资源管理</li>
+                        <li>资源分类与关联</li>
+                        <li>资源查询与检索</li>
+                    </ul>
+                </div>
+                
+                <!-- 出题模块 -->
+                <div class="border border-question rounded-lg p-4">
+                    <h3 class="font-bold text-question mb-3 flex items-center">
+                        <i class="fa fa-file-text mr-2"></i>出题模块
+                    </h3>
+                    <ul class="text-sm space-y-1 text-gray-700">
+                        <li>题目创建/编辑</li>
+                        <li>题目生成</li>
+                        <li>题目发布/管理</li>
+                        <li>题目查询</li>
+                    </ul>
+                </div>
+                
+                <!-- 作答模块 -->
+                <div class="border border-answer rounded-lg p-4">
+                    <h3 class="font-bold text-answer mb-3 flex items-center">
+                        <i class="fa fa-pencil mr-2"></i>作答模块
+                    </h3>
+                    <ul class="text-sm space-y-1 text-gray-700">
+                        <li>学生作答提交</li>
+                        <li>作答记录管理</li>
+                        <li>作答查询统计</li>
+                        <li>提交状态跟踪</li>
+                    </ul>
+                </div>
+                
+                <!-- 批改模块 -->
+                <div class="border border-grading rounded-lg p-4">
+                    <h3 class="font-bold text-grading mb-3 flex items-center">
+                        <i class="fa fa-check-square-o mr-2"></i>批改模块
+                    </h3>
+                    <ul class="text-sm space-y-1 text-gray-700">
+                        <li>批改结果管理</li>
+                        <li>分数计算</li>
+                        <li>评语管理</li>
+                        <li>成绩统计</li>
+                    </ul>
+                </div>
+                
+                <!-- 通知模块 -->
+                <div class="border border-notification rounded-lg p-4">
+                    <h3 class="font-bold text-notification mb-3 flex items-center">
+                        <i class="fa fa-bell mr-2"></i>通知模块
+                    </h3>
+                    <ul class="text-sm space-y-1 text-gray-700">
+                        <li>通知生成</li>
+                        <li>通知推送</li>
+                        <li>通知状态管理</li>
+                        <li>通知查询</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要流程图 -->
+        <div class="relative">
+            <!-- 中心轴线 -->
+            <div class="flow-line top-0 bottom-0"></div>
+            
+            <!-- 用户登录与身份验证 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 relative">
+                <!-- 前端设计栏 -->
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-frontend">
+                        <h3 class="font-bold text-frontend mb-2 flex items-center">
+                            <i class="fa fa-desktop mr-2"></i>前端设计
+                        </h3>
+                        <p class="frontend-component">组件: LoginForm 登录表单</p>
+                        <p class="frontend-component">状态: 登录状态管理</p>
+                        <p class="text-gray-600 text-sm mt-1">表单验证、错误提示、加载状态</p>
+                        <p class="frontend-component">本地缓存: JWT令牌(localStorage)</p>
+                        <p class="frontend-component">本地缓存: 用户基本信息</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-primary">
+                        <h3 class="font-bold text-primary mb-2 flex items-center">
+                            <i class="fa fa-exchange mr-2"></i>用户认证流程
+                        </h3>
+                        <p class="font-medium">0. 用户登录与身份验证</p>
+                        <p class="text-gray-600 text-sm mt-1">输入用户名和密码，系统验证身份</p>
+                        <p class="text-gray-600 text-sm mt-1">区分教师和学生身份，授予相应权限</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-auth">
+                        <h3 class="font-bold text-auth mb-2 flex items-center">
+                            <i class="fa fa-lock mr-2"></i>认证模块
+                        </h3>
+                        <p class="module-call border-auth">接口: POST /api/auth/login</p>
+                        <p class="text-gray-600 text-sm">验证用户凭据，生成JWT令牌</p>
+                        <p class="module-call border-auth">接口: GET /api/auth/me</p>
+                        <p class="text-gray-600 text-sm">获取当前登录用户信息</p>
+                        
+                        <h3 class="font-bold text-cache mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>缓存层
+                        </h3>
+                        <p class="cache-operation">操作: SET user:{id} {user_info} EX 3600</p>
+                        <p class="text-gray-600 text-sm">缓存用户基本信息，减少数据库查询</p>
+                        
+                        <h3 class="font-bold text-database mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>数据库
+                        </h3>
+                        <p class="db-operation">操作: SELECT * FROM users WHERE username=? AND password=?</p>
+                        <p class="text-gray-600 text-sm">验证用户信息并获取用户角色</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 教师选择出题方式 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 relative">
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-frontend">
+                        <h3 class="font-bold text-frontend mb-2 flex items-center">
+                            <i class="fa fa-desktop mr-2"></i>前端设计
+                        </h3>
+                        <p class="frontend-component">组件: QuestionCreationSelector</p>
+                        <p class="frontend-component">组件: ResourceDropdown 资源下拉框</p>
+                        <p class="frontend-component">本地缓存: 资源列表</p>
+                        <p class="text-gray-600 text-sm mt-1">下拉选择器、参数配置界面</p>
+                        <p class="text-gray-600 text-sm mt-1">资源树形结构展示</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-teacher">
+                        <h3 class="font-bold text-teacher mb-2 flex items-center">
+                            <i class="fa fa-user-circle mr-2"></i>教师操作
+                        </h3>
+                        <p class="font-medium">1. 教师选择出题方式</p>
+                        <p class="text-gray-600 text-sm mt-1">选择手动出题或自动生成题目</p>
+                        <p class="text-gray-600 text-sm mt-1">指定相关资源、年级、难度等参数</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-resource">
+                        <h3 class="font-bold text-resource mb-2 flex items-center">
+                            <i class="fa fa-book mr-2"></i>资源模块
+                        </h3>
+                        <p class="module-call border-resource">接口: GET /api/resources</p>
+                        <p class="text-gray-600 text-sm">获取可选的教学资源列表</p>
+                        <p class="module-call border-resource">接口: GET /api/resources/{id}/details</p>
+                        <p class="text-gray-600 text-sm">获取特定资源详情</p>
+                        
+                        <h3 class="font-bold text-cache mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>缓存层
+                        </h3>
+                        <p class="cache-operation">操作: SET resources {data} EX 86400</p>
+                        <p class="cache-operation">操作: GET resources (缓存命中则直接返回)</p>
+                        
+                        <h3 class="font-bold text-database mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>数据库
+                        </h3>
+                        <p class="db-operation">操作: SELECT * FROM resources</p>
+                        <p class="text-gray-600 text-sm">查询系统中的教学资源数据</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 教师出题（手动或自动） -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 relative">
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-frontend">
+                        <h3 class="font-bold text-frontend mb-2 flex items-center">
+                            <i class="fa fa-desktop mr-2"></i>前端设计
+                        </h3>
+                        <p class="frontend-component">组件: QuestionEditor 富文本编辑器</p>
+                        <p class="frontend-component">组件: QuestionGeneratorForm</p>
+                        <p class="frontend-component">本地缓存: 题目草稿</p>
+                        <p class="text-gray-600 text-sm mt-1">富文本编辑、多媒体上传</p>
+                        <p class="text-gray-600 text-sm mt-1">自动保存草稿功能</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-teacher">
+                        <h3 class="font-bold text-teacher mb-2 flex items-center">
+                            <i class="fa fa-user-circle mr-2"></i>教师操作
+                        </h3>
+                        <p class="font-medium">2. 教师出题</p>
+                        <p class="text-gray-600 text-sm mt-1">手动输入题目内容或获取系统自动生成的题目</p>
+                        <p class="text-gray-600 text-sm mt-1">设置分值、答案、难度等参数</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-question">
+                        <h3 class="font-bold text-question mb-2 flex items-center">
+                            <i class="fa fa-file-text mr-2"></i>出题模块
+                        </h3>
+                        <p class="module-call border-question">接口: POST /api/questions/generate</p>
+                        <p class="text-gray-600 text-sm">根据参数自动生成题目</p>
+                        <p class="module-call border-question">接口: POST /api/questions/draft</p>
+                        <p class="text-gray-600 text-sm">保存手动创建的题目草稿</p>
+                        
+                        <h3 class="font-bold text-resource mt-3 mb-2 flex items-center">
+                            <i class="fa fa-book mr-2"></i>资源模块
+                        </h3>
+                        <p class="module-call border-resource">调用: 资源模块API</p>
+                        <p class="text-gray-600 text-sm">获取相关教学资源内容用于题目生成</p>
+                        
+                        <h3 class="font-bold text-database mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>数据库
+                        </h3>
+                        <p class="db-operation">操作: INSERT INTO questions (status='draft')</p>
+                        <p class="text-gray-600 text-sm">保存题目为草稿状态</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 教师修改题目 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 relative">
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-frontend">
+                        <h3 class="font-bold text-frontend mb-2 flex items-center">
+                            <i class="fa fa-desktop mr-2"></i>前端设计
+                        </h3>
+                        <p class="frontend-component">组件: QuestionEditor 编辑组件</p>
+                        <p class="frontend-component">状态: 编辑历史记录</p>
+                        <p class="text-gray-600 text-sm mt-1">实时预览、撤销/重做功能</p>
+                        <p class="text-gray-600 text-sm mt-1">修改对比、保存提示</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-teacher">
+                        <h3 class="font-bold text-teacher mb-2 flex items-center">
+                            <i class="fa fa-user-circle mr-2"></i>教师操作
+                        </h3>
+                        <p class="font-medium">3. 教师修改题目（可选）</p>
+                        <p class="text-gray-600 text-sm mt-1">查看生成的题目，进行修改和调整</p>
+                        <p class="text-gray-600 text-sm mt-1">可多次修改直至满意</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-question">
+                        <h3 class="font-bold text-question mb-2 flex items-center">
+                            <i class="fa fa-file-text mr-2"></i>出题模块
+                        </h3>
+                        <p class="module-call border-question">接口: PUT /api/questions/{id}</p>
+                        <p class="text-gray-600 text-sm">更新题目内容、分值等信息</p>
+                        <p class="module-call border-question">接口: GET /api/questions/{id}/history</p>
+                        <p class="text-gray-600 text-sm">获取题目修改历史</p>
+                        
+                        <h3 class="font-bold text-cache mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>缓存层
+                        </h3>
+                        <p class="cache-operation">操作: DEL question:{id} (删除旧缓存)</p>
+                        <p class="text-gray-600 text-sm">更新题目时删除缓存，确保数据新鲜度</p>
+                        
+                        <h3 class="font-bold text-database mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>数据库
+                        </h3>
+                        <p class="db-operation">操作: UPDATE questions SET ... WHERE id={id}</p>
+                        <p class="text-gray-600 text-sm">更新草稿状态的题目信息</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 教师提交题目 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 relative">
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-frontend">
+                        <h3 class="font-bold text-frontend mb-2 flex items-center">
+                            <i class="fa fa-desktop mr-2"></i>前端设计
+                        </h3>
+                        <p class="frontend-component">组件: QuestionPublishForm</p>
+                        <p class="frontend-component">组件: StudentSelector 学生选择器</p>
+                        <p class="text-gray-600 text-sm mt-1">日期时间选择器、发布确认弹窗</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-teacher">
+                        <h3 class="font-bold text-teacher mb-2 flex items-center">
+                            <i class="fa fa-user-circle mr-2"></i>教师操作
+                        </h3>
+                        <p class="font-medium">4. 教师提交题目</p>
+                        <p class="text-gray-600 text-sm mt-1">确认并提交题目，设置可见范围和截止时间</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-question">
+                        <h3 class="font-bold text-question mb-2 flex items-center">
+                            <i class="fa fa-file-text mr-2"></i>出题模块
+                        </h3>
+                        <p class="module-call border-question">接口: PUT /api/questions/{id}/publish</p>
+                        <p class="text-gray-600 text-sm">更新题目状态为已发布</p>
+                        
+                        <h3 class="font-bold text-notification mt-3 mb-2 flex items-center">
+                            <i class="fa fa-bell mr-2"></i>通知模块
+                        </h3>
+                        <p class="module-call border-notification">调用: 通知模块API</p>
+                        <p class="text-gray-600 text-sm">触发新作业通知给相关学生</p>
+                        
+                        <h3 class="font-bold text-cache mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>缓存层
+                        </h3>
+                        <p class="cache-operation">操作: DEL question:{id}</p>
+                        <p class="cache-operation">操作: DEL teacher_questions:{teacher_id}</p>
+                        
+                        <h3 class="font-bold text-database mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>数据库
+                        </h3>
+                        <p class="db-operation">操作: UPDATE questions SET status='published'</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 学生接收通知和查看题目 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 relative">
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-frontend">
+                        <h3 class="font-bold text-frontend mb-2 flex items-center">
+                            <i class="fa fa-desktop mr-2"></i>前端设计
+                        </h3>
+                        <p class="frontend-component">组件: NotificationCenter 通知中心</p>
+                        <p class="frontend-component">组件: QuestionList 和 QuestionDetail</p>
+                        <p class="frontend-component">本地缓存: 题目数据</p>
+                        <p class="text-gray-600 text-sm mt-1">未读提示、通知标红</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-student">
+                        <h3 class="font-bold text-student mb-2 flex items-center">
+                            <i class="fa fa-user mr-2"></i>学生操作
+                        </h3>
+                        <p class="font-medium">5. 学生接收通知和查看题目</p>
+                        <p class="text-gray-600 text-sm mt-1">收到新作业通知，查看教师发布的题目</p>
+                        <p class="text-gray-600 text-sm mt-1">查看题目详情、要求和截止时间</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-notification">
+                        <h3 class="font-bold text-notification mb-2 flex items-center">
+                            <i class="fa fa-bell mr-2"></i>通知模块
+                        </h3>
+                        <p class="module-call border-notification">接口: GET /api/notifications</p>
+                        <p class="text-gray-600 text-sm">获取用户通知列表</p>
+                        <p class="module-call border-notification">接口: PUT /api/notifications/{id}/read</p>
+                        <p class="text-gray-600 text-sm">标记通知为已读</p>
+                        
+                        <h3 class="font-bold text-question mt-3 mb-2 flex items-center">
+                            <i class="fa fa-file-text mr-2"></i>出题模块
+                        </h3>
+                        <p class="module-call border-question">接口: GET /api/questions?studentId={id}</p>
+                        <p class="text-gray-600 text-sm">获取学生可见的题目</p>
+                        <p class="module-call border-question">接口: GET /api/questions/{id}</p>
+                        <p class="text-gray-600 text-sm">获取题目详情</p>
+                        
+                        <h3 class="font-bold text-resource mt-3 mb-2 flex items-center">
+                            <i class="fa fa-book mr-2"></i>资源模块
+                        </h3>
+                        <p class="module-call border-resource">接口: GET /api/questions/{id}/resources</p>
+                        <p class="text-gray-600 text-sm">获取题目相关的教学资源</p>
+                        
+                        <h3 class="font-bold text-cache mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>缓存层
+                        </h3>
+                        <p class="cache-operation">操作: GET/SET question:{id} EX 3600</p>
+                        <p class="cache-operation">操作: GET/SET student_questions:{id} EX 1800</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 学生答题和提交作答 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 relative">
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-frontend">
+                        <h3 class="font-bold text-frontend mb-2 flex items-center">
+                            <i class="fa fa-desktop mr-2"></i>前端设计
+                        </h3>
+                        <p class="frontend-component">组件: AnswerEditor 答案编辑器</p>
+                        <p class="frontend-component">组件: SubmitButton 提交按钮</p>
+                        <p class="frontend-component">本地缓存: 答案草稿(auto-save)</p>
+                        <p class="text-gray-600 text-sm mt-1">自动保存、倒计时提示</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-student">
+                        <h3 class="font-bold text-student mb-2 flex items-center">
+                            <i class="fa fa-user mr-2"></i>学生操作
+                        </h3>
+                        <p class="font-medium">6. 学生答题和提交作答</p>
+                        <p class="text-gray-600 text-sm mt-1">输入答案，检查后提交</p>
+                        <p class="text-gray-600 text-sm mt-1">系统提示提交成功</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-answer">
+                        <h3 class="font-bold text-answer mb-2 flex items-center">
+                            <i class="fa fa-pencil mr-2"></i>作答模块
+                        </h3>
+                        <p class="module-call border-answer">接口: POST /api/answers</p>
+                        <p class="text-gray-600 text-sm">提交学生的答案</p>
+                        <p class="module-call border-answer">接口: GET /api/answers/me</p>
+                        <p class="text-gray-600 text-sm">查询学生自己的作答记录</p>
+                        
+                        <h3 class="font-bold text-notification mt-3 mb-2 flex items-center">
+                            <i class="fa fa-bell mr-2"></i>通知模块
+                        </h3>
+                        <p class="module-call border-notification">调用: 通知模块API</p>
+                        <p class="text-gray-600 text-sm">触发新作答通知给教师</p>
+                        
+                        <h3 class="font-bold text-cache mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>缓存层
+                        </h3>
+                        <p class="cache-operation">操作: DEL question_answers:{question_id}</p>
+                        <p class="cache-operation">操作: DEL student_answers:{student_id}</p>
+                        
+                        <h3 class="font-bold text-database mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>数据库
+                        </h3>
+                        <p class="db-operation">操作: INSERT INTO answers</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 教师接收作答和批改 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 relative">
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-frontend">
+                        <h3 class="font-bold text-frontend mb-2 flex items-center">
+                            <i class="fa fa-desktop mr-2"></i>前端设计
+                        </h3>
+                        <p class="frontend-component">组件: AnswerList 作答列表</p>
+                        <p class="frontend-component">组件: GradingInterface 批改界面</p>
+                        <p class="text-gray-600 text-sm mt-1">未批改标记、批量操作</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-teacher">
+                        <h3 class="font-bold text-teacher mb-2 flex items-center">
+                            <i class="fa fa-user-circle mr-2"></i>教师操作
+                        </h3>
+                        <p class="font-medium">7. 教师接收作答和批改</p>
+                        <p class="text-gray-600 text-sm mt-1">收到新作答通知，查看学生提交的答案</p>
+                        <p class="text-gray-600 text-sm mt-1">评阅答案，给出分数和评语</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-answer">
+                        <h3 class="font-bold text-answer mb-2 flex items-center">
+                            <i class="fa fa-pencil mr-2"></i>作答模块
+                        </h3>
+                        <p class="module-call border-answer">接口: GET /api/questions/{id}/answers</p>
+                        <p class="text-gray-600 text-sm">获取特定题目的所有作答</p>
+                        <p class="module-call border-answer">接口: GET /api/answers/{id}</p>
+                        <p class="text-gray-600 text-sm">获取作答详情</p>
+                        
+                        <h3 class="font-bold text-grading mt-3 mb-2 flex items-center">
+                            <i class="fa fa-check-square-o mr-2"></i>批改模块
+                        </h3>
+                        <p class="module-call border-grading">接口: POST /api/gradings/draft</p>
+                        <p class="text-gray-600 text-sm">保存批改草稿（分数和评语）</p>
+                        
+                        <h3 class="font-bold text-cache mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>缓存层
+                        </h3>
+                        <p class="cache-operation">操作: GET/SET question_answers:{id} EX 300</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 教师提交批改结果 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 relative">
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-frontend">
+                        <h3 class="font-bold text-frontend mb-2 flex items-center">
+                            <i class="fa fa-desktop mr-2"></i>前端设计
+                        </h3>
+                        <p class="frontend-component">组件: GradeForm 评分表单</p>
+                        <p class="frontend-component">组件: CommentEditor 评语编辑器</p>
+                        <p class="text-gray-600 text-sm mt-1">评分控件、富文本评语编辑</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-teacher">
+                        <h3 class="font-bold text-teacher mb-2 flex items-center">
+                            <i class="fa fa-user-circle mr-2"></i>教师操作
+                        </h3>
+                        <p class="font-medium">8. 教师提交批改结果</p>
+                        <p class="text-gray-600 text-sm mt-1">确认并提交评分和评语</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-grading">
+                        <h3 class="font-bold text-grading mb-2 flex items-center">
+                            <i class="fa fa-check-square-o mr-2"></i>批改模块
+                        </h3>
+                        <p class="module-call border-grading">接口: PUT /api/gradings/{id}</p>
+                        <p class="text-gray-600 text-sm">提交最终批改结果</p>
+                        <p class="module-call border-grading">接口: GET /api/questions/{id}/grading-stats</p>
+                        <p class="text-gray-600 text-sm">获取题目批改统计数据</p>
+                        
+                        <h3 class="font-bold text-notification mt-3 mb-2 flex items-center">
+                            <i class="fa fa-bell mr-2"></i>通知模块
+                        </h3>
+                        <p class="module-call border-notification">调用: 通知模块API</p>
+                        <p class="text-gray-600 text-sm">触发批改完成通知给学生</p>
+                        
+                        <h3 class="font-bold text-cache mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>缓存层
+                        </h3>
+                        <p class="cache-operation">操作: DEL answer:{answer_id}</p>
+                        <p class="cache-operation">操作: DEL student_grades:{student_id}</p>
+                        
+                        <h3 class="font-bold text-database mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>数据库
+                        </h3>
+                        <p class="db-operation">操作: INSERT INTO gradings</p>
+                        <p class="db-operation">操作: UPDATE answers SET status='graded'</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 学生接收批改结果 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 relative">
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-frontend">
+                        <h3 class="font-bold text-frontend mb-2 flex items-center">
+                            <i class="fa fa-desktop mr-2"></i>前端设计
+                        </h3>
+                        <p class="frontend-component">组件: GradeNotification 成绩通知</p>
+                        <p class="frontend-component">组件: GradeDetail 成绩详情</p>
+                        <p class="frontend-component">本地缓存: 成绩结果</p>
+                        <p class="text-gray-600 text-sm mt-1">分数展示、评语格式化显示</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-student">
+                        <h3 class="font-bold text-student mb-2 flex items-center">
+                            <i class="fa fa-user mr-2"></i>学生操作
+                        </h3>
+                        <p class="font-medium">9. 学生接收批改结果</p>
+                        <p class="text-gray-600 text-sm mt-1">收到批改完成通知，查看教师的评分和评语</p>
+                        <p class="text-gray-600 text-sm mt-1">根据反馈进行学习改进</p>
+                    </div>
+                </div>
+                
+                <div class="actor-column">
+                    <div class="step-card border-t-4 border-grading">
+                        <h3 class="font-bold text-grading mb-2 flex items-center">
+                            <i class="fa fa-check-square-o mr-2"></i>批改模块
+                        </h3>
+                        <p class="module-call border-grading">接口: GET /api/answers/{id}/grading</p>
+                        <p class="text-gray-600 text-sm">获取特定作答的批改结果</p>
+                        <p class="module-call border-grading">接口: GET /api/gradings/me</p>
+                        <p class="text-gray-600 text-sm">获取学生自己的所有批改结果</p>
+                        
+                        <h3 class="font-bold text-notification mt-3 mb-2 flex items-center">
+                            <i class="fa fa-bell mr-2"></i>通知模块
+                        </h3>
+                        <p class="module-call border-notification">接口: GET /api/notifications</p>
+                        <p class="text-gray-600 text-sm">获取批改完成通知</p>
+                        
+                        <h3 class="font-bold text-resource mt-3 mb-2 flex items-center">
+                            <i class="fa fa-book mr-2"></i>资源模块
+                        </h3>
+                        <p class="module-call border-resource">接口: GET /api/answers/{id}/related-resources</p>
+                        <p class="text-gray-600 text-sm">获取与错题相关的学习资源</p>
+                        
+                        <h3 class="font-bold text-cache mt-3 mb-2 flex items-center">
+                            <i class="fa fa-database mr-2"></i>缓存层
+                        </h3>
+                        <p class="cache-operation">操作: GET/SET answer_grading:{id} EX 86400</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 数据库结构 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-10">
+            <h2 class="text-xl font-semibold mb-6 text-gray-800">数据库表结构</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <!-- 用户表 -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-primary mb-3">users 表</h3>
+                    <ul class="text-sm space-y-2 text-gray-700">
+                        <li><span class="font-medium">id:</span> INT (主键)</li>
+                        <li><span class="font-medium">username:</span> VARCHAR (用户名)</li>
+                        <li><span class="font-medium">password:</span> VARCHAR (加密密码)</li>
+                        <li><span class="font-medium">role:</span> ENUM ('teacher', 'student')</li>
+                        <li><span class="font-medium">grade:</span> INT (年级，学生特有)</li>
+                        <li><span class="font-medium">created_at:</span> DATETIME</li>
+                        <li><span class="font-medium">updated_at:</span> DATETIME</li>
+                    </ul>
+                </div>
+                
+                <!-- 资源表 -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-primary mb-3">resources 表</h3>
+                    <ul class="text-sm space-y-2 text-gray-700">
+                        <li><span class="font-medium">id:</span> INT (主键)</li>
+                        <li><span class="font-medium">name:</span> VARCHAR (资源名称)</li>
+                        <li><span class="font-medium">type:</span> ENUM ('knowledge', 'material', 'video')</li>
+                        <li><span class="font-medium">description:</span> TEXT (描述)</li>
+                        <li><span class="font-medium">subject:</span> VARCHAR (所属学科)</li>
+                        <li><span class="font-medium">grade:</span> INT (适用年级)</li>
+                        <li><span class="font-medium">parent_id:</span> INT (父资源ID，用于层级结构)</li>
+                    </ul>
+                </div>
+                
+                <!-- 题目表 -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-primary mb-3">questions 表</h3>
+                    <ul class="text-sm space-y-2 text-gray-700">
+                        <li><span class="font-medium">id:</span> INT (主键)</li>
+                        <li><span class="font-medium">teacher_id:</span> INT (外键关联users)</li>
+                        <li><span class="font-medium">resource_id:</span> INT (外键关联resources)</li>
+                        <li><span class="font-medium">content:</span> TEXT (题目内容)</li>
+                        <li><span class="font-medium">score:</span> INT (分值)</li>
+                        <li><span class="font-medium">answer:</span> TEXT (参考答案)</li>
+                        <li><span class="font-medium">difficulty:</span> ENUM ('easy', 'medium', 'hard')</li>
+                        <li><span class="font-medium">status:</span> ENUM ('draft', 'published')</li>
+                        <li><span class="font-medium">visible_to:</span> JSON (可见学生范围)</li>
+                        <li><span class="font-medium">due_time:</span> DATETIME (截止时间)</li>
+                        <li><span class="font-medium">created_at:</span> DATETIME</li>
+                        <li><span class="font-medium">updated_at:</span> DATETIME</li>
+                    </ul>
+                </div>
+                
+                <!-- 作答表 -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-primary mb-3">answers 表</h3>
+                    <ul class="text-sm space-y-2 text-gray-700">
+                        <li><span class="font-medium">id:</span> INT (主键)</li>
+                        <li><span class="font-medium">question_id:</span> INT (外键关联questions)</li>
+                        <li><span class="font-medium">student_id:</span> INT (外键关联users)</li>
+                        <li><span class="font-medium">content:</span> TEXT (学生答案)</li>
+                        <li><span class="font-medium">submitted_at:</span> DATETIME</li>
+                        <li><span class="font-medium">status:</span> ENUM ('submitted', 'graded')</li>
+                    </ul>
+                </div>
+                
+                <!-- 批改表 -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-primary mb-3">gradings 表</h3>
+                    <ul class="text-sm space-y-2 text-gray-700">
+                        <li><span class="font-medium">id:</span> INT (主键)</li>
+                        <li><span class="font-medium">answer_id:</span> INT (外键关联answers)</li>
+                        <li><span class="font-medium">teacher_id:</span> INT (外键关联users)</li>
+                        <li><span class="font-medium">score:</span> INT (得分)</li>
+                        <li><span class="font-medium">comment:</span> TEXT (教师评语)</li>
+                        <li><span class="font-medium">graded_at:</span> DATETIME</li>
+                    </ul>
+                </div>
+                
+                <!-- 通知表 -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-primary mb-3">notifications 表</h3>
+                    <ul class="text-sm space-y-2 text-gray-700">
+                        <li><span class="font-medium">id:</span> INT (主键)</li>
+                        <li><span class="font-medium">user_id:</span> INT (接收用户ID)</li>
+                        <li><span class="font-medium">type:</span> ENUM ('new_question', 'new_answer', 'graded')</li>
+                        <li><span class="font-medium">content:</span> TEXT (通知内容)</li>
+                        <li><span class="font-medium">related_id:</span> INT (关联ID，如题目ID)</li>
+                        <li><span class="font-medium">is_read:</span> BOOLEAN (是否已读)</li>
+                        <li><span class="font-medium">created_at:</span> DATETIME</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模块间交互关系 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-10">
+            <h2 class="text-xl font-semibold mb-6 text-gray-800">模块间交互关系</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">模块</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">依赖模块</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">主要交互方式</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">交互目的</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-auth">认证模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">提供API接口</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">用户身份验证、权限控制</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-resource">资源模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">认证模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">提供API接口</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">提供教学资源数据支持</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-question">出题模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">认证模块、资源模块、通知模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">调用API、事件触发</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">获取教学资源、触发通知</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-answer">作答模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">认证模块、出题模块、通知模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">调用API、事件触发</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">验证题目、触发通知</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-grading">批改模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">认证模块、出题模块、作答模块、通知模块、资源模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">调用API、事件触发</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">获取作答、获取相关资源、触发通知</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-notification">通知模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">认证模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">提供API接口、事件监听</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">处理各模块的通知需求</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 接口汇总 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-6 text-gray-800">后端API接口汇总</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">模块</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">HTTP方法</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">接口路径</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">功能描述</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <!-- 认证模块 -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-auth">认证模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">POST</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/auth/login</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">用户登录验证</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-auth">认证模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">GET</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/auth/me</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">获取当前用户信息</td>
+                        </tr>
+                        
+                        <!-- 资源模块 -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-resource">资源模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">GET</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/resources</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">获取资源列表</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-resource">资源模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">GET</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/resources/{id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">获取资源详情</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-resource">资源模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">GET</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/questions/{id}/resources</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">获取题目相关资源</td>
+                        </tr>
+                        
+                        <!-- 出题模块 -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-question">出题模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">POST</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/questions/generate</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">自动生成题目</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-question">出题模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">POST</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/questions/draft</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">保存题目草稿</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-question">出题模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PUT</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/questions/{id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">修改题目</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-question">出题模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PUT</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/questions/{id}/publish</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">发布题目</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-question">出题模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">GET</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/questions?studentId={id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">获取学生可见题目</td>
+                        </tr>
+                        
+                        <!-- 作答模块 -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-answer">作答模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">POST</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/answers</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">提交学生答案</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-answer">作答模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">GET</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/answers/me</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">查询我的作答</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-answer">作答模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">GET</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/questions/{id}/answers</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">获取题目所有作答</td>
+                        </tr>
+                        
+                        <!-- 批改模块 -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-grading">批改模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">POST</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/gradings/draft</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">保存批改草稿</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-grading">批改模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PUT</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/gradings/{id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">提交批改结果</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-grading">批改模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">GET</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/answers/{id}/grading</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">获取批改结果</td>
+                        </tr>
+                        
+                        <!-- 通知模块 -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-notification">通知模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">GET</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/notifications</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">获取用户通知</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-notification">通知模块</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PUT</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">/api/notifications/{id}/read</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">标记通知为已读</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script>
+        // 添加滚动动画效果
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.step-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                        entry.target.classList.remove('opacity-0', 'translate-y-4');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            cards.forEach(card => {
+                card.classList.add('opacity-0', 'translate-y-4', 'transition-all', 'duration-500');
+                observer.observe(card);
+            });
+        });
+    </script>
+</body></html>
+    

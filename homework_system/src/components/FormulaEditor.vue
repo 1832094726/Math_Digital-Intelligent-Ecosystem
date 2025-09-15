@@ -57,7 +57,21 @@
       </div>
       
       <div class="symbol-panel" v-if="showSymbolPanel">
+        <!-- 使用新的智能符号补全组件 -->
+        <smart-symbol-completion
+          v-model="latexContent"
+          :student-model="studentModel"
+          :context="editorContext"
+          :show-preview="false"
+          :show-symbol-panel="true"
+          @input-change="handleSmartInput"
+          @completion-selected="handleCompletionSelected"
+          @symbol-inserted="handleSymbolInserted"
+        ></smart-symbol-completion>
+
+        <!-- 保留原有的符号推荐组件作为备选 -->
         <symbol-recommendation
+          v-if="showLegacyPanel"
           :recommendation-service="recommendationService"
           :student-model="studentModel"
           :context="editorContext"
@@ -133,12 +147,14 @@
 
 <script>
 import SymbolRecommendation from './SymbolRecommendation.vue';
+import SmartSymbolCompletion from './SmartSymbolCompletion.vue';
 
 export default {
   name: 'FormulaEditor',
-  
+
   components: {
-    SymbolRecommendation
+    SymbolRecommendation,
+    SmartSymbolCompletion
   },
   
   props: {
@@ -188,7 +204,10 @@ export default {
       history: [],
       historyIndex: -1,
       // 最大历史记录数
-      maxHistorySize: 50
+      maxHistorySize: 50,
+      // 智能补全相关
+      showLegacyPanel: false,
+      smartCompletionEnabled: true
     };
   },
   
@@ -595,10 +614,69 @@ export default {
     recordExampleUsage(example) {
       // 记录使用示例的行为
       if (!this.studentModel) return;
-      
+
       this.studentModel.recordBehavior('example_usage', {
         exampleLength: example.length,
         timestamp: new Date().toISOString()
+      });
+    },
+
+    // 智能符号补全相关方法
+    handleSmartInput(inputData) {
+      // 处理智能输入变化
+      this.latexContent = inputData.content;
+      this.cursorPosition = inputData.cursorPosition;
+      this.updateEditorContext();
+
+      // 记录智能输入行为
+      this.recordEditorAction('smart_input', {
+        inputLength: inputData.content.length,
+        cursorPosition: inputData.cursorPosition
+      });
+    },
+
+    handleCompletionSelected(completion) {
+      // 处理补全选择
+      console.log('Completion selected:', completion);
+
+      // 记录补全使用
+      this.recordEditorAction('completion_used', {
+        completionSymbol: completion.symbol,
+        completionScore: completion.score,
+        completionSource: completion.sources?.join(',') || 'unknown'
+      });
+
+      // 发出补全选择事件
+      this.$emit('completion-selected', completion);
+    },
+
+    handleSymbolInserted(symbol) {
+      // 处理符号插入
+      console.log('Symbol inserted:', symbol);
+
+      // 记录符号插入
+      this.recordEditorAction('symbol_inserted', {
+        symbolName: symbol.symbol,
+        symbolCategory: symbol.category || 'unknown'
+      });
+
+      // 发出符号插入事件
+      this.$emit('symbol-inserted', symbol);
+    },
+
+    toggleLegacyPanel() {
+      // 切换传统符号面板
+      this.showLegacyPanel = !this.showLegacyPanel;
+    },
+
+    toggleSmartCompletion() {
+      // 切换智能补全功能
+      this.smartCompletionEnabled = !this.smartCompletionEnabled;
+
+      // 记录功能切换
+      this.recordEditorAction('feature_toggle', {
+        feature: 'smart_completion',
+        enabled: this.smartCompletionEnabled
       });
     }
   }

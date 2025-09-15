@@ -1,0 +1,171 @@
+---
+globs: *.md,*.docx,**/docs/**/*
+description: 文档编写和维护规则
+---
+
+# 文档编写和维护规则
+
+## 核心文档结构
+
+### 项目级文档
+- [PROJECT_DOCUMENTATION.md](mdc:PROJECT_DOCUMENTATION.md) - 完整项目技术文档
+- [README.md](mdc:README.md) - 项目概述和快速开始指南
+- [architecture.md](mdc:architecture.md) - 系统架构设计文档
+- [integration_plan.md](mdc:integration_plan.md) - 集成计划和实施方案
+- [系统总结.md](mdc:系统总结.md) - 系统功能和特性总结
+
+### 学术文档
+- [V03.docx.md](mdc:V03.docx.md) - 学术论文Markdown版本
+- [english_paper.docx.md](mdc:english_paper.docx.md) - 英文论文文档
+- IEEE会议模板：[IEEE-conference-template-062824/](mdc:IEEE-conference-template-062824/)
+
+### 技术实现文档
+- [基于隐式列举解答路径模块详细实现文档.md](mdc:基于隐式列举解答路径模块详细实现文档.md) - 数学批改算法实现
+- [homework_system/README.md](mdc:homework_system/README.md) - 前端系统文档
+- [homework-backend/README1.md](mdc:homework-backend/README1.md) - 后端系统文档
+
+### 具体功能文档
+- [homework_system/FINAL_PAPER_STRUCTURE.md](mdc:homework_system/FINAL_PAPER_STRUCTURE.md) - 论文结构文档
+- [homework_system/FIXES_AND_UPDATES_SUMMARY.md](mdc:homework_system/FIXES_AND_UPDATES_SUMMARY.md) - 修复和更新记录
+- [homework_system/SYMBOL_RECOMMENDATION_DEMO.md](mdc:homework_system/SYMBOL_RECOMMENDATION_DEMO.md) - 符号推荐演示文档
+- [homework_system/SYMBOL_RECOMMENDATION_INTEGRATION.md](mdc:homework_system/SYMBOL_RECOMMENDATION_INTEGRATION.md) - 符号推荐集成文档
+
+## 文档编写规范
+
+### 语言规范
+- **主要语言**：中文（所有用户面向文档）
+- **技术文档**：中文为主，英文技术术语保持原文
+- **代码注释**：中文解释，保持简洁清晰
+- **API文档**：中英文对照，便于国际化
+
+### Markdown格式规范
+```markdown
+# 一级标题（项目名称）
+## 二级标题（主要章节）
+### 三级标题（具体功能）
+#### 四级标题（详细说明）
+
+## 代码块格式
+```python
+# 代码示例
+def example_function():
+    """函数说明"""
+    return "示例"
+```
+
+## 表格格式
+| 列1 | 列2 | 列3 |
+|-----|-----|-----|
+| 数据1 | 数据2 | 数据3 |
+
+## 链接格式
+[文档名称](相对路径)
+[外部链接](https://example.com)
+```
+
+### 文档结构模板
+每个技术文档应包含以下结构：
+1. **概述** - 简要说明文档目的和范围
+2. **技术栈** - 相关技术和依赖
+3. **架构设计** - 系统或模块架构
+4. **核心功能** - 主要功能说明
+5. **API接口** - 接口定义和使用方法
+6. **配置说明** - 配置参数和环境设置
+7. **部署指南** - 部署步骤和注意事项
+8. **故障排除** - 常见问题和解决方案
+
+## 文档维护策略
+
+### 版本控制
+- 所有文档纳入Git版本控制
+- 重要变更需要记录变更日志
+- 使用语义化版本控制（主版本.次版本.修订版本）
+- 定期回顾和更新过时内容
+
+### 文档审查
+- 新文档需要同行评审
+- 技术文档需要开发团队确认
+- 用户文档需要产品团队验证
+- 定期进行文档质量检查
+
+### 自动化生成
+- API文档使用代码注释自动生成
+- 数据库文档从Schema自动生成
+- 部署文档集成CI/CD流程
+- 使用工具确保文档与代码同步
+
+## 特定类型文档规范
+
+### API文档
+```markdown
+## API端点名称
+**请求方法**: POST
+**请求路径**: /api/recommend/symbols
+**请求参数**:
+- context (string): 上下文信息
+- user_id (string): 用户ID
+
+**响应格式**:
+```json
+{
+  "success": true,
+  "data": {
+    "recommendations": [...]
+  }
+}
+```
+
+**示例调用**:
+```javascript
+const response = await fetch('/api/recommend/symbols', {
+  method: 'POST',
+  body: JSON.stringify({context: '代数', user_id: 'user123'})
+});
+```
+```
+
+### 算法文档
+```markdown
+## 算法名称
+**算法目的**: 简要描述算法解决的问题
+**输入参数**: 列出所有输入参数及其类型
+**输出结果**: 描述算法输出格式
+**算法步骤**:
+1. 步骤一描述
+2. 步骤二描述
+3. ...
+
+**复杂度分析**:
+- 时间复杂度: O(n)
+- 空间复杂度: O(1)
+
+**应用场景**: 描述算法的适用场景
+```
+
+### 用户手册
+```markdown
+## 功能名称
+**功能描述**: 简要说明功能作用
+**使用场景**: 什么时候使用此功能
+**操作步骤**:
+1. 第一步操作（配图说明）
+2. 第二步操作（配图说明）
+3. ...
+
+**注意事项**: 使用过程中需要注意的问题
+**故障排除**: 常见问题及解决方法
+```
+
+## 文档质量标准
+
+### 内容质量
+- **准确性**: 确保技术描述准确无误
+- **完整性**: 覆盖所有必要的技术细节
+- **时效性**: 及时更新过时的内容
+- **可读性**: 使用清晰的语言和结构
+
+### 格式质量
+- **一致性**: 遵循统一的格式规范
+- **可访问性**: 支持多种阅读方式
+- **可搜索性**: 使用合适的标题和关键词
+- **可维护性**: 便于后续更新和修改
