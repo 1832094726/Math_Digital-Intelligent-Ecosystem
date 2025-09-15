@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: math_ecosystem_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-math_ecosystem}
+      MYSQL_USER: ${MYSQL_USER:-mathuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-mathpass123}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ../architect/04_数据模型设计_实际版.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - math_network
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: math_ecosystem_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - math_network
+
+  # Main Application
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: math_ecosystem_app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER:-mathuser}:${MYSQL_PASSWORD:-mathpass123}@mysql:3306/${MYSQL_DATABASE:-math_ecosystem}
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+    volumes:
+      - ../data:/app/data
+      - ../logs:/app/logs
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - math_network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: math_ecosystem_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - app
+    networks:
+      - math_network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  math_network:
+    driver: bridge
