@@ -7,13 +7,13 @@ from datetime import timedelta
 
 class Config:
     """基础配置"""
-    # 数据库配置
+    # 数据库配置 - 支持环境变量覆盖
     DATABASE_CONFIG = {
-        'host': 'obmt6zg485miazb4-mi.aliyun-cn-beijing-internet.oceanbase.cloud',
-        'port': 3306,
-        'user': 'hcj',
-        'password': 'Xv0Mu8_:',
-        'database': 'testccnu',
+        'host': os.environ.get('DB_HOST', 'obmt6zg485miazb4-mi.aliyun-cn-beijing-internet.oceanbase.cloud'),
+        'port': int(os.environ.get('DB_PORT', 3306)),
+        'user': os.environ.get('DB_USER', 'hcj'),
+        'password': os.environ.get('DB_PASSWORD', 'Xv0Mu8_:'),
+        'database': os.environ.get('DB_NAME', 'testccnu'),
         'charset': 'utf8mb4'
     }
     

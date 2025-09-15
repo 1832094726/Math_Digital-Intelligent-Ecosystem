@@ -7,9 +7,10 @@
   ```bash
   # Linux/Mac
   curl -fsSL https://get.docker.com | sh
-  
+
   # Windows: 下载Docker Desktop
   ```
+- 网络连接（用于连接远程数据库）
 
 ### 🎯 3步部署
 
@@ -28,8 +29,9 @@ cd Math_Digital-Intelligent-Ecosystem/docker
 ## 🎉 就是这么简单！
 
 - ✅ **零配置** - 无需修改任何配置文件
-- ✅ **自动化** - 自动下载镜像、启动服务、初始化数据库
+- ✅ **自动化** - 自动下载镜像、启动服务、连接远程数据库
 - ✅ **预构建** - 使用预构建的Docker镜像，无需编译
+- ✅ **云端数据库** - 连接远程OceanBase，无需本地数据库
 - ✅ **健康检查** - 自动等待所有服务就绪
 
 ## 🌐 访问地址

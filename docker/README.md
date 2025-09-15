@@ -19,15 +19,21 @@ chmod +x deploy.sh
 
 - ✅ **无需配置环境变量** - 使用预设的安全默认值
 - ✅ **无需构建镜像** - 使用预构建的Docker镜像
-- ✅ **自动数据库初始化** - 自动创建表结构和初始数据
+- ✅ **云端数据库** - 连接远程OceanBase，无需本地数据库
 - ✅ **健康检查** - 自动等待所有服务就绪
 - ✅ **中文界面** - 友好的中文提示信息
 
 ## 🏗️ 服务架构
 
 ```
-浏览器 → Nginx (80) → Flask应用 (5000) → MySQL (3306) + Redis (6379)
+浏览器 → Nginx (80) → Flask应用 (5000) → 远程OceanBase数据库 + 本地Redis (6379)
 ```
+
+### 数据库配置
+- **远程数据库**: OceanBase云数据库 (MySQL兼容)
+- **连接地址**: obmt6zg485miazb4-mi.aliyun-cn-beijing-internet.oceanbase.cloud:3306
+- **数据库名**: testccnu
+- **优势**: 云端托管，高可用，无需本地维护
 
 ## 🌐 访问地址
 
@@ -62,9 +68,9 @@ docker-compose down -v
 使用预构建的Docker镜像，无需本地编译：
 
 - `matheco/k12-math-ecosystem:latest` - 主应用镜像
-- `mysql:8.0` - 数据库
-- `redis:7-alpine` - 缓存
+- `redis:7-alpine` - 本地缓存
 - `nginx:alpine` - 反向代理
+- 远程OceanBase数据库 - 云端数据库服务
 
 ## 🆘 常见问题
 

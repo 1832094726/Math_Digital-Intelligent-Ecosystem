@@ -1,28 +1,28 @@
 version: '3.8'
 
 services:
-  # MySQL Database with auto-initialization
-  mysql:
-    image: mysql:8.0
-    container_name: math_ecosystem_db
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: math_root_2024
-      MYSQL_DATABASE: math_ecosystem
-      MYSQL_USER: mathuser
-      MYSQL_PASSWORD: mathpass_2024
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ../architect/04_数据模型设计_实际版.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - math_network
-    command: --default-authentication-plugin=mysql_native_password
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
+  # 注释：使用远程OceanBase数据库，无需本地MySQL
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: math_ecosystem_db
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: math_root_2024
+  #     MYSQL_DATABASE: math_ecosystem
+  #     MYSQL_USER: mathuser
+  #     MYSQL_PASSWORD: mathpass_2024
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #     - ../architect/04_数据模型设计_实际版.sql:/docker-entrypoint-initdb.d/init.sql
+  #   networks:
+  #     - math_network
+  #   command: --default-authentication-plugin=mysql_native_password
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+  #     timeout: 20s
+  #     retries: 10
 
   # Redis Cache
   redis:
@@ -41,7 +41,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # Pre-built Application Image
+  # Pre-built Application Image (连接远程数据库)
   app:
     image: matheco/k12-math-ecosystem:latest
     container_name: math_ecosystem_app
@@ -50,7 +50,12 @@ services:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
-      - DATABASE_URL=mysql+pymysql://mathuser:mathpass_2024@mysql:3306/math_ecosystem
+      # 远程OceanBase数据库配置
+      - DB_HOST=obmt6zg485miazb4-mi.aliyun-cn-beijing-internet.oceanbase.cloud
+      - DB_PORT=3306
+      - DB_USER=hcj
+      - DB_PASSWORD=Xv0Mu8_:
+      - DB_NAME=testccnu
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=math_ecosystem_secret_key_2024
       - JWT_SECRET_KEY=jwt_secret_math_2024
@@ -58,8 +63,6 @@ services:
       - app_data:/app/data
       - app_logs:/app/logs
     depends_on:
-      mysql:
-        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
@@ -86,7 +89,7 @@ services:
       - math_network
 
 volumes:
-  mysql_data:
+  # mysql_data:  # 不需要本地MySQL数据卷
   redis_data:
   app_data:
   app_logs:
