@@ -15,7 +15,9 @@ RUN npm install
 
 # 复制前端源码并构建
 COPY homework_system/ ./
-RUN chmod +x node_modules/.bin/* && npm run build
+RUN chmod -R +x node_modules/.bin/ && \
+    ls -la node_modules/.bin/vue-cli-service && \
+    npm run build
 
 # ================================
 # 阶段2: 后端Flask + 前端静态文件
