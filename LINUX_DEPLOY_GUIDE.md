@@ -17,14 +17,19 @@ git clone https://github.com/1832094726/Math_Digital-Intelligent-Ecosystem.git
 cd Math_Digital-Intelligent-Ecosystem/docker
 ```
 
-### 2️⃣ 运行Linux部署脚本
+### 2️⃣ 运行Linux部署脚本（全栈构建）
 ```bash
 # 给脚本执行权限
 chmod +x deploy-linux.sh
 
-# 运行部署脚本
+# 运行部署脚本（自动构建Vue前端 + Flask后端）
 ./deploy-linux.sh
 ```
+
+**构建过程**：
+- 🔄 **阶段1**: 使用Node.js构建Vue前端
+- 🔄 **阶段2**: 构建Flask后端并整合前端静态文件
+- 🎯 **结果**: 单个Docker镜像包含完整的全栈应用
 
 ### 3️⃣ 配置端口
 脚本会询问端口配置：
@@ -47,14 +52,20 @@ API:  http://172.104.172.5:8081/api
 - 下载: https://www.docker.com/products/docker-desktop
 - 安装并启动Docker Desktop
 
-#### 2️⃣ 构建镜像
+#### 2️⃣ 构建全栈镜像
 ```cmd
 # 在Windows项目目录
 cd "E:\program development\The Digital and Intelligent Ecosystem for K-12 Mathematics Education\docker"
 
-# 运行构建脚本
+# 运行全栈构建脚本
 build-windows.bat
 ```
+
+**构建内容**：
+- ✅ **Vue.js前端** (homework_system)
+- ✅ **Flask后端** (homework-backend)
+- ✅ **数学符号键盘**
+- ✅ **静态资源整合**
 
 #### 3️⃣ 推送到Docker Hub
 - 脚本会询问是否推送

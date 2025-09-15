@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
-echo 🏗️ Windows Docker镜像构建脚本
-echo ================================
+echo 🚀 K12数学教育生态系统 - Windows全栈构建
+echo ==========================================
 
 :: 检查Docker
 echo [信息] 检查Docker环境...
@@ -13,18 +13,36 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
+:: 检查前端项目
+echo [信息] 检查前端项目...
+if not exist "homework_system\package.json" (
+    echo [错误] 未找到Vue前端项目
+    pause
+    exit /b 1
+)
+
+:: 检查后端项目
+echo [信息] 检查后端项目...
+if not exist "homework-backend\requirements.txt" (
+    echo [错误] 未找到Flask后端项目
+    pause
+    exit /b 1
+)
+
 :: 设置镜像名称
 set IMAGE_NAME=matheco/k12-math-ecosystem
 set VERSION=latest
 set FULL_IMAGE_NAME=%IMAGE_NAME%:%VERSION%
 
-echo [信息] 构建镜像: %FULL_IMAGE_NAME%
+echo [信息] 构建全栈镜像: %FULL_IMAGE_NAME%
 
 :: 切换到项目根目录
 cd /d "%~dp0\.."
 
-:: 构建镜像
-echo [信息] 开始构建Docker镜像...
+:: 构建镜像（多阶段构建）
+echo [信息] 开始多阶段构建...
+echo [信息] 阶段1: 构建Vue前端...
+echo [信息] 阶段2: 构建Flask后端并整合前端...
 docker build -t %FULL_IMAGE_NAME% -f docker/Dockerfile .
 
 if %errorlevel% neq 0 (
@@ -56,9 +74,17 @@ if /i "%PUSH_CHOICE%"=="y" (
         exit /b 1
     )
     
-    echo [成功] 镜像已推送到Docker Hub
+    echo [成功] 全栈镜像已推送到Docker Hub
     echo.
-    echo 🎉 现在可以在Linux服务器上使用以下命令部署:
+    echo 🎉 全栈镜像已发布: %FULL_IMAGE_NAME%
+    echo.
+    echo 📋 包含组件:
+    echo    ✅ Vue.js前端 (homework_system)
+    echo    ✅ Flask后端 (homework-backend)
+    echo    ✅ 数学符号键盘
+    echo    ✅ 静态资源
+    echo.
+    echo 🚀 现在可以在Linux服务器上一键部署:
     echo docker pull %FULL_IMAGE_NAME%
     echo docker run -d -p 8080:5000 %FULL_IMAGE_NAME%
 ) else (

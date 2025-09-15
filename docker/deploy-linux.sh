@@ -75,7 +75,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # Application (本地构建)
+  # Application (全栈构建：Vue前端 + Flask后端)
   app:
     build:
       context: ..
