@@ -87,11 +87,11 @@ services:
     environment:
       - FLASK_ENV=production
       # 远程OceanBase数据库配置
-      - DB_HOST=obmt6zg485miazb4-mi.aliyun-cn-beijing-internet.oceanbase.cloud
-      - DB_PORT=3306
-      - DB_USER=hcj
-      - DB_PASSWORD=Xv0Mu8_:
-      - DB_NAME=testccnu
+      - "DB_HOST=obmt6zg485miazb4-mi.aliyun-cn-beijing-internet.oceanbase.cloud"
+      - "DB_PORT=3306"
+      - "DB_USER=hcj"
+      - "DB_PASSWORD=Xv0Mu8_:"
+      - "DB_NAME=testccnu"
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=math_ecosystem_secret_key_2024
       - JWT_SECRET_KEY=jwt_secret_math_2024
