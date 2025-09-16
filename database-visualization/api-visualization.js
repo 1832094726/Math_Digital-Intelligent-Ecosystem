@@ -2,7 +2,7 @@
 class APIVisualization {
     constructor() {
         this.apiData = null;
-        this.baseURL = 'http://localhost:5001';
+        this.baseURL = 'http://172.104.172.5:5001';
         this.init();
     }
     

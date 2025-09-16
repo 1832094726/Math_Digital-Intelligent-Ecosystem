@@ -1,7 +1,7 @@
 // 数据库API接口
 class DatabaseAPI {
     constructor() {
-        this.baseURL = 'http://localhost:5001/api';
+        this.baseURL = 'http://172.104.172.5:5001/api';
         this.cache = new Map();
         this.cacheTimeout = 30000; // 30秒缓存
     }
