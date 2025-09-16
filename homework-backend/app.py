@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, jsonify, request, redirect, send_from_directory, send_file
 from flask_cors import CORS
 import os
@@ -67,7 +68,7 @@ def health_check():
         return jsonify({
             'status': 'unhealthy',
             'service': 'homework-backend',
-            'message': f'服务异常: {str(e)}'
+            'message': '服务异常: {}'.format(str(e))
         }), 500
 
 # 重定向旧路由到新API路由
@@ -78,7 +79,7 @@ def redirect_homework_list():
 # 重定向旧路由到新API路由
 @app.route('/homework/detail/<int:homework_id>', methods=['GET'])
 def redirect_homework_detail(homework_id):
-    return redirect(f'/api/homework/detail/{homework_id}')
+    return redirect('/api/homework/detail/{}'.format(homework_id))
 
 # 重定向知识点路由
 @app.route('/knowledge/question', methods=['GET', 'POST'])
@@ -87,8 +88,8 @@ def redirect_knowledge_question():
         # 获取所有GET参数并传递
         args = request.args.to_dict()
         # 构建重定向URL，保留所有查询参数
-        query_string = '&'.join([f"{k}={v}" for k, v in args.items()])
-        redirect_url = f'/api/knowledge/question?{query_string}' if query_string else '/api/knowledge/question'
+        query_string = '&'.join(["{}={}".format(k, v) for k, v in args.items()])
+        redirect_url = '/api/knowledge/question?{}'.format(query_string) if query_string else '/api/knowledge/question'
         return redirect(redirect_url)
     else:
         # POST请求重定向

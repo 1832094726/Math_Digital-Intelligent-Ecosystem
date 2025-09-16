@@ -374,7 +374,7 @@ export default {
   created() {
     // 配置axios实例
     this.$http = axios.create({
-      baseURL: 'http://localhost:8081',
+      baseURL: 'http://172.104.172.5:8081',
       timeout: 10000
     });
 

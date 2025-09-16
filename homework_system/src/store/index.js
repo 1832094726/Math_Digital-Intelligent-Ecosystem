@@ -76,7 +76,7 @@ export default new Vuex.Store({
     async login({ commit }, credentials) {
       try {
         // 调用后端登录API
-        const response = await axios.post('http://localhost:8081/api/auth/login', {
+        const response = await axios.post('http://172.104.172.5:8081/api/auth/login', {
           username: credentials.username || 'student',
           password: credentials.password || 'password'
         });
@@ -105,7 +105,7 @@ export default new Vuex.Store({
     async fetchHomeworks({ commit }) {
       try {
         // 调用后端API获取作业列表
-        const response = await axios.get('http://localhost:8081/api/homework/list');
+        const response = await axios.get('http://172.104.172.5:8081/api/homework/list');
 
         if (response.data.success) {
           const homeworks = response.data.data.homeworks || [];
@@ -124,7 +124,7 @@ export default new Vuex.Store({
     async fetchHomeworkDetail({ commit }, homeworkId) {
       try {
         // 先获取作业详情
-        const homeworkResponse = await axios.get(`http://localhost:8081/api/homework/${homeworkId}`);
+        const homeworkResponse = await axios.get(`http://172.104.172.5:8081/api/homework/${homeworkId}`);
 
         if (!homeworkResponse.data.success) {
           throw new Error(homeworkResponse.data.message || '获取作业详情失败');
@@ -135,7 +135,7 @@ export default new Vuex.Store({
         // 尝试获取题目，如果失败则使用空数组
         let questions = [];
         try {
-          const questionsResponse = await axios.get(`http://localhost:8081/api/homework/${homeworkId}/questions`);
+          const questionsResponse = await axios.get(`http://172.104.172.5:8081/api/homework/${homeworkId}/questions`);
           if (questionsResponse.data.success) {
             questions = questionsResponse.data.data.questions || [];
           }

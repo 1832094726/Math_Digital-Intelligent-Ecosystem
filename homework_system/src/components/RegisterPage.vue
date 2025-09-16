@@ -294,7 +294,7 @@ export default {
         delete submitData.confirmPassword // 移除确认密码字段
 
         // 调用注册API
-        const response = await axios.post('http://localhost:8081/api/auth/register', submitData)
+        const response = await axios.post('http://172.104.172.5:8081/api/auth/register', submitData)
 
         if (response.data.success) {
           this.$message.success('注册成功！请查收激活邮件')

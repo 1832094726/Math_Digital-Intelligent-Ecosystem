@@ -7,7 +7,7 @@
 import axios from 'axios'
 
 // API基础配置
-const API_BASE_URL = 'http://localhost:8081/api'
+const API_BASE_URL = 'http://172.104.172.5:8081/api'
 
 // 创建axios实例
 const apiClient = axios.create({
