@@ -166,6 +166,11 @@ def update_user():
     return jsonify(update_user_model(data))
 
 # 静态文件服务 - 服务Vue前端
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    """服务所有静态文件"""
+    return send_from_directory('static/homework', filename)
+
 @app.route('/static/homework/<path:filename>')
 def serve_homework_static(filename):
     """服务Vue前端静态文件"""
