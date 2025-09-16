@@ -1,0 +1,69 @@
+{
+  "security": {
+    "maxCommandLength": 2000,
+    "blockedCommands": [
+      "format",
+      "shutdown",
+      "restart",
+      "reg",
+      "regedit",
+      "net",
+      "netsh",
+      "takeown",
+      "icacls"
+    ],
+    "blockedArguments": [
+      "--exec",
+      "-e",
+      "/c",
+      "-enc",
+      "-encodedcommand",
+      "-command",
+      "--interactive",
+      "-i",
+      "--login",
+      "--system"
+    ],
+    "allowedPaths": ["C:\\Users\\18320", "E:\\program development"],
+    "restrictWorkingDirectory": false,
+    "logCommands": true,
+    "maxHistorySize": 1000,
+    "commandTimeout": 30,
+    "enableInjectionProtection": true
+  },
+  "shells": {
+    "powershell": {
+      "enabled": true,
+      "command": "powershell.exe",
+      "args": ["-NoProfile", "-NonInteractive", "-Command"],
+      "blockedOperators": []
+    },
+    "cmd": {
+      "enabled": true,
+      "command": "cmd.exe",
+      "args": ["/c"],
+      "blockedOperators": []
+    }
+  },
+  "ssh": {
+    "enabled": true,
+    "defaultTimeout": 30,
+    "maxConcurrentSessions": 5,
+    "keepaliveInterval": 10000,
+    "keepaliveCountMax": 3,
+    "readyTimeout": 20000,
+    "allowedOperators": ["&", "|", ";", "&&", "||"],
+    "connections": {
+      "math-server": {
+        "host": "172.104.172.5",
+        "port": 22,
+        "username": "root",
+        "password": "CCNU_rqmWLlqDmx^XF6bOLhF%vSNe*7cYPwk",
+        "keepaliveInterval": 10000,
+        "keepaliveCountMax": 3,
+        "readyTimeout": 20000
+      }
+    }
+  }
+}
+

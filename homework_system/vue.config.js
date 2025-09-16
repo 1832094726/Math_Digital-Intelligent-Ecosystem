@@ -3,7 +3,7 @@ module.exports = {
     port: 8080,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000', // 后端API地址
+              target: 'http://localhost:8081', // 后端API地址
         changeOrigin: true,
         pathRewrite: {
           '^/api': '/api' // 保留/api前缀以匹配后端路由

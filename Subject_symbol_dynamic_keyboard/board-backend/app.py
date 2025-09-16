@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, jsonify, json, request
 from flask_cors import CORS
 import os
@@ -57,4 +58,4 @@ def predict():  # put application's code here
         })
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0", port=5003, debug=True)
