@@ -78,4 +78,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:5000/api/health || exit 1
 
 # 启动命令
-CMD ["python", "-c", "from app import app; app.run(host='0.0.0.0', port=5000, debug=False)"]
+CMD ["python", "app.py"]
