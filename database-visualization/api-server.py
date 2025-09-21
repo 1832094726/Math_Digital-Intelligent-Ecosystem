@@ -890,9 +890,242 @@ def health_check():
 def not_found(error):
     return jsonify({'error': '接口不存在'}), 404
 
+@app.route('/api/generate-docs', methods=['POST'])
+def generate_docs():
+    """生成API详细文档"""
+    try:
+        generate_api_documentation()
+        return jsonify({
+            'success': True,
+            'message': 'API详细文档生成成功',
+            'file_path': 'architect/05_API设计文档.md'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({'error': '服务器内部错误'}), 500
+
+def generate_api_documentation():
+    """生成API详细文档并写入到05_API设计文档.md"""
+    try:
+        import requests
+        import json
+        from datetime import datetime
+        
+        # API服务器地址
+        base_url = "http://172.104.172.5:5001"
+        
+        print("📝 开始生成API详细文档...")
+        
+        # 调用 /api/apis 获取所有API信息
+        try:
+            response = requests.get(f"{base_url}/api/apis", timeout=10)
+            if response.status_code == 200:
+                apis_data = response.json()
+                print(f"✅ 成功获取 {apis_data.get('total_apis', 0)} 个API信息")
+            else:
+                print(f"❌ 获取API列表失败: {response.status_code}")
+                return
+        except Exception as e:
+            print(f"❌ 调用API失败: {e}")
+            return
+        
+        # 生成文档内容
+        doc_content = f"""# K-12数学教育智能数字生态系统 - API详细文档
+
+## 系统概述
+
+本系统是一个基于推荐技术提升学生作业效率的K-12数学教育智能数字生态系统（DIEM），提供完整的作业管理、智能推荐、学习分析等功能。
+
+### 技术架构
+- **后端框架**: Flask 2.0.3
+- **数据库**: MySQL (OceanBase云数据库)
+- **API协议**: RESTful
+- **数据格式**: JSON
+- **认证方式**: JWT Token
+- **跨域支持**: CORS
+
+### 服务器配置
+```
+基础URL: http://172.104.172.5:5001
+数据库: obmt6zg485miazb4-mi.aliyun-cn-beijing-internet.oceanbase.cloud:3306
+数据库名: testccnu
+```
+
+## 通用响应格式
+
+### 成功响应
+```json
+{{
+  "success": true,
+  "data": {{
+    // 具体数据内容
+  }},
+  "message": "操作成功"
+}}
+```
+
+### 错误响应
+```json
+{{
+  "success": false,
+  "error": "错误信息",
+  "message": "详细错误描述"
+}}
+```
+
+## 数据库可视化API
+
+### 1. 健康检查
+
+#### GET /api/health
+检查API服务状态和数据库连接
+
+**响应示例**
+```json
+{{
+  "status": "healthy",
+  "database": "connected", 
+  "message": "数据库API服务正常运行"
+}}
+```
+
+### 2. 数据库表管理
+
+#### GET /api/database/tables
+获取所有数据库表信息
+
+#### GET /api/database/table/{{table_name}}
+获取指定表的数据
+
+#### GET /api/database/table/{{table_name}}/count
+获取指定表的记录总数
+
+#### GET /api/database/table/{{table_name}}/structure
+获取指定表的结构信息
+
+### 3. API分析功能
+
+#### GET /api/apis
+获取系统中所有API的详细信息
+
+**响应示例**
+```json
+{json.dumps(apis_data, ensure_ascii=False, indent=2)}
+```
+
+## 项目API详细列表
+
+### API统计信息
+- **总API数量**: {apis_data.get('total_apis', 0)}
+- **API分类**: {', '.join(apis_data.get('categories', []))}
+- **生成时间**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+"""
+
+        # 添加分类API详情
+        if 'categorized_apis' in apis_data:
+            doc_content += "\n### 按功能分类的API\n\n"
+            for category, apis in apis_data['categorized_apis'].items():
+                doc_content += f"#### {category.replace('_', ' ').title()}\n\n"
+                for api in apis:
+                    doc_content += f"**{api.get('name', 'Unknown')}**\n"
+                    doc_content += f"- 路径: `{api.get('methods', ['GET'])[0]} {api.get('path', 'N/A')}`\n"
+                    doc_content += f"- 描述: {api.get('description', '暂无描述')}\n"
+                    doc_content += f"- 文件: {api.get('file', 'N/A')}\n"
+                    if api.get('database_tables'):
+                        doc_content += f"- 关联表: {', '.join(api.get('database_tables', []))}\n"
+                    doc_content += "\n"
+
+        # 添加详细API信息
+        if 'apis' in apis_data:
+            doc_content += "\n## 详细API信息\n\n"
+            for api_id, api_info in apis_data['apis'].items():
+                doc_content += f"### {api_id}\n\n"
+                doc_content += f"**基本信息**\n"
+                doc_content += f"- 名称: {api_info.get('name', 'N/A')}\n"
+                doc_content += f"- 路径: {api_info.get('path', 'N/A')}\n"
+                doc_content += f"- 方法: {', '.join(api_info.get('methods', []))}\n"
+                doc_content += f"- 分类: {api_info.get('category', 'N/A')}\n"
+                doc_content += f"- 文件: {api_info.get('file', 'N/A')}\n"
+                doc_content += f"- 描述: {api_info.get('description', '暂无描述')}\n\n"
+                
+                if api_info.get('parameters'):
+                    doc_content += f"**请求参数**\n"
+                    for param, param_type in api_info['parameters'].items():
+                        doc_content += f"- {param}: {param_type}\n"
+                    doc_content += "\n"
+                
+                if api_info.get('responses'):
+                    doc_content += f"**响应格式**\n"
+                    for status_code, response_fields in api_info['responses'].items():
+                        doc_content += f"- {status_code}:\n"
+                        for field, field_type in response_fields.items():
+                            doc_content += f"  - {field}: {field_type}\n"
+                    doc_content += "\n"
+                
+                if api_info.get('database_tables'):
+                    doc_content += f"**关联数据库表**\n"
+                    for table in api_info['database_tables']:
+                        doc_content += f"- {table}\n"
+                    doc_content += "\n"
+                
+                doc_content += "---\n\n"
+
+        # 添加使用示例
+        doc_content += """
+## 使用示例
+
+### JavaScript调用示例
+```javascript
+// 获取所有API信息
+fetch('http://172.104.172.5:5001/api/apis')
+  .then(response => response.json())
+  .then(data => console.log(data));
+
+// 获取特定API详情
+fetch('http://172.104.172.5:5001/api/apis/auth_login')
+  .then(response => response.json())
+  .then(data => console.log(data));
+```
+
+### Python调用示例
+```python
+import requests
+
+# 获取所有API信息
+response = requests.get('http://172.104.172.5:5001/api/apis')
+apis = response.json()
+print(f"总API数量: {apis['total_apis']}")
+
+# 获取特定API详情
+response = requests.get('http://172.104.172.5:5001/api/apis/auth_login')
+api_detail = response.json()
+print(api_detail)
+```
+
+## 总结
+
+本文档基于实际运行的API服务自动生成，包含了系统中所有API的详细信息。文档生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+该API系统为K-12数学教育智能数字生态系统提供了完整的数据库可视化和API分析功能。
+"""
+
+        # 写入文档文件
+        doc_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'architect', '05_API设计文档.md')
+        with open(doc_path, 'w', encoding='utf-8') as f:
+            f.write(doc_content)
+        
+        print(f"✅ API详细文档已生成: {doc_path}")
+        print(f"📊 包含 {apis_data.get('total_apis', 0)} 个API的详细信息")
+        
+    except Exception as e:
+        print(f"❌ 生成API文档失败: {e}")
 
 if __name__ == '__main__':
     print("🚀 启动数据库可视化API服务器...")
@@ -902,8 +1135,11 @@ if __name__ == '__main__':
     print("   - GET /api/database/table/<name> - 获取表数据")
     print("   - GET /api/database/table/<name>/count - 获取表记录数")
     print("   - GET /api/database/table/<name>/structure - 获取表结构")
-    print("🌐 服务地址: http://localhost:5001")
+    print("   - GET /api/apis - 获取所有API信息")
+    print("   - GET /api/apis/<api_id> - 获取特定API详情")
+    print("🌐 服务地址: http://172.104.172.5:5001")
     print("🔗 跨域支持: 已启用")
+    print("📝 生成API文档: 调用 generate_api_documentation() 函数")
     
     app.run(
         host='0.0.0.0',
