@@ -8,6 +8,11 @@ from models.user import User
 from routes.auth_routes import jwt_required
 from datetime import datetime
 import json
+import time
+
+# 简单的内存缓存
+_cache = {}
+_cache_timeout = 300  # 5分钟缓存
 
 homework_bp = Blueprint('homework', __name__, url_prefix='/api/homework')
 
@@ -182,7 +187,19 @@ def get_homework(homework_id):
 @jwt_required
 def get_homework_questions(homework_id):
     """获取作业题目列表"""
+    start_time = time.time()
+    
     try:
+        # 检查缓存
+        cache_key = f"homework_questions_{homework_id}_{request.current_user_id}"
+        current_time = time.time()
+        
+        if cache_key in _cache:
+            cached_data, cache_time = _cache[cache_key]
+            if current_time - cache_time < _cache_timeout:
+                print(f"使用缓存数据，耗时: {time.time() - start_time:.2f}秒")
+                return jsonify(cached_data)
+        
         # 检查作业是否存在
         homework = Homework.get_by_id(homework_id)
         if not homework:
@@ -265,14 +282,27 @@ def get_homework_questions(homework_id):
                     # 跳过有问题的题目，继续处理其他题目
                     continue
 
-            return jsonify({
+            response_data = {
                 'success': True,
                 'data': {
                     'homework_id': homework_id,
                     'questions': processed_questions,
                     'total_count': len(processed_questions)
                 }
-            }), 200
+            }
+            
+            # 缓存结果
+            _cache[cache_key] = (response_data, current_time)
+            
+            # 清理过期缓存
+            for key in list(_cache.keys()):
+                if current_time - _cache[key][1] > _cache_timeout:
+                    del _cache[key]
+            
+            elapsed_time = time.time() - start_time
+            print(f"数据库查询完成，耗时: {elapsed_time:.2f}秒")
+            
+            return jsonify(response_data), 200
 
         except Exception as db_error:
             print(f"数据库查询错误: {db_error}")

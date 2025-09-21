@@ -41,7 +41,7 @@ nohup python app.py > backend.log 2>&1 &
 cd /root/Math_Digital-Intelligent-Ecosystem/homework_system
 
 # 启动前端开发服务器
-npm run serve
+python3 -m http.server 8080
 ```
 
 **后台运行方式：**

@@ -1,1208 +1,7749 @@
-# K-12数学教育智能数字生态系统 - API设计文档
+# K-12数学教育智能数字生态系统 - API详细文档
 
-## API概述
+## 系统概述
 
-### 设计原则
-- **RESTful架构**：遵循REST设计原则，资源化URL设计
-- **统一响应格式**：标准化的JSON响应格式
-- **版本管理**：API版本控制，向后兼容
-- **安全认证**：JWT Token认证，权限分级控制
-- **错误处理**：详细的错误码和错误信息
-- **文档完整**：完整的API文档和示例
+本系统是一个基于推荐技术提升学生作业效率的K-12数学教育智能数字生态系统（DIEM），提供完整的作业管理、智能推荐、学习分析等功能。
 
-### 技术规范
-- **协议**：HTTPS
-- **数据格式**：JSON (Content-Type: application/json)
-- **字符编码**：UTF-8
-- **认证方式**：JWT Bearer Token
-- **API版本**：v1 (URL path: /api/v1/)
-
-## 基础配置
+### 技术架构
+- **后端框架**: Flask 2.0.3
+- **数据库**: MySQL (OceanBase云数据库)
+- **API协议**: RESTful
+- **数据格式**: JSON
+- **认证方式**: JWT Token
+- **跨域支持**: CORS
 
 ### 服务器配置
 ```
-基础URL: https://diem.edu/api/v1
+基础URL: http://172.104.172.5:5001
 数据库: obmt6zg485miazb4-mi.aliyun-cn-beijing-internet.oceanbase.cloud:3306
 数据库名: testccnu
 ```
 
-### 通用响应格式
+## 通用响应格式
 
-#### 成功响应
+### 成功响应
 ```json
 {
   "success": true,
-  "code": 200,
-  "message": "操作成功",
   "data": {
     // 具体数据内容
   },
-  "timestamp": "2024-01-15T10:30:00Z",
-  "request_id": "req_1234567890"
+  "message": "操作成功"
 }
 ```
 
-#### 错误响应
+### 错误响应
 ```json
 {
   "success": false,
-  "code": 400,
-  "message": "请求参数错误",
-  "error": {
-    "type": "ValidationError",
-    "details": [
-      {
-        "field": "email",
-        "message": "邮箱格式不正确"
-      }
-    ]
-  },
-  "timestamp": "2024-01-15T10:30:00Z",
-  "request_id": "req_1234567890"
+  "error": "错误信息",
+  "message": "详细错误描述"
 }
 ```
 
-### 状态码定义
-| 状态码 | 说明 | 使用场景 |
-|--------|------|----------|
-| 200 | 成功 | 请求成功处理 |
-| 201 | 创建成功 | 资源创建成功 |
-| 400 | 请求错误 | 参数错误、格式错误 |
-| 401 | 未认证 | 缺少或无效的认证信息 |
-| 403 | 权限不足 | 用户无权限访问资源 |
-| 404 | 资源不存在 | 请求的资源不存在 |
-| 409 | 资源冲突 | 资源已存在或状态冲突 |
-| 422 | 参数验证失败 | 业务逻辑验证失败 |
-| 500 | 服务器错误 | 系统内部错误 |
+## 数据库可视化API
 
-## 认证与授权
+### 1. 健康检查
 
-### 登录认证
-
-#### POST /auth/login
-用户登录获取访问令牌
-
-**请求参数**
-```json
-{
-  "username": "student001",
-  "password": "password123",
-  "device_type": "web",
-  "device_id": "browser_fingerprint"
-}
-```
+#### GET /api/health
+检查API服务状态和数据库连接
 
 **响应示例**
 ```json
 {
-  "success": true,
-  "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IlJlZnJlc2gifQ...",
-    "token_type": "Bearer",
-    "expires_in": 3600,
-    "user": {
-      "id": 1001,
-      "username": "student001",
-      "real_name": "张三",
-      "role": "student",
-      "grade": 7,
-      "school": "实验中学",
-      "permissions": ["homework.view", "homework.submit"]
-    }
-  }
+  "status": "healthy",
+  "database": "connected", 
+  "message": "数据库API服务正常运行"
 }
 ```
 
-#### POST /auth/refresh
-刷新访问令牌
+### 2. 数据库表管理
 
-**请求参数**
-```json
-{
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IlJlZnJlc2gifQ..."
-}
-```
+#### GET /api/database/tables
+获取所有数据库表信息
 
-#### POST /auth/logout
-用户登出
+#### GET /api/database/table/{table_name}
+获取指定表的数据
 
-**请求头**
-```
-Authorization: Bearer {access_token}
-```
+#### GET /api/database/table/{table_name}/count
+获取指定表的记录总数
 
-### 用户注册
+#### GET /api/database/table/{table_name}/structure
+获取指定表的结构信息
 
-#### POST /auth/register
-用户注册
+### 3. API分析功能
 
-**请求参数**
-```json
-{
-  "username": "student002",
-  "email": "student002@example.com",
-  "password": "password123",
-  "real_name": "李四",
-  "role": "student",
-  "grade": 8,
-  "school": "实验中学",
-  "phone": "13800138000"
-}
-```
-
-### 用户信息
-
-#### GET /auth/profile
-获取当前用户信息
+#### GET /api/apis
+获取系统中所有API的详细信息
 
 **响应示例**
 ```json
 {
-  "success": true,
-  "data": {
-    "id": 1001,
-    "username": "student001",
-    "email": "student001@example.com",
-    "real_name": "张三",
-    "role": "student",
-    "grade": 7,
-    "school": "实验中学",
-    "class_name": "七年级(1)班",
-    "avatar": "https://example.com/avatars/1001.jpg",
-    "learning_preferences": {
-      "difficulty_preference": 0.6,
-      "subject_interests": ["algebra", "geometry"]
-    },
-    "created_at": "2024-01-01T10:00:00Z"
-  }
-}
-```
-
-#### PUT /auth/profile
-更新用户信息
-
-**请求参数**
-```json
-{
-  "real_name": "张三丰",
-  "phone": "13800138001",
-  "learning_preferences": {
-    "difficulty_preference": 0.7,
-    "subject_interests": ["algebra", "geometry", "statistics"]
-  }
-}
-```
-
-## 作业管理
-
-### 作业列表
-
-#### GET /homework/list
-获取作业列表
-
-**查询参数**
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| status | string | 否 | 作业状态: all, pending, completed, overdue |
-| subject | string | 否 | 学科筛选 |
-| grade | integer | 否 | 年级筛选 |
-| page | integer | 否 | 页码，默认1 |
-| limit | integer | 否 | 每页数量，默认20 |
-| sort | string | 否 | 排序方式: created_time, due_date, difficulty |
-| order | string | 否 | 排序顺序: asc, desc |
-
-**请求示例**
-```
-GET /api/v1/homework/list?status=pending&subject=数学&page=1&limit=10
-```
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "homeworks": [
-      {
-        "id": 1001,
-        "title": "一元一次方程练习",
-        "description": "练习一元一次方程的基本解法",
-        "subject": "数学",
-        "grade": 7,
-        "difficulty_level": 3,
-        "question_count": 10,
-        "max_score": 100,
-        "time_limit": 60,
-        "due_date": "2024-01-20T23:59:59Z",
-        "status": "pending",
-        "progress": {
-          "completed_questions": 0,
-          "total_questions": 10,
-          "completion_rate": 0.0
-        },
-        "created_by": {
-          "id": 2001,
-          "name": "王老师"
-        },
-        "created_at": "2024-01-15T10:00:00Z"
-      }
-    ],
-    "pagination": {
-      "page": 1,
-      "limit": 10,
-      "total": 25,
-      "total_pages": 3
-    }
-  }
-}
-```
-
-### 作业详情
-
-#### GET /homework/detail/{homework_id}
-获取作业详细信息
-
-**路径参数**
-- homework_id: 作业ID
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1001,
-    "title": "一元一次方程练习",
-    "description": "练习一元一次方程的基本解法",
-    "subject": "数学",
-    "grade": 7,
-    "difficulty_level": 3,
-    "max_score": 100,
-    "time_limit": 60,
-    "due_date": "2024-01-20T23:59:59Z",
-    "instructions": "请仔细阅读题目，使用标准解题步骤",
-    "questions": [
-      {
-        "id": 10001,
-        "question_order": 1,
-        "question_type": "calculation",
-        "question_title": "解方程",
-        "question_content": "解方程：2x + 3 = 7",
-        "question_image": null,
-        "options": null,
-        "score": 10,
-        "difficulty": 3,
-        "knowledge_points": [
-          {
-            "id": 301,
-            "name": "一元一次方程",
-            "code": "MATH_LINEAR_EQ"
-          }
-        ],
-        "symbols_used": ["+", "=", "x"],
-        "solution_steps": [
-          "移项：2x = 7 - 3",
-          "计算：2x = 4",
-          "系数化1：x = 2"
-        ]
-      }
-    ],
-    "submission": {
-      "id": 20001,
-      "status": "draft",
-      "answers": {},
-      "progress": 0.0,
-      "created_at": "2024-01-15T14:00:00Z"
-    },
-    "recommendations": {
-      "symbols": [
-        {
-          "id": 501,
-          "symbol_text": "×",
-          "latex_code": "\\times",
-          "confidence": 0.85
-        }
+  "apis": {
+    "blueprints_get_recommendation_stats": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "symbol_recommendations",
+        "problem_recommendations"
       ],
-      "knowledge_points": [
-        {
-          "id": 302,
-          "name": "移项法则",
-          "relevance": 0.92
+      "description": "获取推荐系统统计信息，包括推荐准确率、使用频率等数据",
+      "example_request": {},
+      "example_response": {},
+      "file": "recommendation_bp.py",
+      "id": "blueprints_get_recommendation_stats",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_recommendation_stats",
+      "parameters": {},
+      "path": "/stats",
+      "responses": {
+        "200": {
+          "stats": "object",
+          "success": "boolean"
         }
-      ]
-    }
-  }
-}
-```
-
-### 作业提交
-
-#### POST /homework/save
-保存作业进度
-
-**请求参数**
-```json
-{
-  "homework_id": 1001,
-  "answers": {
-    "10001": {
-      "content": "x = 2",
-      "process": "2x + 3 = 7\n2x = 7 - 3\n2x = 4\nx = 2",
-      "symbols_used": ["x", "=", "+", "-"],
-      "time_spent": 120
-    }
-  },
-  "current_question": 1,
-  "auto_save": true
-}
-```
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "submission_id": 20001,
-    "saved_at": "2024-01-15T14:30:00Z",
-    "progress": {
-      "completed_questions": 1,
-      "total_questions": 10,
-      "completion_rate": 0.1
-    }
-  }
-}
-```
-
-#### POST /homework/submit
-提交作业
-
-**请求参数**
-```json
-{
-  "homework_id": 1001,
-  "answers": {
-    "10001": {
-      "content": "x = 2",
-      "process": "2x + 3 = 7\n2x = 7 - 3\n2x = 4\nx = 2",
-      "symbols_used": ["x", "=", "+", "-"],
-      "time_spent": 120
-    }
-  },
-  "total_time_spent": 1800,
-  "submit_type": "final"
-}
-```
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "submission_id": 20001,
-    "status": "submitted",
-    "submitted_at": "2024-01-15T15:00:00Z",
-    "estimated_grade_time": "2024-01-15T16:00:00Z",
-    "message": "作业提交成功，系统正在自动评分中..."
-  }
-}
-```
-
-### 作业反馈
-
-#### GET /homework/feedback/{submission_id}
-获取作业评分反馈
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "submission_id": 20001,
-    "homework_id": 1001,
-    "total_score": 85,
-    "max_score": 100,
-    "completion_rate": 100,
-    "grade_percentage": 85,
-    "grading_status": "completed",
-    "graded_at": "2024-01-15T15:30:00Z",
-    "question_results": [
-      {
-        "question_id": 10001,
-        "student_answer": "x = 2",
-        "correct_answer": "x = 2",
-        "score": 10,
-        "max_score": 10,
-        "is_correct": true,
-        "feedback": "解答正确，步骤清晰",
-        "error_analysis": null,
-        "suggestions": [
-          "步骤写得很好，继续保持"
-        ]
-      }
-    ],
-    "overall_feedback": {
-      "strengths": ["解题步骤清晰", "计算准确"],
-      "weaknesses": ["可以写得更详细"],
-      "suggestions": ["继续练习类似题目"]
+      },
+      "technical_category": "blueprints"
     },
-    "knowledge_mastery": [
-      {
-        "knowledge_point_id": 301,
-        "knowledge_point_name": "一元一次方程",
-        "mastery_level": 0.85,
-        "improvement_suggestions": ["加强练习"]
-      }
-    ]
-  }
-}
-```
-
-## 智能推荐
-
-### 符号推荐
-
-#### POST /recommend/symbols
-获取符号推荐
-
-**请求参数**
-```json
-{
-  "context": "解方程：2x + 3 = 7",
-  "current_symbols": ["2", "x", "+", "3"],
-  "question_id": 10001,
-  "limit": 10
-}
-```
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "recommendations": [
-      {
-        "id": 501,
-        "symbol_text": "=",
-        "latex_code": "=",
-        "symbol_name": "等号",
-        "category": "关系符号",
-        "confidence": 0.95,
-        "reason": "方程中必需的等号",
-        "usage_examples": ["x = 5", "2 + 3 = 5"]
+    "blueprints_recommend_exercises": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "users",
+        "problem_recommendations",
+        "questions"
+      ],
+      "description": "基于学生学习状态推荐练习题，支持难度自适应调整",
+      "example_request": {},
+      "example_response": {},
+      "file": "recommendation_bp.py",
+      "id": "blueprints_recommend_exercises",
+      "methods": [
+        "POST"
+      ],
+      "name": "recommend_exercises",
+      "parameters": {
+        "count": "推荐数量",
+        "difficulty": "难度级别",
+        "student_id": "学生ID",
+        "subject": "学科"
       },
-      {
-        "id": 502,
-        "symbol_text": "-",
-        "latex_code": "-",
-        "symbol_name": "减号",
-        "category": "运算符号",
-        "confidence": 0.88,
-        "reason": "移项时常用的减法运算",
-        "usage_examples": ["7 - 3", "x - 2"]
-      }
-    ],
-    "context_analysis": {
-      "equation_type": "linear_equation",
-      "difficulty_level": 3,
-      "required_operations": ["addition", "subtraction", "division"]
-    }
-  }
-}
-```
-
-### 知识点推荐
-
-#### POST /recommend/knowledge
-获取知识点推荐
-
-**请求参数**
-```json
-{
-  "question_id": 10001,
-  "user_id": 1001,
-  "current_knowledge_points": [301],
-  "limit": 5
-}
-```
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "recommendations": [
-      {
-        "id": 302,
-        "name": "移项法则",
-        "code": "MATH_TRANSPOSE",
-        "description": "等式两边同时加减同一个数或代数式",
-        "relevance_score": 0.92,
-        "reason": "解一元一次方程的核心方法",
-        "examples": [
+      "path": "/exercises",
+      "responses": {
+        "200": {
+          "exercises": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "blueprints"
+    },
+    "blueprints_recommend_knowledge_points": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "users",
+        "knowledge_points",
+        "knowledge_relationships"
+      ],
+      "description": "基于AI的知识点推荐，根据用户学习状态和上下文推荐相关知识点",
+      "example_request": {
+        "context": "解一元二次方程",
+        "limit": 3
+      },
+      "example_response": {
+        "recommendations": [
           {
-            "title": "基础移项",
-            "content": "x + 3 = 7 → x = 7 - 3"
+            "description": "用字母和数字表示的数学表达式",
+            "difficulty_level": 2,
+            "grade_level": 2,
+            "id": 2,
+            "name": "代数表达式",
+            "recommendation_reason": "与输入内容相关",
+            "relevance_score": 0.8
           }
         ],
-        "related_videos": [
-          {
-            "id": "video_001",
-            "title": "移项法则详解",
-            "duration": 300,
-            "url": "https://example.com/videos/transpose.mp4"
-          }
-        ]
-      }
-    ],
-    "learning_path": [
-      {
-        "step": 1,
-        "knowledge_point_id": 301,
-        "name": "一元一次方程基础"
+        "success": true,
+        "total": 1
       },
-      {
-        "step": 2,
-        "knowledge_point_id": 302,
-        "name": "移项法则"
+      "file": "recommendation_bp.py",
+      "id": "blueprints_recommend_knowledge_points",
+      "methods": [
+        "POST"
+      ],
+      "name": "recommend_knowledge_points",
+      "parameters": {
+        "context": "学习上下文内容",
+        "limit": "推荐数量限制，默认5",
+        "question_id": "题目ID，基于题目推荐"
       },
-      {
-        "step": 3,
-        "knowledge_point_id": 303,
-        "name": "合并同类项"
+      "path": "/knowledge",
+      "responses": {
+        "200": {
+          "recommendations": "array",
+          "success": "boolean",
+          "timestamp": "string",
+          "total": "number"
+        }
+      },
+      "technical_category": "blueprints"
+    },
+    "blueprints_recommend_learning_path": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "learning_path_recommendations",
+        "knowledge_points"
+      ],
+      "description": "为学生推荐个性化学习路径，基于知识图谱和学习进度",
+      "example_request": {},
+      "example_response": {},
+      "file": "recommendation_bp.py",
+      "id": "blueprints_recommend_learning_path",
+      "methods": [
+        "POST"
+      ],
+      "name": "recommend_learning_path",
+      "parameters": {
+        "current_level": "当前水平",
+        "student_id": "学生ID",
+        "target_knowledge": "目标知识点"
+      },
+      "path": "/learning-path",
+      "responses": {
+        "200": {
+          "learning_path": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "blueprints"
+    },
+    "blueprints_recommend_symbols": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "users",
+        "symbol_recommendations"
+      ],
+      "description": "数学符号智能推荐，基于上下文和用户习惯推荐合适的数学符号",
+      "example_request": {},
+      "example_response": {},
+      "file": "recommendation_bp.py",
+      "id": "blueprints_recommend_symbols",
+      "methods": [
+        "POST"
+      ],
+      "name": "recommend_symbols",
+      "parameters": {
+        "context": "当前输入上下文",
+        "limit": "推荐数量，默认5",
+        "question_text": "题目文本"
+      },
+      "path": "/symbols",
+      "responses": {
+        "200": {
+          "context_analysis": "object",
+          "recommendations": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "blueprints"
+    },
+    "blueprints_record_symbol_usage": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "symbol_recommendations",
+        "interaction_logs"
+      ],
+      "description": "记录学生使用数学符号的行为数据，用于优化推荐算法",
+      "example_request": {},
+      "example_response": {},
+      "file": "recommendation_bp.py",
+      "id": "blueprints_record_symbol_usage",
+      "methods": [
+        "POST"
+      ],
+      "name": "record_symbol_usage",
+      "parameters": {
+        "context": "使用上下文",
+        "symbol": "使用的符号",
+        "user_id": "用户ID"
+      },
+      "path": "/symbols/usage",
+      "responses": {
+        "200": {
+          "success": "boolean"
+        }
+      },
+      "technical_category": "blueprints"
+    },
+    "db_viz_health": {
+      "category": "database_visualization",
+      "database_tables": [],
+      "description": "健康检查接口",
+      "example_request": {},
+      "example_response": {
+        "database": "connected",
+        "message": "数据库API服务正常运行",
+        "status": "healthy"
+      },
+      "file": "api-server.py",
+      "id": "db_viz_health",
+      "methods": [
+        "GET"
+      ],
+      "name": "health_check",
+      "parameters": {},
+      "path": "/api/health",
+      "responses": {
+        "200": {
+          "database": "string",
+          "message": "string",
+          "status": "string"
+        }
       }
-    ]
-  }
-}
-```
-
-### 练习推荐
-
-#### POST /recommend/exercises
-获取练习题推荐
-
-**请求参数**
-```json
-{
-  "user_id": 1001,
-  "subject": "数学",
-  "difficulty_level": 3,
-  "topic": "一元一次方程",
-  "limit": 5
-}
-```
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "recommendations": [
-      {
-        "id": 50001,
-        "title": "一元一次方程基础练习",
-        "question_count": 8,
-        "difficulty_level": 3,
-        "estimated_time": 20,
-        "success_rate": 0.78,
-        "topics": ["移项", "合并同类项"],
-        "preview_questions": [
-          {
-            "question": "解方程：3x - 5 = 7",
-            "type": "calculation"
-          }
-        ]
+    },
+    "db_viz_table_data": {
+      "category": "database_visualization",
+      "database_tables": [
+        "dynamic"
+      ],
+      "description": "获取数据库表的实时数据，支持分页和筛选",
+      "example_request": {
+        "limit": 10,
+        "offset": 0
+      },
+      "example_response": {
+        "count": 0,
+        "data": [],
+        "limit": 10,
+        "offset": 0
+      },
+      "file": "api-server.py",
+      "id": "db_viz_table_data",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_table_data",
+      "parameters": {
+        "limit": "查询数量限制，默认10",
+        "offset": "偏移量，默认0",
+        "table_name": "表名（路径参数）"
+      },
+      "path": "/api/database/table/<table_name>",
+      "responses": {
+        "200": {
+          "count": "number",
+          "data": "array",
+          "limit": "number",
+          "offset": "number",
+          "source": "string",
+          "table": "string"
+        }
       }
-    ],
-    "personalization": {
-      "based_on": ["学习历史", "错误模式", "知识点掌握度"],
-      "difficulty_adjustment": "根据您的表现，推荐中等难度题目"
-    }
-  }
-}
-```
-
-## 知识图谱
-
-### 知识点查询
-
-#### GET /knowledge/points
-获取知识点列表
-
-**查询参数**
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| subject | string | 否 | 学科筛选 |
-| grade | integer | 否 | 年级筛选 |
-| category | string | 否 | 分类筛选 |
-| parent_id | integer | 否 | 父知识点ID |
-| search | string | 否 | 搜索关键词 |
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "knowledge_points": [
-      {
-        "id": 301,
-        "name": "一元一次方程",
-        "code": "MATH_LINEAR_EQ",
-        "description": "含有一个未知数，且未知数的最高次数是1的方程",
-        "subject": "数学",
-        "grade": 7,
-        "category": "数与代数",
-        "difficulty_level": 4,
-        "is_core": true,
-        "prerequisites": [
+    },
+    "db_viz_tables": {
+      "category": "database_visualization",
+      "database_tables": [
+        "INFORMATION_SCHEMA.TABLES"
+      ],
+      "description": "获取所有表信息",
+      "example_request": {},
+      "example_response": {
+        "tables": [
           {
-            "id": 201,
-            "name": "有理数运算"
+            "count": 100,
+            "name": "users"
           }
         ],
-        "children": [
-          {
-            "id": 302,
-            "name": "移项法则"
+        "total_tables": 1
+      },
+      "file": "api-server.py",
+      "id": "db_viz_tables",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_all_tables",
+      "parameters": {},
+      "path": "/api/database/tables",
+      "responses": {
+        "200": {
+          "tables": "array",
+          "total_tables": "number"
+        }
+      }
+    },
+    "main_health_check": {
+      "category": "data_visualization",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_health_check",
+      "methods": [
+        "GET"
+      ],
+      "name": "health_check",
+      "parameters": {},
+      "path": "/api/health",
+      "responses": {},
+      "technical_category": "main"
+    },
+    "main_hello_world": {
+      "category": "other",
+      "database_tables": [],
+      "description": "系统首页接口，返回系统基本信息和状态",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_hello_world",
+      "methods": [
+        "GET"
+      ],
+      "name": "hello_world",
+      "parameters": {},
+      "path": "/",
+      "responses": {
+        "200": {
+          "message": "string",
+          "system_info": "object"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_homework_detail": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "homework_submissions",
+        "questions"
+      ],
+      "description": "获取指定作业的详细信息，包括题目、提交状态等",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_homework_detail",
+      "methods": [
+        "GET"
+      ],
+      "name": "homework_detail",
+      "parameters": {
+        "homework_id": "作业ID（路径参数）"
+      },
+      "path": "/api/homework/detail/<int:homework_id>",
+      "responses": {
+        "200": {
+          "homework": "object",
+          "questions": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_homework_list": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "homework_assignments"
+      ],
+      "description": "获取作业列表，支持分页和筛选条件",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_homework_list",
+      "methods": [
+        "GET"
+      ],
+      "name": "homework_list",
+      "parameters": {
+        "limit": "每页数量",
+        "page": "页码",
+        "status": "作业状态筛选",
+        "userId": "string"
+      },
+      "path": "/api/homework/list",
+      "responses": {
+        "200": {
+          "homeworks": "array",
+          "success": "boolean",
+          "total": "number"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_question_knowledge": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "knowledge_relationships",
+        "knowledge_points",
+        "questions"
+      ],
+      "description": "获取题目相关的知识点信息，支持知识点查询和关联分析",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_question_knowledge",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "name": "question_knowledge",
+      "parameters": {
+        "knowledge_point": "知识点名称",
+        "questionId": "string",
+        "question_id": "题目ID",
+        "text": "string"
+      },
+      "path": "/api/knowledge/question",
+      "responses": {
+        "200": {
+          "knowledge_points": "array",
+          "relationships": "array",
+          "success": "boolean"
+        },
+        "400": {
+          "error": "string",
+          "message": "string"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_recommend_exercises": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "learning_behaviors",
+        "problem_recommendations",
+        "questions"
+      ],
+      "description": "主要的练习推荐接口，整合多种推荐算法",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_recommend_exercises",
+      "methods": [
+        "POST"
+      ],
+      "name": "recommend_exercises",
+      "parameters": {
+        "difficulty_range": "难度范围",
+        "preferences": "用户偏好",
+        "user_id": "用户ID"
+      },
+      "path": "/api/recommend/exercises",
+      "responses": {
+        "200": {
+          "recommendations": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_recommend_knowledge": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "learning_behaviors",
+        "knowledge_points",
+        "knowledge_relationships"
+      ],
+      "description": "知识点推荐接口，基于学习进度推荐相关知识点",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_recommend_knowledge",
+      "methods": [
+        "POST"
+      ],
+      "name": "recommend_knowledge",
+      "parameters": {
+        "current_topic": "当前学习主题",
+        "learning_goal": "学习目标",
+        "user_id": "用户ID"
+      },
+      "path": "/api/recommend/knowledge",
+      "responses": {
+        "200": {
+          "knowledge_recommendations": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_recommend_symbols": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "symbol_recommendations",
+        "interaction_logs"
+      ],
+      "description": "数学符号推荐接口，根据输入上下文推荐合适的符号",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_recommend_symbols",
+      "methods": [
+        "POST"
+      ],
+      "name": "recommend_symbols",
+      "parameters": {
+        "context": "输入上下文",
+        "subject": "学科领域",
+        "user_level": "用户水平"
+      },
+      "path": "/api/recommend/symbols",
+      "responses": {
+        "200": {
+          "success": "boolean",
+          "symbols": "array"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_redirect_homework_detail": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks"
+      ],
+      "description": "作业详情页面重定向接口，用于页面路由跳转",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_redirect_homework_detail",
+      "methods": [
+        "GET"
+      ],
+      "name": "redirect_homework_detail",
+      "parameters": {
+        "homework_id": "作业ID（路径参数）"
+      },
+      "path": "/homework/detail/<int:homework_id>",
+      "responses": {
+        "302": {
+          "redirect_url": "string"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_redirect_homework_list": {
+      "category": "homework_management",
+      "database_tables": [],
+      "description": "作业列表页面重定向接口，用于页面路由跳转",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_redirect_homework_list",
+      "methods": [
+        "GET"
+      ],
+      "name": "redirect_homework_list",
+      "parameters": {},
+      "path": "/homework/list",
+      "responses": {
+        "302": {
+          "redirect_url": "string"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_redirect_knowledge_question": {
+      "category": "recommendation_system",
+      "database_tables": [],
+      "description": "知识点题目页面重定向接口，用于页面路由跳转",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_redirect_knowledge_question",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "name": "redirect_knowledge_question",
+      "parameters": {},
+      "path": "/knowledge/question",
+      "responses": {
+        "302": {
+          "redirect_url": "string"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_save": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_progress",
+        "homework_submissions"
+      ],
+      "description": "保存作业进度接口，支持断点续做功能",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_save",
+      "methods": [
+        "POST"
+      ],
+      "name": "save",
+      "parameters": {
+        "answers": "当前答案数据",
+        "homework_id": "作业ID",
+        "progress": "完成进度"
+      },
+      "path": "/api/homework/save",
+      "responses": {
+        "200": {
+          "saved_at": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_serve_frontend": {
+      "category": "authentication",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_serve_frontend",
+      "methods": [
+        "GET"
+      ],
+      "name": "serve_frontend",
+      "parameters": {},
+      "path": "/register",
+      "responses": {},
+      "technical_category": "main"
+    },
+    "main_serve_homework_static": {
+      "category": "homework_management",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_serve_homework_static",
+      "methods": [
+        "GET"
+      ],
+      "name": "serve_homework_static",
+      "parameters": {},
+      "path": "/static/homework/<path:filename>",
+      "responses": {},
+      "technical_category": "main"
+    },
+    "main_serve_static": {
+      "category": "other",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_serve_static",
+      "methods": [
+        "GET"
+      ],
+      "name": "serve_static",
+      "parameters": {},
+      "path": "/static/<path:filename>",
+      "responses": {},
+      "technical_category": "main"
+    },
+    "main_serve_symbol_static": {
+      "category": "recommendation_system",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_serve_symbol_static",
+      "methods": [
+        "GET"
+      ],
+      "name": "serve_symbol_static",
+      "parameters": {},
+      "path": "/static/symbol/<path:filename>",
+      "responses": {},
+      "technical_category": "main"
+    },
+    "main_submit": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_submissions",
+        "homeworks"
+      ],
+      "description": "提交作业答案接口，完成作业并触发自动评分",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_submit",
+      "methods": [
+        "POST"
+      ],
+      "name": "submit",
+      "parameters": {
+        "answers": "完整答案数据",
+        "homework_id": "作业ID",
+        "submit_time": "提交时间"
+      },
+      "path": "/api/homework/submit",
+      "responses": {
+        "200": {
+          "score": "number",
+          "submission_id": "number",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_update_user": {
+      "category": "data_visualization",
+      "database_tables": [
+        "users"
+      ],
+      "description": "更新用户信息接口，支持个人资料修改",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_update_user",
+      "methods": [
+        "POST"
+      ],
+      "name": "update_user",
+      "parameters": {
+        "avatar": "头像",
+        "email": "邮箱",
+        "name": "姓名",
+        "phone": "电话"
+      },
+      "path": "/api/user/update",
+      "responses": {
+        "200": {
+          "success": "boolean",
+          "user": "object"
+        }
+      },
+      "technical_category": "main"
+    },
+    "main_user_info": {
+      "category": "data_visualization",
+      "database_tables": [
+        "users"
+      ],
+      "description": "获取指定用户的基本信息",
+      "example_request": {},
+      "example_response": {},
+      "file": "app.py",
+      "id": "main_user_info",
+      "methods": [
+        "GET"
+      ],
+      "name": "user_info",
+      "parameters": {
+        "user_id": "用户ID（路径参数）"
+      },
+      "path": "/api/user/<int:user_id>",
+      "responses": {
+        "200": {
+          "success": "boolean",
+          "user": "object"
+        }
+      },
+      "technical_category": "main"
+    },
+    "routes_assign_homework": {
+      "category": "homework_management",
+      "database_tables": [
+        "users",
+        "classes",
+        "homework_assignments"
+      ],
+      "description": "教师分配作业给班级或学生",
+      "example_request": {},
+      "example_response": {},
+      "file": "assignment_routes.py",
+      "id": "routes_assign_homework",
+      "methods": [
+        "POST"
+      ],
+      "name": "assign_homework",
+      "parameters": {
+        "due_date": "截止时间",
+        "homework_id": "作业ID",
+        "target_ids": "目标ID列表",
+        "target_type": "分配类型（class/student）"
+      },
+      "path": "/assign",
+      "responses": {
+        "200": {
+          "assignment_count": "number",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_batch_grade": {
+      "category": "grading_system",
+      "database_tables": [
+        "homework_submissions",
+        "homeworks"
+      ],
+      "description": "批量评分接口，支持多份作业同时评分",
+      "example_request": {},
+      "example_response": {},
+      "file": "grading_routes.py",
+      "id": "routes_batch_grade",
+      "methods": [
+        "POST"
+      ],
+      "name": "batch_grade",
+      "parameters": {
+        "grading_rules": "评分规则",
+        "submission_ids": "提交ID列表"
+      },
+      "path": "/batch-grade",
+      "responses": {
+        "200": {
+          "graded_count": "number",
+          "results": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_create_homework": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "homework_questions",
+        "questions"
+      ],
+      "description": "创建新作业，教师可以创建包含多个题目的作业",
+      "example_request": {},
+      "example_response": {},
+      "file": "homework_routes.py",
+      "id": "routes_create_homework",
+      "methods": [
+        "POST"
+      ],
+      "name": "create_homework",
+      "parameters": {
+        "description": "作业描述",
+        "difficulty_level": "难度等级1-5",
+        "due_date": "截止日期",
+        "grade": "年级",
+        "max_score": "总分",
+        "questions": "题目列表",
+        "subject": "学科",
+        "title": "作业标题"
+      },
+      "path": "/create",
+      "responses": {
+        "201": {
+          "homework_id": "number",
+          "message": "string",
+          "success": "boolean"
+        },
+        "400": {
+          "errors": "array",
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_delete_homework": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "homework_submissions",
+        "questions"
+      ],
+      "description": "删除指定作业及其相关数据",
+      "example_request": {},
+      "example_response": {},
+      "file": "homework_routes.py",
+      "id": "routes_delete_homework",
+      "methods": [
+        "DELETE"
+      ],
+      "name": "delete_homework",
+      "parameters": {
+        "homework_id": "作业ID（路径参数）"
+      },
+      "path": "/<int:homework_id>",
+      "responses": {
+        "200": {
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_export_analytics": {
+      "category": "homework_management",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "analytics_routes.py",
+      "id": "routes_export_analytics",
+      "methods": [
+        "POST"
+      ],
+      "name": "export_analytics",
+      "parameters": {},
+      "path": "/homework/<int:homework_id>/export",
+      "responses": {},
+      "technical_category": "routes"
+    },
+    "routes_get_adaptive_recommendations": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "learning_behaviors",
+        "symbol_recommendations"
+      ],
+      "description": "获取自适应推荐结果，基于用户学习状态动态调整推荐内容",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_get_adaptive_recommendations",
+      "methods": [
+        "POST"
+      ],
+      "name": "get_adaptive_recommendations",
+      "parameters": {
+        "context": "当前学习上下文",
+        "difficulty": "期望难度",
+        "user_id": "用户ID"
+      },
+      "path": "/recommend/adaptive",
+      "responses": {
+        "200": {
+          "recommendations": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_assignment_detail": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_assignments"
+      ],
+      "description": "获取作业分配的详细信息，包括完成情况和统计数据",
+      "example_request": {},
+      "example_response": {},
+      "file": "assignment_routes.py",
+      "id": "routes_get_assignment_detail",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_assignment_detail",
+      "parameters": {
+        "assignment_id": "分配ID（路径参数）"
+      },
+      "path": "/<int:assignment_id>",
+      "responses": {
+        "200": {
+          "assignment": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_assignment_statistics": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_submissions",
+        "homework_assignments"
+      ],
+      "description": "获取作业分配的统计信息，包括完成率、平均分、提交时间分布等",
+      "example_request": {},
+      "example_response": {},
+      "file": "assignment_routes.py",
+      "id": "routes_get_assignment_statistics",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_assignment_statistics",
+      "parameters": {
+        "assignment_id": "分配ID（路径参数）"
+      },
+      "path": "/statistics/<int:assignment_id>",
+      "responses": {
+        "200": {
+          "statistics": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_class_assignments": {
+      "category": "homework_management",
+      "database_tables": [
+        "classes",
+        "homework_assignments"
+      ],
+      "description": "获取指定班级的作业分配情况，教师查看班级作业状态",
+      "example_request": {},
+      "example_response": {},
+      "file": "assignment_routes.py",
+      "id": "routes_get_class_assignments",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_class_assignments",
+      "parameters": {
+        "class_id": "班级ID（路径参数）"
+      },
+      "path": "/class/<int:class_id>",
+      "responses": {
+        "200": {
+          "assignments": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_class_students": {
+      "category": "homework_management",
+      "database_tables": [
+        "class_students",
+        "users"
+      ],
+      "description": "获取指定班级的学生名单，用于作业分配和管理",
+      "example_request": {},
+      "example_response": {},
+      "file": "assignment_routes.py",
+      "id": "routes_get_class_students",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_class_students",
+      "parameters": {
+        "class_id": "班级ID（路径参数）"
+      },
+      "path": "/classes/<int:class_id>/students",
+      "responses": {
+        "200": {
+          "students": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_context_aware_recommendations": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "users",
+        "symbol_recommendations"
+      ],
+      "description": "获取上下文感知的符号推荐，基于当前题目和学习进度",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_get_context_aware_recommendations",
+      "methods": [
+        "POST"
+      ],
+      "name": "get_context_aware_recommendations",
+      "parameters": {
+        "context": "当前上下文",
+        "subject": "学科",
+        "user_level": "用户水平"
+      },
+      "path": "/context",
+      "responses": {
+        "200": {
+          "recommendations": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_explained_symbol_recommendations": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "symbol_recommendations"
+      ],
+      "description": "获取带解释的符号推荐，包含推荐理由和使用说明",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_get_explained_symbol_recommendations",
+      "methods": [
+        "POST"
+      ],
+      "name": "get_explained_symbol_recommendations",
+      "parameters": {
+        "context": "输入上下文",
+        "explain": "是否需要详细解释"
+      },
+      "path": "/recommend/explained",
+      "responses": {
+        "200": {
+          "explanations": "array",
+          "recommendations": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_favorite_homeworks": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_favorites",
+        "homework_assignments"
+      ],
+      "description": "获取用户收藏的作业列表",
+      "example_request": {},
+      "example_response": {},
+      "file": "student_homework_routes.py",
+      "id": "routes_get_favorite_homeworks",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_favorite_homeworks",
+      "parameters": {},
+      "path": "/favorites",
+      "responses": {
+        "200": {
+          "favorites": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_filter_options": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "subjects",
+        "grades"
+      ],
+      "description": "获取作业筛选选项，如可用的学科、年级等",
+      "example_request": {},
+      "example_response": {},
+      "file": "student_homework_routes.py",
+      "id": "routes_get_filter_options",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_filter_options",
+      "parameters": {},
+      "path": "/filters/options",
+      "responses": {
+        "200": {
+          "options": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_grading_result": {
+      "category": "student_features",
+      "database_tables": [
+        "homework_submissions"
+      ],
+      "description": "获取作业提交的评分结果，包括得分、错误分析、改进建议",
+      "example_request": {},
+      "example_response": {},
+      "file": "grading_routes.py",
+      "id": "routes_get_grading_result",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_grading_result",
+      "parameters": {
+        "submission_id": "提交ID（路径参数）"
+      },
+      "path": "/result/<int:submission_id>",
+      "responses": {
+        "200": {
+          "result": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_grading_rules": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks"
+      ],
+      "description": "获取指定作业的评分规则配置，包括评分标准和权重",
+      "example_request": {},
+      "example_response": {},
+      "file": "grading_routes.py",
+      "id": "routes_get_grading_rules",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_grading_rules",
+      "parameters": {
+        "homework_id": "作业ID（路径参数）"
+      },
+      "path": "/rules/<int:homework_id>",
+      "responses": {
+        "200": {
+          "rules": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_homework": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "questions"
+      ],
+      "description": "获取指定作业的详细信息",
+      "example_request": {},
+      "example_response": {},
+      "file": "homework_routes.py",
+      "id": "routes_get_homework",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_homework",
+      "parameters": {
+        "homework_id": "作业ID（路径参数）"
+      },
+      "path": "/<int:homework_id>",
+      "responses": {
+        "200": {
+          "homework": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_homework_analytics": {
+      "category": "homework_management",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "analytics_routes.py",
+      "id": "routes_get_homework_analytics",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_homework_analytics",
+      "parameters": {},
+      "path": "/homework/<int:homework_id>",
+      "responses": {},
+      "technical_category": "routes"
+    },
+    "routes_get_homework_dashboard": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_submissions",
+        "homework_assignments"
+      ],
+      "description": "获取学生作业仪表板数据，包括统计信息",
+      "example_request": {},
+      "example_response": {},
+      "file": "student_homework_routes.py",
+      "id": "routes_get_homework_dashboard",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_homework_dashboard",
+      "parameters": {},
+      "path": "/dashboard",
+      "responses": {
+        "200": {
+          "dashboard": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_homework_detail": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "homework_submissions",
+        "questions",
+        "homework_assignments"
+      ],
+      "description": "获取作业详细信息，包括题目和学生提交状态",
+      "example_request": {},
+      "example_response": {},
+      "file": "student_homework_routes.py",
+      "id": "routes_get_homework_detail",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_homework_detail",
+      "parameters": {
+        "assignment_id": "作业分配ID（路径参数）"
+      },
+      "path": "/<int:assignment_id>",
+      "responses": {
+        "200": {
+          "homework": "object",
+          "questions": "array",
+          "submission_status": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_homework_feedback": {
+      "category": "homework_management",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "feedback_routes.py",
+      "id": "routes_get_homework_feedback",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_homework_feedback",
+      "parameters": {},
+      "path": "/homework/<int:homework_id>",
+      "responses": {},
+      "technical_category": "routes"
+    },
+    "routes_get_homework_list": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "homework_assignments"
+      ],
+      "description": "获取学生可见的作业列表",
+      "example_request": {},
+      "example_response": {},
+      "file": "student_homework_routes.py",
+      "id": "routes_get_homework_list",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_homework_list",
+      "parameters": {
+        "limit": "每页数量",
+        "page": "页码"
+      },
+      "path": "/list",
+      "responses": {
+        "200": {
+          "homeworks": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_homework_progress": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_progress"
+      ],
+      "description": "获取作业完成进度信息",
+      "example_request": {},
+      "example_response": {},
+      "file": "student_homework_routes.py",
+      "id": "routes_get_homework_progress",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_homework_progress",
+      "parameters": {
+        "homework_id": "作业ID（路径参数）"
+      },
+      "path": "/<int:homework_id>/progress",
+      "responses": {
+        "200": {
+          "progress": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_homework_questions": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "questions"
+      ],
+      "description": "获取作业的所有题目列表",
+      "example_request": {},
+      "example_response": {},
+      "file": "homework_routes.py",
+      "id": "routes_get_homework_questions",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_homework_questions",
+      "parameters": {
+        "homework_id": "作业ID（路径参数）"
+      },
+      "path": "/<int:homework_id>/questions",
+      "responses": {
+        "200": {
+          "questions": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_homework_reminders": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_reminders",
+        "homework_assignments"
+      ],
+      "description": "获取作业提醒列表，包括即将到期的作业",
+      "example_request": {},
+      "example_response": {},
+      "file": "student_homework_routes.py",
+      "id": "routes_get_homework_reminders",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_homework_reminders",
+      "parameters": {},
+      "path": "/reminders",
+      "responses": {
+        "200": {
+          "reminders": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_homework_statistics": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "homework_submissions"
+      ],
+      "description": "获取整体作业统计信息，教师查看所有作业的完成情况",
+      "example_request": {},
+      "example_response": {},
+      "file": "student_homework_routes.py",
+      "id": "routes_get_homework_statistics",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_homework_statistics",
+      "parameters": {},
+      "path": "/statistics",
+      "responses": {
+        "200": {
+          "statistics": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_learning_insights": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "learning_behaviors",
+        "engagement_metrics"
+      ],
+      "description": "获取学习洞察报告，分析用户学习模式和改进建议",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_get_learning_insights",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_learning_insights",
+      "parameters": {
+        "user_id": "用户ID（路径参数）"
+      },
+      "path": "/learning-insights/<int:user_id>",
+      "responses": {
+        "200": {
+          "insights": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_my_assignments": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "homework_assignments"
+      ],
+      "description": "获取教师创建的所有作业分配，用于教师管理界面",
+      "example_request": {},
+      "example_response": {},
+      "file": "assignment_routes.py",
+      "id": "routes_get_my_assignments",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_my_assignments",
+      "parameters": {},
+      "path": "/teacher/my",
+      "responses": {
+        "200": {
+          "assignments": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_my_classes": {
+      "category": "homework_management",
+      "database_tables": [
+        "classes"
+      ],
+      "description": "获取教师负责的班级列表，用于班级管理",
+      "example_request": {},
+      "example_response": {},
+      "file": "assignment_routes.py",
+      "id": "routes_get_my_classes",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_my_classes",
+      "parameters": {},
+      "path": "/classes/my",
+      "responses": {
+        "200": {
+          "classes": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_my_notifications": {
+      "category": "homework_management",
+      "database_tables": [
+        "notifications"
+      ],
+      "description": "获取用户的通知消息列表，包括作业提醒、系统通知等",
+      "example_request": {},
+      "example_response": {},
+      "file": "assignment_routes.py",
+      "id": "routes_get_my_notifications",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_my_notifications",
+      "parameters": {},
+      "path": "/notifications/my",
+      "responses": {
+        "200": {
+          "notifications": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_profile": {
+      "category": "authentication",
+      "database_tables": [
+        "users"
+      ],
+      "description": "获取当前用户的个人资料信息，包括基本信息和偏好设置",
+      "example_request": {},
+      "example_response": {},
+      "file": "auth_routes.py",
+      "id": "routes_get_profile",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_profile",
+      "parameters": {},
+      "path": "/profile",
+      "responses": {
+        "200": {
+          "profile": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_sessions": {
+      "category": "authentication",
+      "database_tables": [
+        "user_sessions"
+      ],
+      "description": "获取用户的活跃会话列表，用于会话管理和安全监控",
+      "example_request": {},
+      "example_response": {},
+      "file": "auth_routes.py",
+      "id": "routes_get_sessions",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_sessions",
+      "parameters": {},
+      "path": "/sessions",
+      "responses": {
+        "200": {
+          "sessions": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_simple_homework_analytics": {
+      "category": "homework_management",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "simple_analytics_routes.py",
+      "id": "routes_get_simple_homework_analytics",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_simple_homework_analytics",
+      "parameters": {},
+      "path": "/homework/<int:homework_id>",
+      "responses": {},
+      "technical_category": "routes"
+    },
+    "routes_get_simple_homework_feedback": {
+      "category": "homework_management",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "simple_feedback_routes.py",
+      "id": "routes_get_simple_homework_feedback",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_simple_homework_feedback",
+      "parameters": {},
+      "path": "/homework/<int:homework_id>",
+      "responses": {},
+      "technical_category": "routes"
+    },
+    "routes_get_statistics": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "homework_submissions"
+      ],
+      "description": "获取作业统计信息，包括完成率、平均分等",
+      "example_request": {},
+      "example_response": {},
+      "file": "homework_routes.py",
+      "id": "routes_get_statistics",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_statistics",
+      "parameters": {},
+      "path": "/statistics",
+      "responses": {
+        "200": {
+          "statistics": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_submission_result": {
+      "category": "student_features",
+      "database_tables": [
+        "homework_submissions"
+      ],
+      "description": "获取学生作业提交的完整结果，包括答案、评分、反馈",
+      "example_request": {},
+      "example_response": {},
+      "file": "submission_routes.py",
+      "id": "routes_get_submission_result",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_submission_result",
+      "parameters": {
+        "submission_id": "提交ID（路径参数）"
+      },
+      "path": "/<int:submission_id>/result",
+      "responses": {
+        "200": {
+          "submission": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_symbol_categories": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "symbol_recommendations"
+      ],
+      "description": "获取数学符号分类列表，用于符号选择界面的分类显示",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_get_symbol_categories",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_symbol_categories",
+      "parameters": {},
+      "path": "/categories",
+      "responses": {
+        "200": {
+          "categories": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_symbol_completions": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "symbol_recommendations"
+      ],
+      "description": "获取符号自动补全建议，帮助用户快速输入数学表达式",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_get_symbol_completions",
+      "methods": [
+        "POST"
+      ],
+      "name": "get_symbol_completions",
+      "parameters": {
+        "limit": "返回数量限制",
+        "partial_input": "部分输入内容"
+      },
+      "path": "/complete",
+      "responses": {
+        "200": {
+          "completions": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_symbol_recommendations": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "symbol_recommendations"
+      ],
+      "description": "获取数学符号推荐，基于当前输入上下文推荐相关符号",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_get_symbol_recommendations",
+      "methods": [
+        "POST"
+      ],
+      "name": "get_symbol_recommendations",
+      "parameters": {
+        "context": "输入上下文",
+        "subject": "学科领域"
+      },
+      "path": "/recommend",
+      "responses": {
+        "200": {
+          "recommendations": "array",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_symbols_by_category": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "symbol_recommendations"
+      ],
+      "description": "获取指定分类下的所有数学符号，支持分类浏览",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_get_symbols_by_category",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_symbols_by_category",
+      "parameters": {
+        "category_id": "分类ID（路径参数）"
+      },
+      "path": "/category/<category_id>",
+      "responses": {
+        "200": {
+          "success": "boolean",
+          "symbols": "array"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_teacher_overview": {
+      "category": "class_management",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "analytics_routes.py",
+      "id": "routes_get_teacher_overview",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_teacher_overview",
+      "parameters": {},
+      "path": "/overview",
+      "responses": {},
+      "technical_category": "routes"
+    },
+    "routes_get_user_learning_analytics": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "learning_behaviors",
+        "users"
+      ],
+      "description": "获取用户学习分析数据，包括学习行为、进度、偏好等",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_get_user_learning_analytics",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_user_learning_analytics",
+      "parameters": {
+        "user_id": "用户ID（路径参数）"
+      },
+      "path": "/analytics/<int:user_id>",
+      "responses": {
+        "200": {
+          "analytics": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_get_user_symbol_stats": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "users",
+        "interaction_logs"
+      ],
+      "description": "获取用户的符号使用统计信息，包括常用符号、使用频率等",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_get_user_symbol_stats",
+      "methods": [
+        "GET"
+      ],
+      "name": "get_user_symbol_stats",
+      "parameters": {
+        "user_id": "用户ID（路径参数）"
+      },
+      "path": "/stats/<int:user_id>",
+      "responses": {
+        "200": {
+          "stats": "object",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_grade_submission": {
+      "category": "student_features",
+      "database_tables": [
+        "homework_submissions",
+        "grading_results",
+        "questions"
+      ],
+      "description": "自动评分学生作业提交，支持多种题型的智能评分",
+      "example_request": {},
+      "example_response": {},
+      "file": "grading_routes.py",
+      "id": "routes_grade_submission",
+      "methods": [
+        "POST"
+      ],
+      "name": "grade_submission",
+      "parameters": {
+        "submission_id": "提交ID（路径参数）"
+      },
+      "path": "/grade/<int:submission_id>",
+      "responses": {
+        "200": {
+          "grading_result": "object",
+          "max_score": "number",
+          "success": "boolean",
+          "total_score": "number"
+        },
+        "404": {
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_list_homeworks": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks",
+        "users"
+      ],
+      "description": "获取作业列表，支持分页和筛选",
+      "example_request": {},
+      "example_response": {},
+      "file": "homework_routes.py",
+      "id": "routes_list_homeworks",
+      "methods": [
+        "GET"
+      ],
+      "name": "list_homeworks",
+      "parameters": {
+        "category": "分类筛选",
+        "grade": "年级筛选",
+        "keyword": "关键词搜索",
+        "limit": "每页数量，默认10",
+        "page": "页码，默认1",
+        "subject": "学科筛选"
+      },
+      "path": "/list",
+      "responses": {
+        "200": {
+          "homeworks": "array",
+          "page": "number",
+          "success": "boolean",
+          "total": "number",
+          "total_pages": "number"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_login": {
+      "category": "authentication",
+      "database_tables": [
+        "users",
+        "user_sessions"
+      ],
+      "description": "用户登录认证，支持学生、教师、管理员登录",
+      "example_request": {
+        "device_type": "web",
+        "password": "student123",
+        "username": "test_student_001"
+      },
+      "example_response": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+        "success": true,
+        "user": {
+          "id": 2,
+          "real_name": "测试学生",
+          "role": "student",
+          "username": "test_student_001"
+        }
+      },
+      "file": "auth_routes.py",
+      "id": "routes_login",
+      "methods": [
+        "POST"
+      ],
+      "name": "login",
+      "parameters": {
+        "device_id": "设备唯一标识",
+        "device_type": "设备类型",
+        "password": "用户密码",
+        "username": "用户名或邮箱"
+      },
+      "path": "/login",
+      "responses": {
+        "200": {
+          "access_token": "string",
+          "expires_in": "number",
+          "refresh_token": "string",
+          "success": "boolean",
+          "user": "object"
+        },
+        "401": {
+          "error": "object",
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_logout": {
+      "category": "authentication",
+      "database_tables": [
+        "user_sessions"
+      ],
+      "description": "用户登出，清除会话信息",
+      "example_request": {},
+      "example_response": {},
+      "file": "auth_routes.py",
+      "id": "routes_logout",
+      "methods": [
+        "POST"
+      ],
+      "name": "logout",
+      "parameters": {},
+      "path": "/logout",
+      "responses": {
+        "200": {
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_mark_notification_read": {
+      "category": "homework_management",
+      "database_tables": [
+        "notifications"
+      ],
+      "description": "标记指定通知为已读状态，更新通知状态",
+      "example_request": {},
+      "example_response": {},
+      "file": "assignment_routes.py",
+      "id": "routes_mark_notification_read",
+      "methods": [
+        "PUT"
+      ],
+      "name": "mark_notification_read",
+      "parameters": {
+        "notification_id": "通知ID（路径参数）"
+      },
+      "path": "/notifications/<int:notification_id>/read",
+      "responses": {
+        "200": {
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_publish_homework": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks"
+      ],
+      "description": "发布作业，使学生可以看到并完成作业",
+      "example_request": {},
+      "example_response": {},
+      "file": "homework_routes.py",
+      "id": "routes_publish_homework",
+      "methods": [
+        "POST"
+      ],
+      "name": "publish_homework",
+      "parameters": {
+        "homework_id": "作业ID（路径参数）"
+      },
+      "path": "/<int:homework_id>/publish",
+      "responses": {
+        "200": {
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_record_symbol_usage": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "symbol_recommendations",
+        "interaction_logs"
+      ],
+      "description": "记录用户符号使用行为，用于优化推荐算法和学习分析",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_record_symbol_usage",
+      "methods": [
+        "POST"
+      ],
+      "name": "record_symbol_usage",
+      "parameters": {
+        "context": "使用上下文",
+        "symbol": "使用的符号",
+        "timestamp": "使用时间"
+      },
+      "path": "/usage",
+      "responses": {
+        "200": {
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_refresh": {
+      "category": "authentication",
+      "database_tables": [
+        "user_sessions"
+      ],
+      "description": "刷新用户访问令牌，延长登录会话",
+      "example_request": {},
+      "example_response": {},
+      "file": "auth_routes.py",
+      "id": "routes_refresh",
+      "methods": [
+        "POST"
+      ],
+      "name": "refresh",
+      "parameters": {
+        "refresh_token": "刷新令牌"
+      },
+      "path": "/refresh",
+      "responses": {
+        "200": {
+          "access_token": "string",
+          "expires_in": "number",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_register": {
+      "category": "authentication",
+      "database_tables": [
+        "users"
+      ],
+      "description": "用户注册，创建新的学生、教师或管理员账户",
+      "example_request": {},
+      "example_response": {},
+      "file": "auth_routes.py",
+      "id": "routes_register",
+      "methods": [
+        "POST"
+      ],
+      "name": "register",
+      "parameters": {
+        "class_name": "班级名称",
+        "email": "邮箱地址",
+        "grade": "年级（学生必填）",
+        "password": "密码",
+        "real_name": "真实姓名",
+        "role": "用户角色：student/teacher/admin",
+        "school": "学校名称",
+        "username": "用户名"
+      },
+      "path": "/register",
+      "responses": {
+        "201": {
+          "message": "string",
+          "success": "boolean",
+          "user_id": "number"
+        },
+        "400": {
+          "errors": "object",
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_review_grading": {
+      "category": "student_features",
+      "database_tables": [
+        "homework_submissions"
+      ],
+      "description": "教师复查自动评分结果，可以调整分数和添加评语",
+      "example_request": {},
+      "example_response": {},
+      "file": "grading_routes.py",
+      "id": "routes_review_grading",
+      "methods": [
+        "POST"
+      ],
+      "name": "review_grading",
+      "parameters": {
+        "adjustments": "评分调整",
+        "comments": "教师评语",
+        "submission_id": "提交ID（路径参数）"
+      },
+      "path": "/review/<int:submission_id>",
+      "responses": {
+        "200": {
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_save_homework_progress": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_progress"
+      ],
+      "description": "保存作业完成进度，支持断点续做",
+      "example_request": {},
+      "example_response": {},
+      "file": "student_homework_routes.py",
+      "id": "routes_save_homework_progress",
+      "methods": [
+        "POST"
+      ],
+      "name": "save_homework_progress",
+      "parameters": {
+        "answers": "答案数据",
+        "homework_id": "作业ID（路径参数）",
+        "progress": "完成进度"
+      },
+      "path": "/<int:homework_id>/progress",
+      "responses": {
+        "200": {
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_search_homeworks": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks"
+      ],
+      "description": "搜索作业，支持关键词、学科、年级等条件搜索",
+      "example_request": {},
+      "example_response": {},
+      "file": "homework_routes.py",
+      "id": "routes_search_homeworks",
+      "methods": [
+        "GET"
+      ],
+      "name": "search_homeworks",
+      "parameters": {
+        "grade": "年级筛选",
+        "keyword": "搜索关键词",
+        "subject": "学科筛选"
+      },
+      "path": "/search",
+      "responses": {
+        "200": {
+          "homeworks": "array",
+          "success": "boolean",
+          "total": "number"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_search_symbols": {
+      "category": "recommendation_system",
+      "database_tables": [
+        "symbol_recommendations"
+      ],
+      "description": "搜索数学符号，支持按名称、描述、LaTeX代码等条件搜索",
+      "example_request": {},
+      "example_response": {},
+      "file": "enhanced_symbol_routes.py",
+      "id": "routes_search_symbols",
+      "methods": [
+        "POST"
+      ],
+      "name": "search_symbols",
+      "parameters": {
+        "category": "分类筛选",
+        "limit": "结果数量限制",
+        "query": "搜索关键词"
+      },
+      "path": "/search",
+      "responses": {
+        "200": {
+          "success": "boolean",
+          "symbols": "array"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_share_feedback": {
+      "category": "homework_management",
+      "database_tables": [],
+      "description": "暂无描述",
+      "example_request": {},
+      "example_response": {},
+      "file": "feedback_routes.py",
+      "id": "routes_share_feedback",
+      "methods": [
+        "POST"
+      ],
+      "name": "share_feedback",
+      "parameters": {},
+      "path": "/homework/<int:homework_id>/share",
+      "responses": {},
+      "technical_category": "routes"
+    },
+    "routes_submit_homework": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_submissions"
+      ],
+      "description": "提交作业答案，完成作业",
+      "example_request": {},
+      "example_response": {},
+      "file": "submission_routes.py",
+      "id": "routes_submit_homework",
+      "methods": [
+        "POST"
+      ],
+      "name": "submit_homework",
+      "parameters": {
+        "answers": "答案数据",
+        "assignment_id": "作业分配ID（路径参数）"
+      },
+      "path": "/<int:assignment_id>",
+      "responses": {
+        "200": {
+          "submission_id": "number",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_toggle_homework_favorite": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_favorites"
+      ],
+      "description": "切换作业收藏状态，添加或移除收藏",
+      "example_request": {},
+      "example_response": {},
+      "file": "student_homework_routes.py",
+      "id": "routes_toggle_homework_favorite",
+      "methods": [
+        "POST"
+      ],
+      "name": "toggle_homework_favorite",
+      "parameters": {
+        "assignment_id": "作业分配ID（路径参数）"
+      },
+      "path": "/<int:assignment_id>/favorite",
+      "responses": {
+        "200": {
+          "is_favorite": "boolean",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_unpublish_homework": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks"
+      ],
+      "description": "取消发布作业，隐藏作业不让学生看到",
+      "example_request": {},
+      "example_response": {},
+      "file": "homework_routes.py",
+      "id": "routes_unpublish_homework",
+      "methods": [
+        "POST"
+      ],
+      "name": "unpublish_homework",
+      "parameters": {
+        "homework_id": "作业ID（路径参数）"
+      },
+      "path": "/<int:homework_id>/unpublish",
+      "responses": {
+        "200": {
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_update_assignment_status": {
+      "category": "homework_management",
+      "database_tables": [
+        "homework_assignments"
+      ],
+      "description": "更新作业分配状态，如开启、关闭、延期等操作",
+      "example_request": {},
+      "example_response": {},
+      "file": "assignment_routes.py",
+      "id": "routes_update_assignment_status",
+      "methods": [
+        "PUT"
+      ],
+      "name": "update_assignment_status",
+      "parameters": {
+        "assignment_id": "分配ID（路径参数）",
+        "status": "新状态"
+      },
+      "path": "/<int:assignment_id>/status",
+      "responses": {
+        "200": {
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_update_grading_rules": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks"
+      ],
+      "description": "更新作业的评分规则，教师可以自定义评分标准",
+      "example_request": {},
+      "example_response": {},
+      "file": "grading_routes.py",
+      "id": "routes_update_grading_rules",
+      "methods": [
+        "POST"
+      ],
+      "name": "update_grading_rules",
+      "parameters": {
+        "homework_id": "作业ID（路径参数）",
+        "rules": "评分规则配置"
+      },
+      "path": "/rules/<int:homework_id>",
+      "responses": {
+        "200": {
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_update_homework": {
+      "category": "homework_management",
+      "database_tables": [
+        "homeworks"
+      ],
+      "description": "更新作业信息，包括标题、描述、题目等",
+      "example_request": {},
+      "example_response": {},
+      "file": "homework_routes.py",
+      "id": "routes_update_homework",
+      "methods": [
+        "PUT"
+      ],
+      "name": "update_homework",
+      "parameters": {
+        "description": "作业描述",
+        "due_date": "截止日期",
+        "homework_id": "作业ID（路径参数）",
+        "title": "作业标题"
+      },
+      "path": "/<int:homework_id>",
+      "responses": {
+        "200": {
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    },
+    "routes_update_profile": {
+      "category": "authentication",
+      "database_tables": [
+        "users"
+      ],
+      "description": "更新用户个人资料信息",
+      "example_request": {},
+      "example_response": {},
+      "file": "auth_routes.py",
+      "id": "routes_update_profile",
+      "methods": [
+        "PUT"
+      ],
+      "name": "update_profile",
+      "parameters": {
+        "email": "邮箱地址",
+        "phone": "手机号码",
+        "real_name": "真实姓名",
+        "school": "学校名称"
+      },
+      "path": "/profile",
+      "responses": {
+        "200": {
+          "message": "string",
+          "success": "boolean"
+        }
+      },
+      "technical_category": "routes"
+    }
+  },
+  "categories": [
+    "recommendation_system",
+    "homework_management",
+    "class_management",
+    "student_features",
+    "grading_system",
+    "authentication",
+    "other",
+    "data_visualization",
+    "database_visualization"
+  ],
+  "categorized_apis": {
+    "authentication": [
+      {
+        "category": "authentication",
+        "database_tables": [
+          "users"
+        ],
+        "description": "用户注册，创建新的学生、教师或管理员账户",
+        "example_request": {},
+        "example_response": {},
+        "file": "auth_routes.py",
+        "id": "routes_register",
+        "methods": [
+          "POST"
+        ],
+        "name": "register",
+        "parameters": {
+          "class_name": "班级名称",
+          "email": "邮箱地址",
+          "grade": "年级（学生必填）",
+          "password": "密码",
+          "real_name": "真实姓名",
+          "role": "用户角色：student/teacher/admin",
+          "school": "学校名称",
+          "username": "用户名"
+        },
+        "path": "/register",
+        "responses": {
+          "201": {
+            "message": "string",
+            "success": "boolean",
+            "user_id": "number"
+          },
+          "400": {
+            "errors": "object",
+            "message": "string",
+            "success": "boolean"
           }
-        ]
-      }
-    ]
-  }
-}
-```
-
-#### GET /knowledge/points/{point_id}
-获取知识点详情
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 301,
-    "name": "一元一次方程",
-    "code": "MATH_LINEAR_EQ",
-    "description": "含有一个未知数，且未知数的最高次数是1的方程",
-    "subject": "数学",
-    "grade": 7,
-    "category": "数与代数",
-    "difficulty_level": 4,
-    "learning_objectives": [
-      "理解一元一次方程的概念",
-      "掌握一元一次方程的解法",
-      "能够应用一元一次方程解决实际问题"
-    ],
-    "prerequisites": [
-      {
-        "id": 201,
-        "name": "有理数运算",
-        "relation_type": "prerequisite",
-        "strength": 0.9
-      }
-    ],
-    "related_points": [
-      {
-        "id": 302,
-        "name": "移项法则",
-        "relation_type": "contains",
-        "strength": 0.95
-      }
-    ],
-    "examples": [
-      {
-        "title": "基础一元一次方程",
-        "equation": "2x + 3 = 7",
-        "solution": "x = 2",
-        "steps": ["移项：2x = 7 - 3", "计算：2x = 4", "系数化1：x = 2"]
-      }
-    ],
-    "common_errors": [
-      {
-        "error_type": "移项符号错误",
-        "description": "移项时没有变号",
-        "example": "x + 3 = 7 错误写成 x = 7 + 3"
-      }
-    ],
-    "related_symbols": [
-      {
-        "id": 501,
-        "symbol_text": "x",
-        "description": "未知数变量"
-      }
-    ]
-  }
-}
-```
-
-### 知识图谱关系
-
-#### GET /knowledge/relations
-获取知识点关系
-
-**查询参数**
-- source_id: 源知识点ID
-- target_id: 目标知识点ID
-- relation_type: 关系类型
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "relations": [
-      {
-        "id": 1001,
-        "source": {
-          "id": 201,
-          "name": "有理数运算"
         },
-        "target": {
-          "id": 301,
-          "name": "一元一次方程"
+        "technical_category": "routes"
+      },
+      {
+        "category": "authentication",
+        "database_tables": [
+          "users",
+          "user_sessions"
+        ],
+        "description": "用户登录认证，支持学生、教师、管理员登录",
+        "example_request": {
+          "device_type": "web",
+          "password": "student123",
+          "username": "test_student_001"
         },
-        "relation_type": "prerequisite",
-        "strength": 0.9,
-        "description": "有理数运算是学习一元一次方程的基础"
+        "example_response": {
+          "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+          "success": true,
+          "user": {
+            "id": 2,
+            "real_name": "测试学生",
+            "role": "student",
+            "username": "test_student_001"
+          }
+        },
+        "file": "auth_routes.py",
+        "id": "routes_login",
+        "methods": [
+          "POST"
+        ],
+        "name": "login",
+        "parameters": {
+          "device_id": "设备唯一标识",
+          "device_type": "设备类型",
+          "password": "用户密码",
+          "username": "用户名或邮箱"
+        },
+        "path": "/login",
+        "responses": {
+          "200": {
+            "access_token": "string",
+            "expires_in": "number",
+            "refresh_token": "string",
+            "success": "boolean",
+            "user": "object"
+          },
+          "401": {
+            "error": "object",
+            "message": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "authentication",
+        "database_tables": [
+          "user_sessions"
+        ],
+        "description": "刷新用户访问令牌，延长登录会话",
+        "example_request": {},
+        "example_response": {},
+        "file": "auth_routes.py",
+        "id": "routes_refresh",
+        "methods": [
+          "POST"
+        ],
+        "name": "refresh",
+        "parameters": {
+          "refresh_token": "刷新令牌"
+        },
+        "path": "/refresh",
+        "responses": {
+          "200": {
+            "access_token": "string",
+            "expires_in": "number",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "authentication",
+        "database_tables": [
+          "user_sessions"
+        ],
+        "description": "用户登出，清除会话信息",
+        "example_request": {},
+        "example_response": {},
+        "file": "auth_routes.py",
+        "id": "routes_logout",
+        "methods": [
+          "POST"
+        ],
+        "name": "logout",
+        "parameters": {},
+        "path": "/logout",
+        "responses": {
+          "200": {
+            "message": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "authentication",
+        "database_tables": [
+          "users"
+        ],
+        "description": "获取当前用户的个人资料信息，包括基本信息和偏好设置",
+        "example_request": {},
+        "example_response": {},
+        "file": "auth_routes.py",
+        "id": "routes_get_profile",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_profile",
+        "parameters": {},
+        "path": "/profile",
+        "responses": {
+          "200": {
+            "profile": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "authentication",
+        "database_tables": [
+          "users"
+        ],
+        "description": "更新用户个人资料信息",
+        "example_request": {},
+        "example_response": {},
+        "file": "auth_routes.py",
+        "id": "routes_update_profile",
+        "methods": [
+          "PUT"
+        ],
+        "name": "update_profile",
+        "parameters": {
+          "email": "邮箱地址",
+          "phone": "手机号码",
+          "real_name": "真实姓名",
+          "school": "学校名称"
+        },
+        "path": "/profile",
+        "responses": {
+          "200": {
+            "message": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "authentication",
+        "database_tables": [
+          "user_sessions"
+        ],
+        "description": "获取用户的活跃会话列表，用于会话管理和安全监控",
+        "example_request": {},
+        "example_response": {},
+        "file": "auth_routes.py",
+        "id": "routes_get_sessions",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_sessions",
+        "parameters": {},
+        "path": "/sessions",
+        "responses": {
+          "200": {
+            "sessions": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "authentication",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_serve_frontend",
+        "methods": [
+          "GET"
+        ],
+        "name": "serve_frontend",
+        "parameters": {},
+        "path": "/register",
+        "responses": {},
+        "technical_category": "main"
+      }
+    ],
+    "class_management": [
+      {
+        "category": "class_management",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "analytics_routes.py",
+        "id": "routes_get_teacher_overview",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_teacher_overview",
+        "parameters": {},
+        "path": "/overview",
+        "responses": {},
+        "technical_category": "routes"
+      }
+    ],
+    "data_visualization": [
+      {
+        "category": "data_visualization",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_health_check",
+        "methods": [
+          "GET"
+        ],
+        "name": "health_check",
+        "parameters": {},
+        "path": "/api/health",
+        "responses": {},
+        "technical_category": "main"
+      },
+      {
+        "category": "data_visualization",
+        "database_tables": [
+          "users"
+        ],
+        "description": "获取指定用户的基本信息",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_user_info",
+        "methods": [
+          "GET"
+        ],
+        "name": "user_info",
+        "parameters": {
+          "user_id": "用户ID（路径参数）"
+        },
+        "path": "/api/user/<int:user_id>",
+        "responses": {
+          "200": {
+            "success": "boolean",
+            "user": "object"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "data_visualization",
+        "database_tables": [
+          "users"
+        ],
+        "description": "更新用户信息接口，支持个人资料修改",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_update_user",
+        "methods": [
+          "POST"
+        ],
+        "name": "update_user",
+        "parameters": {
+          "avatar": "头像",
+          "email": "邮箱",
+          "name": "姓名",
+          "phone": "电话"
+        },
+        "path": "/api/user/update",
+        "responses": {
+          "200": {
+            "success": "boolean",
+            "user": "object"
+          }
+        },
+        "technical_category": "main"
+      }
+    ],
+    "database_visualization": [
+      {
+        "category": "database_visualization",
+        "database_tables": [],
+        "description": "健康检查接口",
+        "example_request": {},
+        "example_response": {
+          "database": "connected",
+          "message": "数据库API服务正常运行",
+          "status": "healthy"
+        },
+        "file": "api-server.py",
+        "id": "db_viz_health",
+        "methods": [
+          "GET"
+        ],
+        "name": "health_check",
+        "parameters": {},
+        "path": "/api/health",
+        "responses": {
+          "200": {
+            "database": "string",
+            "message": "string",
+            "status": "string"
+          }
+        }
+      },
+      {
+        "category": "database_visualization",
+        "database_tables": [
+          "INFORMATION_SCHEMA.TABLES"
+        ],
+        "description": "获取所有表信息",
+        "example_request": {},
+        "example_response": {
+          "tables": [
+            {
+              "count": 100,
+              "name": "users"
+            }
+          ],
+          "total_tables": 1
+        },
+        "file": "api-server.py",
+        "id": "db_viz_tables",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_all_tables",
+        "parameters": {},
+        "path": "/api/database/tables",
+        "responses": {
+          "200": {
+            "tables": "array",
+            "total_tables": "number"
+          }
+        }
+      },
+      {
+        "category": "database_visualization",
+        "database_tables": [
+          "dynamic"
+        ],
+        "description": "获取数据库表的实时数据，支持分页和筛选",
+        "example_request": {
+          "limit": 10,
+          "offset": 0
+        },
+        "example_response": {
+          "count": 0,
+          "data": [],
+          "limit": 10,
+          "offset": 0
+        },
+        "file": "api-server.py",
+        "id": "db_viz_table_data",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_table_data",
+        "parameters": {
+          "limit": "查询数量限制，默认10",
+          "offset": "偏移量，默认0",
+          "table_name": "表名（路径参数）"
+        },
+        "path": "/api/database/table/<table_name>",
+        "responses": {
+          "200": {
+            "count": "number",
+            "data": "array",
+            "limit": "number",
+            "offset": "number",
+            "source": "string",
+            "table": "string"
+          }
+        }
+      }
+    ],
+    "grading_system": [
+      {
+        "category": "grading_system",
+        "database_tables": [
+          "homework_submissions",
+          "homeworks"
+        ],
+        "description": "批量评分接口，支持多份作业同时评分",
+        "example_request": {},
+        "example_response": {},
+        "file": "grading_routes.py",
+        "id": "routes_batch_grade",
+        "methods": [
+          "POST"
+        ],
+        "name": "batch_grade",
+        "parameters": {
+          "grading_rules": "评分规则",
+          "submission_ids": "提交ID列表"
+        },
+        "path": "/batch-grade",
+        "responses": {
+          "200": {
+            "graded_count": "number",
+            "results": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      }
+    ],
+    "homework_management": [
+      {
+        "category": "homework_management",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "analytics_routes.py",
+        "id": "routes_get_homework_analytics",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_homework_analytics",
+        "parameters": {},
+        "path": "/homework/<int:homework_id>",
+        "responses": {},
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "analytics_routes.py",
+        "id": "routes_export_analytics",
+        "methods": [
+          "POST"
+        ],
+        "name": "export_analytics",
+        "parameters": {},
+        "path": "/homework/<int:homework_id>/export",
+        "responses": {},
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_submissions"
+        ],
+        "description": "提交作业答案，完成作业",
+        "example_request": {},
+        "example_response": {},
+        "file": "submission_routes.py",
+        "id": "routes_submit_homework",
+        "methods": [
+          "POST"
+        ],
+        "name": "submit_homework",
+        "parameters": {
+          "answers": "答案数据",
+          "assignment_id": "作业分配ID（路径参数）"
+        },
+        "path": "/<int:assignment_id>",
+        "responses": {
+          "200": {
+            "submission_id": "number",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "simple_analytics_routes.py",
+        "id": "routes_get_simple_homework_analytics",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_simple_homework_analytics",
+        "parameters": {},
+        "path": "/homework/<int:homework_id>",
+        "responses": {},
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "simple_feedback_routes.py",
+        "id": "routes_get_simple_homework_feedback",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_simple_homework_feedback",
+        "parameters": {},
+        "path": "/homework/<int:homework_id>",
+        "responses": {},
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "users",
+          "classes",
+          "homework_assignments"
+        ],
+        "description": "教师分配作业给班级或学生",
+        "example_request": {},
+        "example_response": {},
+        "file": "assignment_routes.py",
+        "id": "routes_assign_homework",
+        "methods": [
+          "POST"
+        ],
+        "name": "assign_homework",
+        "parameters": {
+          "due_date": "截止时间",
+          "homework_id": "作业ID",
+          "target_ids": "目标ID列表",
+          "target_type": "分配类型（class/student）"
+        },
+        "path": "/assign",
+        "responses": {
+          "200": {
+            "assignment_count": "number",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "classes",
+          "homework_assignments"
+        ],
+        "description": "获取指定班级的作业分配情况，教师查看班级作业状态",
+        "example_request": {},
+        "example_response": {},
+        "file": "assignment_routes.py",
+        "id": "routes_get_class_assignments",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_class_assignments",
+        "parameters": {
+          "class_id": "班级ID（路径参数）"
+        },
+        "path": "/class/<int:class_id>",
+        "responses": {
+          "200": {
+            "assignments": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "homework_assignments"
+        ],
+        "description": "获取教师创建的所有作业分配，用于教师管理界面",
+        "example_request": {},
+        "example_response": {},
+        "file": "assignment_routes.py",
+        "id": "routes_get_my_assignments",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_my_assignments",
+        "parameters": {},
+        "path": "/teacher/my",
+        "responses": {
+          "200": {
+            "assignments": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_assignments"
+        ],
+        "description": "获取作业分配的详细信息，包括完成情况和统计数据",
+        "example_request": {},
+        "example_response": {},
+        "file": "assignment_routes.py",
+        "id": "routes_get_assignment_detail",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_assignment_detail",
+        "parameters": {
+          "assignment_id": "分配ID（路径参数）"
+        },
+        "path": "/<int:assignment_id>",
+        "responses": {
+          "200": {
+            "assignment": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_assignments"
+        ],
+        "description": "更新作业分配状态，如开启、关闭、延期等操作",
+        "example_request": {},
+        "example_response": {},
+        "file": "assignment_routes.py",
+        "id": "routes_update_assignment_status",
+        "methods": [
+          "PUT"
+        ],
+        "name": "update_assignment_status",
+        "parameters": {
+          "assignment_id": "分配ID（路径参数）",
+          "status": "新状态"
+        },
+        "path": "/<int:assignment_id>/status",
+        "responses": {
+          "200": {
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "classes"
+        ],
+        "description": "获取教师负责的班级列表，用于班级管理",
+        "example_request": {},
+        "example_response": {},
+        "file": "assignment_routes.py",
+        "id": "routes_get_my_classes",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_my_classes",
+        "parameters": {},
+        "path": "/classes/my",
+        "responses": {
+          "200": {
+            "classes": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "class_students",
+          "users"
+        ],
+        "description": "获取指定班级的学生名单，用于作业分配和管理",
+        "example_request": {},
+        "example_response": {},
+        "file": "assignment_routes.py",
+        "id": "routes_get_class_students",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_class_students",
+        "parameters": {
+          "class_id": "班级ID（路径参数）"
+        },
+        "path": "/classes/<int:class_id>/students",
+        "responses": {
+          "200": {
+            "students": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "notifications"
+        ],
+        "description": "获取用户的通知消息列表，包括作业提醒、系统通知等",
+        "example_request": {},
+        "example_response": {},
+        "file": "assignment_routes.py",
+        "id": "routes_get_my_notifications",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_my_notifications",
+        "parameters": {},
+        "path": "/notifications/my",
+        "responses": {
+          "200": {
+            "notifications": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "notifications"
+        ],
+        "description": "标记指定通知为已读状态，更新通知状态",
+        "example_request": {},
+        "example_response": {},
+        "file": "assignment_routes.py",
+        "id": "routes_mark_notification_read",
+        "methods": [
+          "PUT"
+        ],
+        "name": "mark_notification_read",
+        "parameters": {
+          "notification_id": "通知ID（路径参数）"
+        },
+        "path": "/notifications/<int:notification_id>/read",
+        "responses": {
+          "200": {
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_submissions",
+          "homework_assignments"
+        ],
+        "description": "获取作业分配的统计信息，包括完成率、平均分、提交时间分布等",
+        "example_request": {},
+        "example_response": {},
+        "file": "assignment_routes.py",
+        "id": "routes_get_assignment_statistics",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_assignment_statistics",
+        "parameters": {
+          "assignment_id": "分配ID（路径参数）"
+        },
+        "path": "/statistics/<int:assignment_id>",
+        "responses": {
+          "200": {
+            "statistics": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "feedback_routes.py",
+        "id": "routes_get_homework_feedback",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_homework_feedback",
+        "parameters": {},
+        "path": "/homework/<int:homework_id>",
+        "responses": {},
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "feedback_routes.py",
+        "id": "routes_share_feedback",
+        "methods": [
+          "POST"
+        ],
+        "name": "share_feedback",
+        "parameters": {},
+        "path": "/homework/<int:homework_id>/share",
+        "responses": {},
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "homework_submissions"
+        ],
+        "description": "获取整体作业统计信息，教师查看所有作业的完成情况",
+        "example_request": {},
+        "example_response": {},
+        "file": "student_homework_routes.py",
+        "id": "routes_get_homework_statistics",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_homework_statistics",
+        "parameters": {},
+        "path": "/statistics",
+        "responses": {
+          "200": {
+            "statistics": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks"
+        ],
+        "description": "获取指定作业的评分规则配置，包括评分标准和权重",
+        "example_request": {},
+        "example_response": {},
+        "file": "grading_routes.py",
+        "id": "routes_get_grading_rules",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_grading_rules",
+        "parameters": {
+          "homework_id": "作业ID（路径参数）"
+        },
+        "path": "/rules/<int:homework_id>",
+        "responses": {
+          "200": {
+            "rules": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks"
+        ],
+        "description": "更新作业的评分规则，教师可以自定义评分标准",
+        "example_request": {},
+        "example_response": {},
+        "file": "grading_routes.py",
+        "id": "routes_update_grading_rules",
+        "methods": [
+          "POST"
+        ],
+        "name": "update_grading_rules",
+        "parameters": {
+          "homework_id": "作业ID（路径参数）",
+          "rules": "评分规则配置"
+        },
+        "path": "/rules/<int:homework_id>",
+        "responses": {
+          "200": {
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "homework_assignments"
+        ],
+        "description": "获取学生可见的作业列表",
+        "example_request": {},
+        "example_response": {},
+        "file": "student_homework_routes.py",
+        "id": "routes_get_homework_list",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_homework_list",
+        "parameters": {
+          "limit": "每页数量",
+          "page": "页码"
+        },
+        "path": "/list",
+        "responses": {
+          "200": {
+            "homeworks": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "homework_submissions",
+          "questions",
+          "homework_assignments"
+        ],
+        "description": "获取作业详细信息，包括题目和学生提交状态",
+        "example_request": {},
+        "example_response": {},
+        "file": "student_homework_routes.py",
+        "id": "routes_get_homework_detail",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_homework_detail",
+        "parameters": {
+          "assignment_id": "作业分配ID（路径参数）"
+        },
+        "path": "/<int:assignment_id>",
+        "responses": {
+          "200": {
+            "homework": "object",
+            "questions": "array",
+            "submission_status": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_favorites"
+        ],
+        "description": "切换作业收藏状态，添加或移除收藏",
+        "example_request": {},
+        "example_response": {},
+        "file": "student_homework_routes.py",
+        "id": "routes_toggle_homework_favorite",
+        "methods": [
+          "POST"
+        ],
+        "name": "toggle_homework_favorite",
+        "parameters": {
+          "assignment_id": "作业分配ID（路径参数）"
+        },
+        "path": "/<int:assignment_id>/favorite",
+        "responses": {
+          "200": {
+            "is_favorite": "boolean",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_favorites",
+          "homework_assignments"
+        ],
+        "description": "获取用户收藏的作业列表",
+        "example_request": {},
+        "example_response": {},
+        "file": "student_homework_routes.py",
+        "id": "routes_get_favorite_homeworks",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_favorite_homeworks",
+        "parameters": {},
+        "path": "/favorites",
+        "responses": {
+          "200": {
+            "favorites": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_progress"
+        ],
+        "description": "获取作业完成进度信息",
+        "example_request": {},
+        "example_response": {},
+        "file": "student_homework_routes.py",
+        "id": "routes_get_homework_progress",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_homework_progress",
+        "parameters": {
+          "homework_id": "作业ID（路径参数）"
+        },
+        "path": "/<int:homework_id>/progress",
+        "responses": {
+          "200": {
+            "progress": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_progress"
+        ],
+        "description": "保存作业完成进度，支持断点续做",
+        "example_request": {},
+        "example_response": {},
+        "file": "student_homework_routes.py",
+        "id": "routes_save_homework_progress",
+        "methods": [
+          "POST"
+        ],
+        "name": "save_homework_progress",
+        "parameters": {
+          "answers": "答案数据",
+          "homework_id": "作业ID（路径参数）",
+          "progress": "完成进度"
+        },
+        "path": "/<int:homework_id>/progress",
+        "responses": {
+          "200": {
+            "message": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_reminders",
+          "homework_assignments"
+        ],
+        "description": "获取作业提醒列表，包括即将到期的作业",
+        "example_request": {},
+        "example_response": {},
+        "file": "student_homework_routes.py",
+        "id": "routes_get_homework_reminders",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_homework_reminders",
+        "parameters": {},
+        "path": "/reminders",
+        "responses": {
+          "200": {
+            "reminders": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_submissions",
+          "homework_assignments"
+        ],
+        "description": "获取学生作业仪表板数据，包括统计信息",
+        "example_request": {},
+        "example_response": {},
+        "file": "student_homework_routes.py",
+        "id": "routes_get_homework_dashboard",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_homework_dashboard",
+        "parameters": {},
+        "path": "/dashboard",
+        "responses": {
+          "200": {
+            "dashboard": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks"
+        ],
+        "description": "搜索作业，支持关键词、学科、年级等条件搜索",
+        "example_request": {},
+        "example_response": {},
+        "file": "homework_routes.py",
+        "id": "routes_search_homeworks",
+        "methods": [
+          "GET"
+        ],
+        "name": "search_homeworks",
+        "parameters": {
+          "grade": "年级筛选",
+          "keyword": "搜索关键词",
+          "subject": "学科筛选"
+        },
+        "path": "/search",
+        "responses": {
+          "200": {
+            "homeworks": "array",
+            "success": "boolean",
+            "total": "number"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "subjects",
+          "grades"
+        ],
+        "description": "获取作业筛选选项，如可用的学科、年级等",
+        "example_request": {},
+        "example_response": {},
+        "file": "student_homework_routes.py",
+        "id": "routes_get_filter_options",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_filter_options",
+        "parameters": {},
+        "path": "/filters/options",
+        "responses": {
+          "200": {
+            "options": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "homework_questions",
+          "questions"
+        ],
+        "description": "创建新作业，教师可以创建包含多个题目的作业",
+        "example_request": {},
+        "example_response": {},
+        "file": "homework_routes.py",
+        "id": "routes_create_homework",
+        "methods": [
+          "POST"
+        ],
+        "name": "create_homework",
+        "parameters": {
+          "description": "作业描述",
+          "difficulty_level": "难度等级1-5",
+          "due_date": "截止日期",
+          "grade": "年级",
+          "max_score": "总分",
+          "questions": "题目列表",
+          "subject": "学科",
+          "title": "作业标题"
+        },
+        "path": "/create",
+        "responses": {
+          "201": {
+            "homework_id": "number",
+            "message": "string",
+            "success": "boolean"
+          },
+          "400": {
+            "errors": "array",
+            "message": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "users"
+        ],
+        "description": "获取作业列表，支持分页和筛选",
+        "example_request": {},
+        "example_response": {},
+        "file": "homework_routes.py",
+        "id": "routes_list_homeworks",
+        "methods": [
+          "GET"
+        ],
+        "name": "list_homeworks",
+        "parameters": {
+          "category": "分类筛选",
+          "grade": "年级筛选",
+          "keyword": "关键词搜索",
+          "limit": "每页数量，默认10",
+          "page": "页码，默认1",
+          "subject": "学科筛选"
+        },
+        "path": "/list",
+        "responses": {
+          "200": {
+            "homeworks": "array",
+            "page": "number",
+            "success": "boolean",
+            "total": "number",
+            "total_pages": "number"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "questions"
+        ],
+        "description": "获取指定作业的详细信息",
+        "example_request": {},
+        "example_response": {},
+        "file": "homework_routes.py",
+        "id": "routes_get_homework",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_homework",
+        "parameters": {
+          "homework_id": "作业ID（路径参数）"
+        },
+        "path": "/<int:homework_id>",
+        "responses": {
+          "200": {
+            "homework": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "questions"
+        ],
+        "description": "获取作业的所有题目列表",
+        "example_request": {},
+        "example_response": {},
+        "file": "homework_routes.py",
+        "id": "routes_get_homework_questions",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_homework_questions",
+        "parameters": {
+          "homework_id": "作业ID（路径参数）"
+        },
+        "path": "/<int:homework_id>/questions",
+        "responses": {
+          "200": {
+            "questions": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks"
+        ],
+        "description": "更新作业信息，包括标题、描述、题目等",
+        "example_request": {},
+        "example_response": {},
+        "file": "homework_routes.py",
+        "id": "routes_update_homework",
+        "methods": [
+          "PUT"
+        ],
+        "name": "update_homework",
+        "parameters": {
+          "description": "作业描述",
+          "due_date": "截止日期",
+          "homework_id": "作业ID（路径参数）",
+          "title": "作业标题"
+        },
+        "path": "/<int:homework_id>",
+        "responses": {
+          "200": {
+            "message": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "homework_submissions",
+          "questions"
+        ],
+        "description": "删除指定作业及其相关数据",
+        "example_request": {},
+        "example_response": {},
+        "file": "homework_routes.py",
+        "id": "routes_delete_homework",
+        "methods": [
+          "DELETE"
+        ],
+        "name": "delete_homework",
+        "parameters": {
+          "homework_id": "作业ID（路径参数）"
+        },
+        "path": "/<int:homework_id>",
+        "responses": {
+          "200": {
+            "message": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks"
+        ],
+        "description": "发布作业，使学生可以看到并完成作业",
+        "example_request": {},
+        "example_response": {},
+        "file": "homework_routes.py",
+        "id": "routes_publish_homework",
+        "methods": [
+          "POST"
+        ],
+        "name": "publish_homework",
+        "parameters": {
+          "homework_id": "作业ID（路径参数）"
+        },
+        "path": "/<int:homework_id>/publish",
+        "responses": {
+          "200": {
+            "message": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks"
+        ],
+        "description": "取消发布作业，隐藏作业不让学生看到",
+        "example_request": {},
+        "example_response": {},
+        "file": "homework_routes.py",
+        "id": "routes_unpublish_homework",
+        "methods": [
+          "POST"
+        ],
+        "name": "unpublish_homework",
+        "parameters": {
+          "homework_id": "作业ID（路径参数）"
+        },
+        "path": "/<int:homework_id>/unpublish",
+        "responses": {
+          "200": {
+            "message": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "homework_submissions"
+        ],
+        "description": "获取作业统计信息，包括完成率、平均分等",
+        "example_request": {},
+        "example_response": {},
+        "file": "homework_routes.py",
+        "id": "routes_get_statistics",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_statistics",
+        "parameters": {},
+        "path": "/statistics",
+        "responses": {
+          "200": {
+            "statistics": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [],
+        "description": "作业列表页面重定向接口，用于页面路由跳转",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_redirect_homework_list",
+        "methods": [
+          "GET"
+        ],
+        "name": "redirect_homework_list",
+        "parameters": {},
+        "path": "/homework/list",
+        "responses": {
+          "302": {
+            "redirect_url": "string"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks"
+        ],
+        "description": "作业详情页面重定向接口，用于页面路由跳转",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_redirect_homework_detail",
+        "methods": [
+          "GET"
+        ],
+        "name": "redirect_homework_detail",
+        "parameters": {
+          "homework_id": "作业ID（路径参数）"
+        },
+        "path": "/homework/detail/<int:homework_id>",
+        "responses": {
+          "302": {
+            "redirect_url": "string"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "homework_assignments"
+        ],
+        "description": "获取作业列表，支持分页和筛选条件",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_homework_list",
+        "methods": [
+          "GET"
+        ],
+        "name": "homework_list",
+        "parameters": {
+          "limit": "每页数量",
+          "page": "页码",
+          "status": "作业状态筛选",
+          "userId": "string"
+        },
+        "path": "/api/homework/list",
+        "responses": {
+          "200": {
+            "homeworks": "array",
+            "success": "boolean",
+            "total": "number"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homeworks",
+          "homework_submissions",
+          "questions"
+        ],
+        "description": "获取指定作业的详细信息，包括题目、提交状态等",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_homework_detail",
+        "methods": [
+          "GET"
+        ],
+        "name": "homework_detail",
+        "parameters": {
+          "homework_id": "作业ID（路径参数）"
+        },
+        "path": "/api/homework/detail/<int:homework_id>",
+        "responses": {
+          "200": {
+            "homework": "object",
+            "questions": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_submissions",
+          "homeworks"
+        ],
+        "description": "提交作业答案接口，完成作业并触发自动评分",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_submit",
+        "methods": [
+          "POST"
+        ],
+        "name": "submit",
+        "parameters": {
+          "answers": "完整答案数据",
+          "homework_id": "作业ID",
+          "submit_time": "提交时间"
+        },
+        "path": "/api/homework/submit",
+        "responses": {
+          "200": {
+            "score": "number",
+            "submission_id": "number",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [
+          "homework_progress",
+          "homework_submissions"
+        ],
+        "description": "保存作业进度接口，支持断点续做功能",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_save",
+        "methods": [
+          "POST"
+        ],
+        "name": "save",
+        "parameters": {
+          "answers": "当前答案数据",
+          "homework_id": "作业ID",
+          "progress": "完成进度"
+        },
+        "path": "/api/homework/save",
+        "responses": {
+          "200": {
+            "saved_at": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "homework_management",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_serve_homework_static",
+        "methods": [
+          "GET"
+        ],
+        "name": "serve_homework_static",
+        "parameters": {},
+        "path": "/static/homework/<path:filename>",
+        "responses": {},
+        "technical_category": "main"
+      }
+    ],
+    "other": [
+      {
+        "category": "other",
+        "database_tables": [],
+        "description": "系统首页接口，返回系统基本信息和状态",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_hello_world",
+        "methods": [
+          "GET"
+        ],
+        "name": "hello_world",
+        "parameters": {},
+        "path": "/",
+        "responses": {
+          "200": {
+            "message": "string",
+            "system_info": "object"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "other",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_serve_static",
+        "methods": [
+          "GET"
+        ],
+        "name": "serve_static",
+        "parameters": {},
+        "path": "/static/<path:filename>",
+        "responses": {},
+        "technical_category": "main"
+      }
+    ],
+    "recommendation_system": [
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "users",
+          "symbol_recommendations"
+        ],
+        "description": "数学符号智能推荐，基于上下文和用户习惯推荐合适的数学符号",
+        "example_request": {},
+        "example_response": {},
+        "file": "recommendation_bp.py",
+        "id": "blueprints_recommend_symbols",
+        "methods": [
+          "POST"
+        ],
+        "name": "recommend_symbols",
+        "parameters": {
+          "context": "当前输入上下文",
+          "limit": "推荐数量，默认5",
+          "question_text": "题目文本"
+        },
+        "path": "/symbols",
+        "responses": {
+          "200": {
+            "context_analysis": "object",
+            "recommendations": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "blueprints"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "symbol_recommendations",
+          "interaction_logs"
+        ],
+        "description": "记录学生使用数学符号的行为数据，用于优化推荐算法",
+        "example_request": {},
+        "example_response": {},
+        "file": "recommendation_bp.py",
+        "id": "blueprints_record_symbol_usage",
+        "methods": [
+          "POST"
+        ],
+        "name": "record_symbol_usage",
+        "parameters": {
+          "context": "使用上下文",
+          "symbol": "使用的符号",
+          "user_id": "用户ID"
+        },
+        "path": "/symbols/usage",
+        "responses": {
+          "200": {
+            "success": "boolean"
+          }
+        },
+        "technical_category": "blueprints"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "symbol_recommendations",
+          "problem_recommendations"
+        ],
+        "description": "获取推荐系统统计信息，包括推荐准确率、使用频率等数据",
+        "example_request": {},
+        "example_response": {},
+        "file": "recommendation_bp.py",
+        "id": "blueprints_get_recommendation_stats",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_recommendation_stats",
+        "parameters": {},
+        "path": "/stats",
+        "responses": {
+          "200": {
+            "stats": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "blueprints"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "users",
+          "knowledge_points",
+          "knowledge_relationships"
+        ],
+        "description": "基于AI的知识点推荐，根据用户学习状态和上下文推荐相关知识点",
+        "example_request": {
+          "context": "解一元二次方程",
+          "limit": 3
+        },
+        "example_response": {
+          "recommendations": [
+            {
+              "description": "用字母和数字表示的数学表达式",
+              "difficulty_level": 2,
+              "grade_level": 2,
+              "id": 2,
+              "name": "代数表达式",
+              "recommendation_reason": "与输入内容相关",
+              "relevance_score": 0.8
+            }
+          ],
+          "success": true,
+          "total": 1
+        },
+        "file": "recommendation_bp.py",
+        "id": "blueprints_recommend_knowledge_points",
+        "methods": [
+          "POST"
+        ],
+        "name": "recommend_knowledge_points",
+        "parameters": {
+          "context": "学习上下文内容",
+          "limit": "推荐数量限制，默认5",
+          "question_id": "题目ID，基于题目推荐"
+        },
+        "path": "/knowledge",
+        "responses": {
+          "200": {
+            "recommendations": "array",
+            "success": "boolean",
+            "timestamp": "string",
+            "total": "number"
+          }
+        },
+        "technical_category": "blueprints"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "users",
+          "problem_recommendations",
+          "questions"
+        ],
+        "description": "基于学生学习状态推荐练习题，支持难度自适应调整",
+        "example_request": {},
+        "example_response": {},
+        "file": "recommendation_bp.py",
+        "id": "blueprints_recommend_exercises",
+        "methods": [
+          "POST"
+        ],
+        "name": "recommend_exercises",
+        "parameters": {
+          "count": "推荐数量",
+          "difficulty": "难度级别",
+          "student_id": "学生ID",
+          "subject": "学科"
+        },
+        "path": "/exercises",
+        "responses": {
+          "200": {
+            "exercises": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "blueprints"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "learning_path_recommendations",
+          "knowledge_points"
+        ],
+        "description": "为学生推荐个性化学习路径，基于知识图谱和学习进度",
+        "example_request": {},
+        "example_response": {},
+        "file": "recommendation_bp.py",
+        "id": "blueprints_recommend_learning_path",
+        "methods": [
+          "POST"
+        ],
+        "name": "recommend_learning_path",
+        "parameters": {
+          "current_level": "当前水平",
+          "student_id": "学生ID",
+          "target_knowledge": "目标知识点"
+        },
+        "path": "/learning-path",
+        "responses": {
+          "200": {
+            "learning_path": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "blueprints"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "symbol_recommendations"
+        ],
+        "description": "获取数学符号推荐，基于当前输入上下文推荐相关符号",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_get_symbol_recommendations",
+        "methods": [
+          "POST"
+        ],
+        "name": "get_symbol_recommendations",
+        "parameters": {
+          "context": "输入上下文",
+          "subject": "学科领域"
+        },
+        "path": "/recommend",
+        "responses": {
+          "200": {
+            "recommendations": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "symbol_recommendations"
+        ],
+        "description": "获取带解释的符号推荐，包含推荐理由和使用说明",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_get_explained_symbol_recommendations",
+        "methods": [
+          "POST"
+        ],
+        "name": "get_explained_symbol_recommendations",
+        "parameters": {
+          "context": "输入上下文",
+          "explain": "是否需要详细解释"
+        },
+        "path": "/recommend/explained",
+        "responses": {
+          "200": {
+            "explanations": "array",
+            "recommendations": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "symbol_recommendations"
+        ],
+        "description": "获取符号自动补全建议，帮助用户快速输入数学表达式",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_get_symbol_completions",
+        "methods": [
+          "POST"
+        ],
+        "name": "get_symbol_completions",
+        "parameters": {
+          "limit": "返回数量限制",
+          "partial_input": "部分输入内容"
+        },
+        "path": "/complete",
+        "responses": {
+          "200": {
+            "completions": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "users",
+          "symbol_recommendations"
+        ],
+        "description": "获取上下文感知的符号推荐，基于当前题目和学习进度",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_get_context_aware_recommendations",
+        "methods": [
+          "POST"
+        ],
+        "name": "get_context_aware_recommendations",
+        "parameters": {
+          "context": "当前上下文",
+          "subject": "学科",
+          "user_level": "用户水平"
+        },
+        "path": "/context",
+        "responses": {
+          "200": {
+            "recommendations": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "symbol_recommendations",
+          "interaction_logs"
+        ],
+        "description": "记录用户符号使用行为，用于优化推荐算法和学习分析",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_record_symbol_usage",
+        "methods": [
+          "POST"
+        ],
+        "name": "record_symbol_usage",
+        "parameters": {
+          "context": "使用上下文",
+          "symbol": "使用的符号",
+          "timestamp": "使用时间"
+        },
+        "path": "/usage",
+        "responses": {
+          "200": {
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "symbol_recommendations"
+        ],
+        "description": "获取数学符号分类列表，用于符号选择界面的分类显示",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_get_symbol_categories",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_symbol_categories",
+        "parameters": {},
+        "path": "/categories",
+        "responses": {
+          "200": {
+            "categories": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "symbol_recommendations"
+        ],
+        "description": "获取指定分类下的所有数学符号，支持分类浏览",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_get_symbols_by_category",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_symbols_by_category",
+        "parameters": {
+          "category_id": "分类ID（路径参数）"
+        },
+        "path": "/category/<category_id>",
+        "responses": {
+          "200": {
+            "success": "boolean",
+            "symbols": "array"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "symbol_recommendations"
+        ],
+        "description": "搜索数学符号，支持按名称、描述、LaTeX代码等条件搜索",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_search_symbols",
+        "methods": [
+          "POST"
+        ],
+        "name": "search_symbols",
+        "parameters": {
+          "category": "分类筛选",
+          "limit": "结果数量限制",
+          "query": "搜索关键词"
+        },
+        "path": "/search",
+        "responses": {
+          "200": {
+            "success": "boolean",
+            "symbols": "array"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "users",
+          "interaction_logs"
+        ],
+        "description": "获取用户的符号使用统计信息，包括常用符号、使用频率等",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_get_user_symbol_stats",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_user_symbol_stats",
+        "parameters": {
+          "user_id": "用户ID（路径参数）"
+        },
+        "path": "/stats/<int:user_id>",
+        "responses": {
+          "200": {
+            "stats": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "learning_behaviors",
+          "users"
+        ],
+        "description": "获取用户学习分析数据，包括学习行为、进度、偏好等",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_get_user_learning_analytics",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_user_learning_analytics",
+        "parameters": {
+          "user_id": "用户ID（路径参数）"
+        },
+        "path": "/analytics/<int:user_id>",
+        "responses": {
+          "200": {
+            "analytics": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "learning_behaviors",
+          "symbol_recommendations"
+        ],
+        "description": "获取自适应推荐结果，基于用户学习状态动态调整推荐内容",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_get_adaptive_recommendations",
+        "methods": [
+          "POST"
+        ],
+        "name": "get_adaptive_recommendations",
+        "parameters": {
+          "context": "当前学习上下文",
+          "difficulty": "期望难度",
+          "user_id": "用户ID"
+        },
+        "path": "/recommend/adaptive",
+        "responses": {
+          "200": {
+            "recommendations": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "learning_behaviors",
+          "engagement_metrics"
+        ],
+        "description": "获取学习洞察报告，分析用户学习模式和改进建议",
+        "example_request": {},
+        "example_response": {},
+        "file": "enhanced_symbol_routes.py",
+        "id": "routes_get_learning_insights",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_learning_insights",
+        "parameters": {
+          "user_id": "用户ID（路径参数）"
+        },
+        "path": "/learning-insights/<int:user_id>",
+        "responses": {
+          "200": {
+            "insights": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [],
+        "description": "知识点题目页面重定向接口，用于页面路由跳转",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_redirect_knowledge_question",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "name": "redirect_knowledge_question",
+        "parameters": {},
+        "path": "/knowledge/question",
+        "responses": {
+          "302": {
+            "redirect_url": "string"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "knowledge_relationships",
+          "knowledge_points",
+          "questions"
+        ],
+        "description": "获取题目相关的知识点信息，支持知识点查询和关联分析",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_question_knowledge",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "name": "question_knowledge",
+        "parameters": {
+          "knowledge_point": "知识点名称",
+          "questionId": "string",
+          "question_id": "题目ID",
+          "text": "string"
+        },
+        "path": "/api/knowledge/question",
+        "responses": {
+          "200": {
+            "knowledge_points": "array",
+            "relationships": "array",
+            "success": "boolean"
+          },
+          "400": {
+            "error": "string",
+            "message": "string"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "symbol_recommendations",
+          "interaction_logs"
+        ],
+        "description": "数学符号推荐接口，根据输入上下文推荐合适的符号",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_recommend_symbols",
+        "methods": [
+          "POST"
+        ],
+        "name": "recommend_symbols",
+        "parameters": {
+          "context": "输入上下文",
+          "subject": "学科领域",
+          "user_level": "用户水平"
+        },
+        "path": "/api/recommend/symbols",
+        "responses": {
+          "200": {
+            "success": "boolean",
+            "symbols": "array"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "learning_behaviors",
+          "knowledge_points",
+          "knowledge_relationships"
+        ],
+        "description": "知识点推荐接口，基于学习进度推荐相关知识点",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_recommend_knowledge",
+        "methods": [
+          "POST"
+        ],
+        "name": "recommend_knowledge",
+        "parameters": {
+          "current_topic": "当前学习主题",
+          "learning_goal": "学习目标",
+          "user_id": "用户ID"
+        },
+        "path": "/api/recommend/knowledge",
+        "responses": {
+          "200": {
+            "knowledge_recommendations": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [
+          "learning_behaviors",
+          "problem_recommendations",
+          "questions"
+        ],
+        "description": "主要的练习推荐接口，整合多种推荐算法",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_recommend_exercises",
+        "methods": [
+          "POST"
+        ],
+        "name": "recommend_exercises",
+        "parameters": {
+          "difficulty_range": "难度范围",
+          "preferences": "用户偏好",
+          "user_id": "用户ID"
+        },
+        "path": "/api/recommend/exercises",
+        "responses": {
+          "200": {
+            "recommendations": "array",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "main"
+      },
+      {
+        "category": "recommendation_system",
+        "database_tables": [],
+        "description": "暂无描述",
+        "example_request": {},
+        "example_response": {},
+        "file": "app.py",
+        "id": "main_serve_symbol_static",
+        "methods": [
+          "GET"
+        ],
+        "name": "serve_symbol_static",
+        "parameters": {},
+        "path": "/static/symbol/<path:filename>",
+        "responses": {},
+        "technical_category": "main"
+      }
+    ],
+    "student_features": [
+      {
+        "category": "student_features",
+        "database_tables": [
+          "homework_submissions"
+        ],
+        "description": "获取学生作业提交的完整结果，包括答案、评分、反馈",
+        "example_request": {},
+        "example_response": {},
+        "file": "submission_routes.py",
+        "id": "routes_get_submission_result",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_submission_result",
+        "parameters": {
+          "submission_id": "提交ID（路径参数）"
+        },
+        "path": "/<int:submission_id>/result",
+        "responses": {
+          "200": {
+            "submission": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "student_features",
+        "database_tables": [
+          "homework_submissions",
+          "grading_results",
+          "questions"
+        ],
+        "description": "自动评分学生作业提交，支持多种题型的智能评分",
+        "example_request": {},
+        "example_response": {},
+        "file": "grading_routes.py",
+        "id": "routes_grade_submission",
+        "methods": [
+          "POST"
+        ],
+        "name": "grade_submission",
+        "parameters": {
+          "submission_id": "提交ID（路径参数）"
+        },
+        "path": "/grade/<int:submission_id>",
+        "responses": {
+          "200": {
+            "grading_result": "object",
+            "max_score": "number",
+            "success": "boolean",
+            "total_score": "number"
+          },
+          "404": {
+            "message": "string",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "student_features",
+        "database_tables": [
+          "homework_submissions"
+        ],
+        "description": "获取作业提交的评分结果，包括得分、错误分析、改进建议",
+        "example_request": {},
+        "example_response": {},
+        "file": "grading_routes.py",
+        "id": "routes_get_grading_result",
+        "methods": [
+          "GET"
+        ],
+        "name": "get_grading_result",
+        "parameters": {
+          "submission_id": "提交ID（路径参数）"
+        },
+        "path": "/result/<int:submission_id>",
+        "responses": {
+          "200": {
+            "result": "object",
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
+      },
+      {
+        "category": "student_features",
+        "database_tables": [
+          "homework_submissions"
+        ],
+        "description": "教师复查自动评分结果，可以调整分数和添加评语",
+        "example_request": {},
+        "example_response": {},
+        "file": "grading_routes.py",
+        "id": "routes_review_grading",
+        "methods": [
+          "POST"
+        ],
+        "name": "review_grading",
+        "parameters": {
+          "adjustments": "评分调整",
+          "comments": "教师评语",
+          "submission_id": "提交ID（路径参数）"
+        },
+        "path": "/review/<int:submission_id>",
+        "responses": {
+          "200": {
+            "success": "boolean"
+          }
+        },
+        "technical_category": "routes"
       }
     ]
-  }
+  },
+  "success": true,
+  "total_apis": 92
 }
 ```
 
-## 学习分析
+## 项目API详细列表
 
-### 学习统计
+### API统计信息
+- **总API数量**: 92
+- **API分类**: recommendation_system, homework_management, class_management, student_features, grading_system, authentication, other, data_visualization, database_visualization
+- **生成时间**: 2025-09-21 10:45:43
 
-#### GET /analytics/summary
-获取学习概览统计
 
-**查询参数**
-- time_range: 时间范围 (week, month, semester, year)
+### 按功能分类的API
+
+#### Authentication
+
+**register**
+- 路径: `POST /register`
+- 描述: 用户注册，创建新的学生、教师或管理员账户
+- 文件: auth_routes.py
+- 关联表: users
+
+**login**
+- 路径: `POST /login`
+- 描述: 用户登录认证，支持学生、教师、管理员登录
+- 文件: auth_routes.py
+- 关联表: users, user_sessions
+
+**refresh**
+- 路径: `POST /refresh`
+- 描述: 刷新用户访问令牌，延长登录会话
+- 文件: auth_routes.py
+- 关联表: user_sessions
+
+**logout**
+- 路径: `POST /logout`
+- 描述: 用户登出，清除会话信息
+- 文件: auth_routes.py
+- 关联表: user_sessions
+
+**get_profile**
+- 路径: `GET /profile`
+- 描述: 获取当前用户的个人资料信息，包括基本信息和偏好设置
+- 文件: auth_routes.py
+- 关联表: users
+
+**update_profile**
+- 路径: `PUT /profile`
+- 描述: 更新用户个人资料信息
+- 文件: auth_routes.py
+- 关联表: users
+
+**get_sessions**
+- 路径: `GET /sessions`
+- 描述: 获取用户的活跃会话列表，用于会话管理和安全监控
+- 文件: auth_routes.py
+- 关联表: user_sessions
+
+**serve_frontend**
+- 路径: `GET /register`
+- 描述: 暂无描述
+- 文件: app.py
+
+#### Class Management
+
+**get_teacher_overview**
+- 路径: `GET /overview`
+- 描述: 暂无描述
+- 文件: analytics_routes.py
+
+#### Data Visualization
+
+**health_check**
+- 路径: `GET /api/health`
+- 描述: 暂无描述
+- 文件: app.py
+
+**user_info**
+- 路径: `GET /api/user/<int:user_id>`
+- 描述: 获取指定用户的基本信息
+- 文件: app.py
+- 关联表: users
+
+**update_user**
+- 路径: `POST /api/user/update`
+- 描述: 更新用户信息接口，支持个人资料修改
+- 文件: app.py
+- 关联表: users
+
+#### Database Visualization
+
+**health_check**
+- 路径: `GET /api/health`
+- 描述: 健康检查接口
+- 文件: api-server.py
+
+**get_all_tables**
+- 路径: `GET /api/database/tables`
+- 描述: 获取所有表信息
+- 文件: api-server.py
+- 关联表: INFORMATION_SCHEMA.TABLES
+
+**get_table_data**
+- 路径: `GET /api/database/table/<table_name>`
+- 描述: 获取数据库表的实时数据，支持分页和筛选
+- 文件: api-server.py
+- 关联表: dynamic
+
+#### Grading System
+
+**batch_grade**
+- 路径: `POST /batch-grade`
+- 描述: 批量评分接口，支持多份作业同时评分
+- 文件: grading_routes.py
+- 关联表: homework_submissions, homeworks
+
+#### Homework Management
+
+**get_homework_analytics**
+- 路径: `GET /homework/<int:homework_id>`
+- 描述: 暂无描述
+- 文件: analytics_routes.py
+
+**export_analytics**
+- 路径: `POST /homework/<int:homework_id>/export`
+- 描述: 暂无描述
+- 文件: analytics_routes.py
+
+**submit_homework**
+- 路径: `POST /<int:assignment_id>`
+- 描述: 提交作业答案，完成作业
+- 文件: submission_routes.py
+- 关联表: homework_submissions
+
+**get_simple_homework_analytics**
+- 路径: `GET /homework/<int:homework_id>`
+- 描述: 暂无描述
+- 文件: simple_analytics_routes.py
+
+**get_simple_homework_feedback**
+- 路径: `GET /homework/<int:homework_id>`
+- 描述: 暂无描述
+- 文件: simple_feedback_routes.py
+
+**assign_homework**
+- 路径: `POST /assign`
+- 描述: 教师分配作业给班级或学生
+- 文件: assignment_routes.py
+- 关联表: users, classes, homework_assignments
+
+**get_class_assignments**
+- 路径: `GET /class/<int:class_id>`
+- 描述: 获取指定班级的作业分配情况，教师查看班级作业状态
+- 文件: assignment_routes.py
+- 关联表: classes, homework_assignments
+
+**get_my_assignments**
+- 路径: `GET /teacher/my`
+- 描述: 获取教师创建的所有作业分配，用于教师管理界面
+- 文件: assignment_routes.py
+- 关联表: homeworks, homework_assignments
+
+**get_assignment_detail**
+- 路径: `GET /<int:assignment_id>`
+- 描述: 获取作业分配的详细信息，包括完成情况和统计数据
+- 文件: assignment_routes.py
+- 关联表: homework_assignments
+
+**update_assignment_status**
+- 路径: `PUT /<int:assignment_id>/status`
+- 描述: 更新作业分配状态，如开启、关闭、延期等操作
+- 文件: assignment_routes.py
+- 关联表: homework_assignments
+
+**get_my_classes**
+- 路径: `GET /classes/my`
+- 描述: 获取教师负责的班级列表，用于班级管理
+- 文件: assignment_routes.py
+- 关联表: classes
+
+**get_class_students**
+- 路径: `GET /classes/<int:class_id>/students`
+- 描述: 获取指定班级的学生名单，用于作业分配和管理
+- 文件: assignment_routes.py
+- 关联表: class_students, users
+
+**get_my_notifications**
+- 路径: `GET /notifications/my`
+- 描述: 获取用户的通知消息列表，包括作业提醒、系统通知等
+- 文件: assignment_routes.py
+- 关联表: notifications
+
+**mark_notification_read**
+- 路径: `PUT /notifications/<int:notification_id>/read`
+- 描述: 标记指定通知为已读状态，更新通知状态
+- 文件: assignment_routes.py
+- 关联表: notifications
+
+**get_assignment_statistics**
+- 路径: `GET /statistics/<int:assignment_id>`
+- 描述: 获取作业分配的统计信息，包括完成率、平均分、提交时间分布等
+- 文件: assignment_routes.py
+- 关联表: homework_submissions, homework_assignments
+
+**get_homework_feedback**
+- 路径: `GET /homework/<int:homework_id>`
+- 描述: 暂无描述
+- 文件: feedback_routes.py
+
+**share_feedback**
+- 路径: `POST /homework/<int:homework_id>/share`
+- 描述: 暂无描述
+- 文件: feedback_routes.py
+
+**get_homework_statistics**
+- 路径: `GET /statistics`
+- 描述: 获取整体作业统计信息，教师查看所有作业的完成情况
+- 文件: student_homework_routes.py
+- 关联表: homeworks, homework_submissions
+
+**get_grading_rules**
+- 路径: `GET /rules/<int:homework_id>`
+- 描述: 获取指定作业的评分规则配置，包括评分标准和权重
+- 文件: grading_routes.py
+- 关联表: homeworks
+
+**update_grading_rules**
+- 路径: `POST /rules/<int:homework_id>`
+- 描述: 更新作业的评分规则，教师可以自定义评分标准
+- 文件: grading_routes.py
+- 关联表: homeworks
+
+**get_homework_list**
+- 路径: `GET /list`
+- 描述: 获取学生可见的作业列表
+- 文件: student_homework_routes.py
+- 关联表: homeworks, homework_assignments
+
+**get_homework_detail**
+- 路径: `GET /<int:assignment_id>`
+- 描述: 获取作业详细信息，包括题目和学生提交状态
+- 文件: student_homework_routes.py
+- 关联表: homeworks, homework_submissions, questions, homework_assignments
+
+**toggle_homework_favorite**
+- 路径: `POST /<int:assignment_id>/favorite`
+- 描述: 切换作业收藏状态，添加或移除收藏
+- 文件: student_homework_routes.py
+- 关联表: homework_favorites
+
+**get_favorite_homeworks**
+- 路径: `GET /favorites`
+- 描述: 获取用户收藏的作业列表
+- 文件: student_homework_routes.py
+- 关联表: homework_favorites, homework_assignments
+
+**get_homework_progress**
+- 路径: `GET /<int:homework_id>/progress`
+- 描述: 获取作业完成进度信息
+- 文件: student_homework_routes.py
+- 关联表: homework_progress
+
+**save_homework_progress**
+- 路径: `POST /<int:homework_id>/progress`
+- 描述: 保存作业完成进度，支持断点续做
+- 文件: student_homework_routes.py
+- 关联表: homework_progress
+
+**get_homework_reminders**
+- 路径: `GET /reminders`
+- 描述: 获取作业提醒列表，包括即将到期的作业
+- 文件: student_homework_routes.py
+- 关联表: homework_reminders, homework_assignments
+
+**get_homework_dashboard**
+- 路径: `GET /dashboard`
+- 描述: 获取学生作业仪表板数据，包括统计信息
+- 文件: student_homework_routes.py
+- 关联表: homework_submissions, homework_assignments
+
+**search_homeworks**
+- 路径: `GET /search`
+- 描述: 搜索作业，支持关键词、学科、年级等条件搜索
+- 文件: homework_routes.py
+- 关联表: homeworks
+
+**get_filter_options**
+- 路径: `GET /filters/options`
+- 描述: 获取作业筛选选项，如可用的学科、年级等
+- 文件: student_homework_routes.py
+- 关联表: homeworks, subjects, grades
+
+**create_homework**
+- 路径: `POST /create`
+- 描述: 创建新作业，教师可以创建包含多个题目的作业
+- 文件: homework_routes.py
+- 关联表: homeworks, homework_questions, questions
+
+**list_homeworks**
+- 路径: `GET /list`
+- 描述: 获取作业列表，支持分页和筛选
+- 文件: homework_routes.py
+- 关联表: homeworks, users
+
+**get_homework**
+- 路径: `GET /<int:homework_id>`
+- 描述: 获取指定作业的详细信息
+- 文件: homework_routes.py
+- 关联表: homeworks, questions
+
+**get_homework_questions**
+- 路径: `GET /<int:homework_id>/questions`
+- 描述: 获取作业的所有题目列表
+- 文件: homework_routes.py
+- 关联表: homeworks, questions
+
+**update_homework**
+- 路径: `PUT /<int:homework_id>`
+- 描述: 更新作业信息，包括标题、描述、题目等
+- 文件: homework_routes.py
+- 关联表: homeworks
+
+**delete_homework**
+- 路径: `DELETE /<int:homework_id>`
+- 描述: 删除指定作业及其相关数据
+- 文件: homework_routes.py
+- 关联表: homeworks, homework_submissions, questions
+
+**publish_homework**
+- 路径: `POST /<int:homework_id>/publish`
+- 描述: 发布作业，使学生可以看到并完成作业
+- 文件: homework_routes.py
+- 关联表: homeworks
+
+**unpublish_homework**
+- 路径: `POST /<int:homework_id>/unpublish`
+- 描述: 取消发布作业，隐藏作业不让学生看到
+- 文件: homework_routes.py
+- 关联表: homeworks
+
+**get_statistics**
+- 路径: `GET /statistics`
+- 描述: 获取作业统计信息，包括完成率、平均分等
+- 文件: homework_routes.py
+- 关联表: homeworks, homework_submissions
+
+**redirect_homework_list**
+- 路径: `GET /homework/list`
+- 描述: 作业列表页面重定向接口，用于页面路由跳转
+- 文件: app.py
+
+**redirect_homework_detail**
+- 路径: `GET /homework/detail/<int:homework_id>`
+- 描述: 作业详情页面重定向接口，用于页面路由跳转
+- 文件: app.py
+- 关联表: homeworks
+
+**homework_list**
+- 路径: `GET /api/homework/list`
+- 描述: 获取作业列表，支持分页和筛选条件
+- 文件: app.py
+- 关联表: homeworks, homework_assignments
+
+**homework_detail**
+- 路径: `GET /api/homework/detail/<int:homework_id>`
+- 描述: 获取指定作业的详细信息，包括题目、提交状态等
+- 文件: app.py
+- 关联表: homeworks, homework_submissions, questions
+
+**submit**
+- 路径: `POST /api/homework/submit`
+- 描述: 提交作业答案接口，完成作业并触发自动评分
+- 文件: app.py
+- 关联表: homework_submissions, homeworks
+
+**save**
+- 路径: `POST /api/homework/save`
+- 描述: 保存作业进度接口，支持断点续做功能
+- 文件: app.py
+- 关联表: homework_progress, homework_submissions
+
+**serve_homework_static**
+- 路径: `GET /static/homework/<path:filename>`
+- 描述: 暂无描述
+- 文件: app.py
+
+#### Other
+
+**hello_world**
+- 路径: `GET /`
+- 描述: 系统首页接口，返回系统基本信息和状态
+- 文件: app.py
+
+**serve_static**
+- 路径: `GET /static/<path:filename>`
+- 描述: 暂无描述
+- 文件: app.py
+
+#### Recommendation System
+
+**recommend_symbols**
+- 路径: `POST /symbols`
+- 描述: 数学符号智能推荐，基于上下文和用户习惯推荐合适的数学符号
+- 文件: recommendation_bp.py
+- 关联表: users, symbol_recommendations
+
+**record_symbol_usage**
+- 路径: `POST /symbols/usage`
+- 描述: 记录学生使用数学符号的行为数据，用于优化推荐算法
+- 文件: recommendation_bp.py
+- 关联表: symbol_recommendations, interaction_logs
+
+**get_recommendation_stats**
+- 路径: `GET /stats`
+- 描述: 获取推荐系统统计信息，包括推荐准确率、使用频率等数据
+- 文件: recommendation_bp.py
+- 关联表: symbol_recommendations, problem_recommendations
+
+**recommend_knowledge_points**
+- 路径: `POST /knowledge`
+- 描述: 基于AI的知识点推荐，根据用户学习状态和上下文推荐相关知识点
+- 文件: recommendation_bp.py
+- 关联表: users, knowledge_points, knowledge_relationships
+
+**recommend_exercises**
+- 路径: `POST /exercises`
+- 描述: 基于学生学习状态推荐练习题，支持难度自适应调整
+- 文件: recommendation_bp.py
+- 关联表: users, problem_recommendations, questions
+
+**recommend_learning_path**
+- 路径: `POST /learning-path`
+- 描述: 为学生推荐个性化学习路径，基于知识图谱和学习进度
+- 文件: recommendation_bp.py
+- 关联表: learning_path_recommendations, knowledge_points
+
+**get_symbol_recommendations**
+- 路径: `POST /recommend`
+- 描述: 获取数学符号推荐，基于当前输入上下文推荐相关符号
+- 文件: enhanced_symbol_routes.py
+- 关联表: symbol_recommendations
+
+**get_explained_symbol_recommendations**
+- 路径: `POST /recommend/explained`
+- 描述: 获取带解释的符号推荐，包含推荐理由和使用说明
+- 文件: enhanced_symbol_routes.py
+- 关联表: symbol_recommendations
+
+**get_symbol_completions**
+- 路径: `POST /complete`
+- 描述: 获取符号自动补全建议，帮助用户快速输入数学表达式
+- 文件: enhanced_symbol_routes.py
+- 关联表: symbol_recommendations
+
+**get_context_aware_recommendations**
+- 路径: `POST /context`
+- 描述: 获取上下文感知的符号推荐，基于当前题目和学习进度
+- 文件: enhanced_symbol_routes.py
+- 关联表: users, symbol_recommendations
+
+**record_symbol_usage**
+- 路径: `POST /usage`
+- 描述: 记录用户符号使用行为，用于优化推荐算法和学习分析
+- 文件: enhanced_symbol_routes.py
+- 关联表: symbol_recommendations, interaction_logs
+
+**get_symbol_categories**
+- 路径: `GET /categories`
+- 描述: 获取数学符号分类列表，用于符号选择界面的分类显示
+- 文件: enhanced_symbol_routes.py
+- 关联表: symbol_recommendations
+
+**get_symbols_by_category**
+- 路径: `GET /category/<category_id>`
+- 描述: 获取指定分类下的所有数学符号，支持分类浏览
+- 文件: enhanced_symbol_routes.py
+- 关联表: symbol_recommendations
+
+**search_symbols**
+- 路径: `POST /search`
+- 描述: 搜索数学符号，支持按名称、描述、LaTeX代码等条件搜索
+- 文件: enhanced_symbol_routes.py
+- 关联表: symbol_recommendations
+
+**get_user_symbol_stats**
+- 路径: `GET /stats/<int:user_id>`
+- 描述: 获取用户的符号使用统计信息，包括常用符号、使用频率等
+- 文件: enhanced_symbol_routes.py
+- 关联表: users, interaction_logs
+
+**get_user_learning_analytics**
+- 路径: `GET /analytics/<int:user_id>`
+- 描述: 获取用户学习分析数据，包括学习行为、进度、偏好等
+- 文件: enhanced_symbol_routes.py
+- 关联表: learning_behaviors, users
+
+**get_adaptive_recommendations**
+- 路径: `POST /recommend/adaptive`
+- 描述: 获取自适应推荐结果，基于用户学习状态动态调整推荐内容
+- 文件: enhanced_symbol_routes.py
+- 关联表: learning_behaviors, symbol_recommendations
+
+**get_learning_insights**
+- 路径: `GET /learning-insights/<int:user_id>`
+- 描述: 获取学习洞察报告，分析用户学习模式和改进建议
+- 文件: enhanced_symbol_routes.py
+- 关联表: learning_behaviors, engagement_metrics
+
+**redirect_knowledge_question**
+- 路径: `GET /knowledge/question`
+- 描述: 知识点题目页面重定向接口，用于页面路由跳转
+- 文件: app.py
+
+**question_knowledge**
+- 路径: `GET /api/knowledge/question`
+- 描述: 获取题目相关的知识点信息，支持知识点查询和关联分析
+- 文件: app.py
+- 关联表: knowledge_relationships, knowledge_points, questions
+
+**recommend_symbols**
+- 路径: `POST /api/recommend/symbols`
+- 描述: 数学符号推荐接口，根据输入上下文推荐合适的符号
+- 文件: app.py
+- 关联表: symbol_recommendations, interaction_logs
+
+**recommend_knowledge**
+- 路径: `POST /api/recommend/knowledge`
+- 描述: 知识点推荐接口，基于学习进度推荐相关知识点
+- 文件: app.py
+- 关联表: learning_behaviors, knowledge_points, knowledge_relationships
+
+**recommend_exercises**
+- 路径: `POST /api/recommend/exercises`
+- 描述: 主要的练习推荐接口，整合多种推荐算法
+- 文件: app.py
+- 关联表: learning_behaviors, problem_recommendations, questions
+
+**serve_symbol_static**
+- 路径: `GET /static/symbol/<path:filename>`
+- 描述: 暂无描述
+- 文件: app.py
+
+#### Student Features
+
+**get_submission_result**
+- 路径: `GET /<int:submission_id>/result`
+- 描述: 获取学生作业提交的完整结果，包括答案、评分、反馈
+- 文件: submission_routes.py
+- 关联表: homework_submissions
+
+**grade_submission**
+- 路径: `POST /grade/<int:submission_id>`
+- 描述: 自动评分学生作业提交，支持多种题型的智能评分
+- 文件: grading_routes.py
+- 关联表: homework_submissions, grading_results, questions
+
+**get_grading_result**
+- 路径: `GET /result/<int:submission_id>`
+- 描述: 获取作业提交的评分结果，包括得分、错误分析、改进建议
+- 文件: grading_routes.py
+- 关联表: homework_submissions
+
+**review_grading**
+- 路径: `POST /review/<int:submission_id>`
+- 描述: 教师复查自动评分结果，可以调整分数和添加评语
+- 文件: grading_routes.py
+- 关联表: homework_submissions
+
+
+## 详细API信息
+
+### blueprints_get_recommendation_stats
+
+**基本信息**
+- 名称: get_recommendation_stats
+- 路径: /stats
+- 方法: GET
+- 分类: recommendation_system
+- 文件: recommendation_bp.py
+- 描述: 获取推荐系统统计信息，包括推荐准确率、使用频率等数据
+
+**响应格式**
+- 200:
+  - stats: object
+  - success: boolean
+
+**关联数据库表**
+- symbol_recommendations
+- problem_recommendations
+
+---
+
+### blueprints_recommend_exercises
+
+**基本信息**
+- 名称: recommend_exercises
+- 路径: /exercises
+- 方法: POST
+- 分类: recommendation_system
+- 文件: recommendation_bp.py
+- 描述: 基于学生学习状态推荐练习题，支持难度自适应调整
+
+**请求参数**
+- count: 推荐数量
+- difficulty: 难度级别
+- student_id: 学生ID
+- subject: 学科
+
+**响应格式**
+- 200:
+  - exercises: array
+  - success: boolean
+
+**关联数据库表**
+- users
+- problem_recommendations
+- questions
+
+---
+
+### blueprints_recommend_knowledge_points
+
+**基本信息**
+- 名称: recommend_knowledge_points
+- 路径: /knowledge
+- 方法: POST
+- 分类: recommendation_system
+- 文件: recommendation_bp.py
+- 描述: 基于AI的知识点推荐，根据用户学习状态和上下文推荐相关知识点
+
+**请求参数**
+- context: 学习上下文内容
+- limit: 推荐数量限制，默认5
+- question_id: 题目ID，基于题目推荐
+
+**响应格式**
+- 200:
+  - recommendations: array
+  - success: boolean
+  - timestamp: string
+  - total: number
+
+**关联数据库表**
+- users
+- knowledge_points
+- knowledge_relationships
+
+---
+
+### blueprints_recommend_learning_path
+
+**基本信息**
+- 名称: recommend_learning_path
+- 路径: /learning-path
+- 方法: POST
+- 分类: recommendation_system
+- 文件: recommendation_bp.py
+- 描述: 为学生推荐个性化学习路径，基于知识图谱和学习进度
+
+**请求参数**
+- current_level: 当前水平
+- student_id: 学生ID
+- target_knowledge: 目标知识点
+
+**响应格式**
+- 200:
+  - learning_path: array
+  - success: boolean
+
+**关联数据库表**
+- learning_path_recommendations
+- knowledge_points
+
+---
+
+### blueprints_recommend_symbols
+
+**基本信息**
+- 名称: recommend_symbols
+- 路径: /symbols
+- 方法: POST
+- 分类: recommendation_system
+- 文件: recommendation_bp.py
+- 描述: 数学符号智能推荐，基于上下文和用户习惯推荐合适的数学符号
+
+**请求参数**
+- context: 当前输入上下文
+- limit: 推荐数量，默认5
+- question_text: 题目文本
+
+**响应格式**
+- 200:
+  - context_analysis: object
+  - recommendations: array
+  - success: boolean
+
+**关联数据库表**
+- users
+- symbol_recommendations
+
+---
+
+### blueprints_record_symbol_usage
+
+**基本信息**
+- 名称: record_symbol_usage
+- 路径: /symbols/usage
+- 方法: POST
+- 分类: recommendation_system
+- 文件: recommendation_bp.py
+- 描述: 记录学生使用数学符号的行为数据，用于优化推荐算法
+
+**请求参数**
+- context: 使用上下文
+- symbol: 使用的符号
+- user_id: 用户ID
+
+**响应格式**
+- 200:
+  - success: boolean
+
+**关联数据库表**
+- symbol_recommendations
+- interaction_logs
+
+---
+
+### db_viz_health
+
+**基本信息**
+- 名称: health_check
+- 路径: /api/health
+- 方法: GET
+- 分类: database_visualization
+- 文件: api-server.py
+- 描述: 健康检查接口
+
+**响应格式**
+- 200:
+  - database: string
+  - message: string
+  - status: string
+
+---
+
+### db_viz_table_data
+
+**基本信息**
+- 名称: get_table_data
+- 路径: /api/database/table/<table_name>
+- 方法: GET
+- 分类: database_visualization
+- 文件: api-server.py
+- 描述: 获取数据库表的实时数据，支持分页和筛选
+
+**请求参数**
+- limit: 查询数量限制，默认10
+- offset: 偏移量，默认0
+- table_name: 表名（路径参数）
+
+**响应格式**
+- 200:
+  - count: number
+  - data: array
+  - limit: number
+  - offset: number
+  - source: string
+  - table: string
+
+**关联数据库表**
+- dynamic
+
+---
+
+### db_viz_tables
+
+**基本信息**
+- 名称: get_all_tables
+- 路径: /api/database/tables
+- 方法: GET
+- 分类: database_visualization
+- 文件: api-server.py
+- 描述: 获取所有表信息
+
+**响应格式**
+- 200:
+  - tables: array
+  - total_tables: number
+
+**关联数据库表**
+- INFORMATION_SCHEMA.TABLES
+
+---
+
+### main_health_check
+
+**基本信息**
+- 名称: health_check
+- 路径: /api/health
+- 方法: GET
+- 分类: data_visualization
+- 文件: app.py
+- 描述: 暂无描述
+
+---
+
+### main_hello_world
+
+**基本信息**
+- 名称: hello_world
+- 路径: /
+- 方法: GET
+- 分类: other
+- 文件: app.py
+- 描述: 系统首页接口，返回系统基本信息和状态
+
+**响应格式**
+- 200:
+  - message: string
+  - system_info: object
+
+---
+
+### main_homework_detail
+
+**基本信息**
+- 名称: homework_detail
+- 路径: /api/homework/detail/<int:homework_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: app.py
+- 描述: 获取指定作业的详细信息，包括题目、提交状态等
+
+**请求参数**
+- homework_id: 作业ID（路径参数）
+
+**响应格式**
+- 200:
+  - homework: object
+  - questions: array
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- homework_submissions
+- questions
+
+---
+
+### main_homework_list
+
+**基本信息**
+- 名称: homework_list
+- 路径: /api/homework/list
+- 方法: GET
+- 分类: homework_management
+- 文件: app.py
+- 描述: 获取作业列表，支持分页和筛选条件
+
+**请求参数**
+- limit: 每页数量
+- page: 页码
+- status: 作业状态筛选
+- userId: string
+
+**响应格式**
+- 200:
+  - homeworks: array
+  - success: boolean
+  - total: number
+
+**关联数据库表**
+- homeworks
+- homework_assignments
+
+---
+
+### main_question_knowledge
+
+**基本信息**
+- 名称: question_knowledge
+- 路径: /api/knowledge/question
+- 方法: GET, POST
+- 分类: recommendation_system
+- 文件: app.py
+- 描述: 获取题目相关的知识点信息，支持知识点查询和关联分析
+
+**请求参数**
+- knowledge_point: 知识点名称
+- questionId: string
+- question_id: 题目ID
+- text: string
+
+**响应格式**
+- 200:
+  - knowledge_points: array
+  - relationships: array
+  - success: boolean
+- 400:
+  - error: string
+  - message: string
+
+**关联数据库表**
+- knowledge_relationships
+- knowledge_points
+- questions
+
+---
+
+### main_recommend_exercises
+
+**基本信息**
+- 名称: recommend_exercises
+- 路径: /api/recommend/exercises
+- 方法: POST
+- 分类: recommendation_system
+- 文件: app.py
+- 描述: 主要的练习推荐接口，整合多种推荐算法
+
+**请求参数**
+- difficulty_range: 难度范围
+- preferences: 用户偏好
+- user_id: 用户ID
+
+**响应格式**
+- 200:
+  - recommendations: array
+  - success: boolean
+
+**关联数据库表**
+- learning_behaviors
+- problem_recommendations
+- questions
+
+---
+
+### main_recommend_knowledge
+
+**基本信息**
+- 名称: recommend_knowledge
+- 路径: /api/recommend/knowledge
+- 方法: POST
+- 分类: recommendation_system
+- 文件: app.py
+- 描述: 知识点推荐接口，基于学习进度推荐相关知识点
+
+**请求参数**
+- current_topic: 当前学习主题
+- learning_goal: 学习目标
+- user_id: 用户ID
+
+**响应格式**
+- 200:
+  - knowledge_recommendations: array
+  - success: boolean
+
+**关联数据库表**
+- learning_behaviors
+- knowledge_points
+- knowledge_relationships
+
+---
+
+### main_recommend_symbols
+
+**基本信息**
+- 名称: recommend_symbols
+- 路径: /api/recommend/symbols
+- 方法: POST
+- 分类: recommendation_system
+- 文件: app.py
+- 描述: 数学符号推荐接口，根据输入上下文推荐合适的符号
+
+**请求参数**
+- context: 输入上下文
+- subject: 学科领域
+- user_level: 用户水平
+
+**响应格式**
+- 200:
+  - success: boolean
+  - symbols: array
+
+**关联数据库表**
+- symbol_recommendations
+- interaction_logs
+
+---
+
+### main_redirect_homework_detail
+
+**基本信息**
+- 名称: redirect_homework_detail
+- 路径: /homework/detail/<int:homework_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: app.py
+- 描述: 作业详情页面重定向接口，用于页面路由跳转
+
+**请求参数**
+- homework_id: 作业ID（路径参数）
+
+**响应格式**
+- 302:
+  - redirect_url: string
+
+**关联数据库表**
+- homeworks
+
+---
+
+### main_redirect_homework_list
+
+**基本信息**
+- 名称: redirect_homework_list
+- 路径: /homework/list
+- 方法: GET
+- 分类: homework_management
+- 文件: app.py
+- 描述: 作业列表页面重定向接口，用于页面路由跳转
+
+**响应格式**
+- 302:
+  - redirect_url: string
+
+---
+
+### main_redirect_knowledge_question
+
+**基本信息**
+- 名称: redirect_knowledge_question
+- 路径: /knowledge/question
+- 方法: GET, POST
+- 分类: recommendation_system
+- 文件: app.py
+- 描述: 知识点题目页面重定向接口，用于页面路由跳转
+
+**响应格式**
+- 302:
+  - redirect_url: string
+
+---
+
+### main_save
+
+**基本信息**
+- 名称: save
+- 路径: /api/homework/save
+- 方法: POST
+- 分类: homework_management
+- 文件: app.py
+- 描述: 保存作业进度接口，支持断点续做功能
+
+**请求参数**
+- answers: 当前答案数据
+- homework_id: 作业ID
+- progress: 完成进度
+
+**响应格式**
+- 200:
+  - saved_at: string
+  - success: boolean
+
+**关联数据库表**
+- homework_progress
+- homework_submissions
+
+---
+
+### main_serve_frontend
+
+**基本信息**
+- 名称: serve_frontend
+- 路径: /register
+- 方法: GET
+- 分类: authentication
+- 文件: app.py
+- 描述: 暂无描述
+
+---
+
+### main_serve_homework_static
+
+**基本信息**
+- 名称: serve_homework_static
+- 路径: /static/homework/<path:filename>
+- 方法: GET
+- 分类: homework_management
+- 文件: app.py
+- 描述: 暂无描述
+
+---
+
+### main_serve_static
+
+**基本信息**
+- 名称: serve_static
+- 路径: /static/<path:filename>
+- 方法: GET
+- 分类: other
+- 文件: app.py
+- 描述: 暂无描述
+
+---
+
+### main_serve_symbol_static
+
+**基本信息**
+- 名称: serve_symbol_static
+- 路径: /static/symbol/<path:filename>
+- 方法: GET
+- 分类: recommendation_system
+- 文件: app.py
+- 描述: 暂无描述
+
+---
+
+### main_submit
+
+**基本信息**
+- 名称: submit
+- 路径: /api/homework/submit
+- 方法: POST
+- 分类: homework_management
+- 文件: app.py
+- 描述: 提交作业答案接口，完成作业并触发自动评分
+
+**请求参数**
+- answers: 完整答案数据
+- homework_id: 作业ID
+- submit_time: 提交时间
+
+**响应格式**
+- 200:
+  - score: number
+  - submission_id: number
+  - success: boolean
+
+**关联数据库表**
+- homework_submissions
+- homeworks
+
+---
+
+### main_update_user
+
+**基本信息**
+- 名称: update_user
+- 路径: /api/user/update
+- 方法: POST
+- 分类: data_visualization
+- 文件: app.py
+- 描述: 更新用户信息接口，支持个人资料修改
+
+**请求参数**
+- avatar: 头像
+- email: 邮箱
+- name: 姓名
+- phone: 电话
+
+**响应格式**
+- 200:
+  - success: boolean
+  - user: object
+
+**关联数据库表**
+- users
+
+---
+
+### main_user_info
+
+**基本信息**
+- 名称: user_info
+- 路径: /api/user/<int:user_id>
+- 方法: GET
+- 分类: data_visualization
+- 文件: app.py
+- 描述: 获取指定用户的基本信息
+
+**请求参数**
+- user_id: 用户ID（路径参数）
+
+**响应格式**
+- 200:
+  - success: boolean
+  - user: object
+
+**关联数据库表**
+- users
+
+---
+
+### routes_assign_homework
+
+**基本信息**
+- 名称: assign_homework
+- 路径: /assign
+- 方法: POST
+- 分类: homework_management
+- 文件: assignment_routes.py
+- 描述: 教师分配作业给班级或学生
+
+**请求参数**
+- due_date: 截止时间
+- homework_id: 作业ID
+- target_ids: 目标ID列表
+- target_type: 分配类型（class/student）
+
+**响应格式**
+- 200:
+  - assignment_count: number
+  - success: boolean
+
+**关联数据库表**
+- users
+- classes
+- homework_assignments
+
+---
+
+### routes_batch_grade
+
+**基本信息**
+- 名称: batch_grade
+- 路径: /batch-grade
+- 方法: POST
+- 分类: grading_system
+- 文件: grading_routes.py
+- 描述: 批量评分接口，支持多份作业同时评分
+
+**请求参数**
+- grading_rules: 评分规则
+- submission_ids: 提交ID列表
+
+**响应格式**
+- 200:
+  - graded_count: number
+  - results: array
+  - success: boolean
+
+**关联数据库表**
+- homework_submissions
+- homeworks
+
+---
+
+### routes_create_homework
+
+**基本信息**
+- 名称: create_homework
+- 路径: /create
+- 方法: POST
+- 分类: homework_management
+- 文件: homework_routes.py
+- 描述: 创建新作业，教师可以创建包含多个题目的作业
+
+**请求参数**
+- description: 作业描述
+- difficulty_level: 难度等级1-5
+- due_date: 截止日期
+- grade: 年级
+- max_score: 总分
+- questions: 题目列表
+- subject: 学科
+- title: 作业标题
+
+**响应格式**
+- 201:
+  - homework_id: number
+  - message: string
+  - success: boolean
+- 400:
+  - errors: array
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- homework_questions
+- questions
+
+---
+
+### routes_delete_homework
+
+**基本信息**
+- 名称: delete_homework
+- 路径: /<int:homework_id>
+- 方法: DELETE
+- 分类: homework_management
+- 文件: homework_routes.py
+- 描述: 删除指定作业及其相关数据
+
+**请求参数**
+- homework_id: 作业ID（路径参数）
+
+**响应格式**
+- 200:
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- homework_submissions
+- questions
+
+---
+
+### routes_export_analytics
+
+**基本信息**
+- 名称: export_analytics
+- 路径: /homework/<int:homework_id>/export
+- 方法: POST
+- 分类: homework_management
+- 文件: analytics_routes.py
+- 描述: 暂无描述
+
+---
+
+### routes_get_adaptive_recommendations
+
+**基本信息**
+- 名称: get_adaptive_recommendations
+- 路径: /recommend/adaptive
+- 方法: POST
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 获取自适应推荐结果，基于用户学习状态动态调整推荐内容
+
+**请求参数**
+- context: 当前学习上下文
+- difficulty: 期望难度
+- user_id: 用户ID
+
+**响应格式**
+- 200:
+  - recommendations: array
+  - success: boolean
+
+**关联数据库表**
+- learning_behaviors
+- symbol_recommendations
+
+---
+
+### routes_get_assignment_detail
+
+**基本信息**
+- 名称: get_assignment_detail
+- 路径: /<int:assignment_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: assignment_routes.py
+- 描述: 获取作业分配的详细信息，包括完成情况和统计数据
+
+**请求参数**
+- assignment_id: 分配ID（路径参数）
+
+**响应格式**
+- 200:
+  - assignment: object
+  - success: boolean
+
+**关联数据库表**
+- homework_assignments
+
+---
+
+### routes_get_assignment_statistics
+
+**基本信息**
+- 名称: get_assignment_statistics
+- 路径: /statistics/<int:assignment_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: assignment_routes.py
+- 描述: 获取作业分配的统计信息，包括完成率、平均分、提交时间分布等
+
+**请求参数**
+- assignment_id: 分配ID（路径参数）
+
+**响应格式**
+- 200:
+  - statistics: object
+  - success: boolean
+
+**关联数据库表**
+- homework_submissions
+- homework_assignments
+
+---
+
+### routes_get_class_assignments
+
+**基本信息**
+- 名称: get_class_assignments
+- 路径: /class/<int:class_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: assignment_routes.py
+- 描述: 获取指定班级的作业分配情况，教师查看班级作业状态
+
+**请求参数**
+- class_id: 班级ID（路径参数）
+
+**响应格式**
+- 200:
+  - assignments: array
+  - success: boolean
+
+**关联数据库表**
+- classes
+- homework_assignments
+
+---
+
+### routes_get_class_students
+
+**基本信息**
+- 名称: get_class_students
+- 路径: /classes/<int:class_id>/students
+- 方法: GET
+- 分类: homework_management
+- 文件: assignment_routes.py
+- 描述: 获取指定班级的学生名单，用于作业分配和管理
+
+**请求参数**
+- class_id: 班级ID（路径参数）
+
+**响应格式**
+- 200:
+  - students: array
+  - success: boolean
+
+**关联数据库表**
+- class_students
+- users
+
+---
+
+### routes_get_context_aware_recommendations
+
+**基本信息**
+- 名称: get_context_aware_recommendations
+- 路径: /context
+- 方法: POST
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 获取上下文感知的符号推荐，基于当前题目和学习进度
+
+**请求参数**
+- context: 当前上下文
+- subject: 学科
+- user_level: 用户水平
+
+**响应格式**
+- 200:
+  - recommendations: array
+  - success: boolean
+
+**关联数据库表**
+- users
+- symbol_recommendations
+
+---
+
+### routes_get_explained_symbol_recommendations
+
+**基本信息**
+- 名称: get_explained_symbol_recommendations
+- 路径: /recommend/explained
+- 方法: POST
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 获取带解释的符号推荐，包含推荐理由和使用说明
+
+**请求参数**
+- context: 输入上下文
+- explain: 是否需要详细解释
+
+**响应格式**
+- 200:
+  - explanations: array
+  - recommendations: array
+  - success: boolean
+
+**关联数据库表**
+- symbol_recommendations
+
+---
+
+### routes_get_favorite_homeworks
+
+**基本信息**
+- 名称: get_favorite_homeworks
+- 路径: /favorites
+- 方法: GET
+- 分类: homework_management
+- 文件: student_homework_routes.py
+- 描述: 获取用户收藏的作业列表
+
+**响应格式**
+- 200:
+  - favorites: array
+  - success: boolean
+
+**关联数据库表**
+- homework_favorites
+- homework_assignments
+
+---
+
+### routes_get_filter_options
+
+**基本信息**
+- 名称: get_filter_options
+- 路径: /filters/options
+- 方法: GET
+- 分类: homework_management
+- 文件: student_homework_routes.py
+- 描述: 获取作业筛选选项，如可用的学科、年级等
+
+**响应格式**
+- 200:
+  - options: object
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- subjects
+- grades
+
+---
+
+### routes_get_grading_result
+
+**基本信息**
+- 名称: get_grading_result
+- 路径: /result/<int:submission_id>
+- 方法: GET
+- 分类: student_features
+- 文件: grading_routes.py
+- 描述: 获取作业提交的评分结果，包括得分、错误分析、改进建议
+
+**请求参数**
+- submission_id: 提交ID（路径参数）
+
+**响应格式**
+- 200:
+  - result: object
+  - success: boolean
+
+**关联数据库表**
+- homework_submissions
+
+---
+
+### routes_get_grading_rules
+
+**基本信息**
+- 名称: get_grading_rules
+- 路径: /rules/<int:homework_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: grading_routes.py
+- 描述: 获取指定作业的评分规则配置，包括评分标准和权重
+
+**请求参数**
+- homework_id: 作业ID（路径参数）
+
+**响应格式**
+- 200:
+  - rules: object
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+
+---
+
+### routes_get_homework
+
+**基本信息**
+- 名称: get_homework
+- 路径: /<int:homework_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: homework_routes.py
+- 描述: 获取指定作业的详细信息
+
+**请求参数**
+- homework_id: 作业ID（路径参数）
+
+**响应格式**
+- 200:
+  - homework: object
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- questions
+
+---
+
+### routes_get_homework_analytics
+
+**基本信息**
+- 名称: get_homework_analytics
+- 路径: /homework/<int:homework_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: analytics_routes.py
+- 描述: 暂无描述
+
+---
+
+### routes_get_homework_dashboard
+
+**基本信息**
+- 名称: get_homework_dashboard
+- 路径: /dashboard
+- 方法: GET
+- 分类: homework_management
+- 文件: student_homework_routes.py
+- 描述: 获取学生作业仪表板数据，包括统计信息
+
+**响应格式**
+- 200:
+  - dashboard: object
+  - success: boolean
+
+**关联数据库表**
+- homework_submissions
+- homework_assignments
+
+---
+
+### routes_get_homework_detail
+
+**基本信息**
+- 名称: get_homework_detail
+- 路径: /<int:assignment_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: student_homework_routes.py
+- 描述: 获取作业详细信息，包括题目和学生提交状态
+
+**请求参数**
+- assignment_id: 作业分配ID（路径参数）
+
+**响应格式**
+- 200:
+  - homework: object
+  - questions: array
+  - submission_status: object
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- homework_submissions
+- questions
+- homework_assignments
+
+---
+
+### routes_get_homework_feedback
+
+**基本信息**
+- 名称: get_homework_feedback
+- 路径: /homework/<int:homework_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: feedback_routes.py
+- 描述: 暂无描述
+
+---
+
+### routes_get_homework_list
+
+**基本信息**
+- 名称: get_homework_list
+- 路径: /list
+- 方法: GET
+- 分类: homework_management
+- 文件: student_homework_routes.py
+- 描述: 获取学生可见的作业列表
+
+**请求参数**
+- limit: 每页数量
+- page: 页码
+
+**响应格式**
+- 200:
+  - homeworks: array
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- homework_assignments
+
+---
+
+### routes_get_homework_progress
+
+**基本信息**
+- 名称: get_homework_progress
+- 路径: /<int:homework_id>/progress
+- 方法: GET
+- 分类: homework_management
+- 文件: student_homework_routes.py
+- 描述: 获取作业完成进度信息
+
+**请求参数**
+- homework_id: 作业ID（路径参数）
+
+**响应格式**
+- 200:
+  - progress: object
+  - success: boolean
+
+**关联数据库表**
+- homework_progress
+
+---
+
+### routes_get_homework_questions
+
+**基本信息**
+- 名称: get_homework_questions
+- 路径: /<int:homework_id>/questions
+- 方法: GET
+- 分类: homework_management
+- 文件: homework_routes.py
+- 描述: 获取作业的所有题目列表
+
+**请求参数**
+- homework_id: 作业ID（路径参数）
+
+**响应格式**
+- 200:
+  - questions: array
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- questions
+
+---
+
+### routes_get_homework_reminders
+
+**基本信息**
+- 名称: get_homework_reminders
+- 路径: /reminders
+- 方法: GET
+- 分类: homework_management
+- 文件: student_homework_routes.py
+- 描述: 获取作业提醒列表，包括即将到期的作业
+
+**响应格式**
+- 200:
+  - reminders: array
+  - success: boolean
+
+**关联数据库表**
+- homework_reminders
+- homework_assignments
+
+---
+
+### routes_get_homework_statistics
+
+**基本信息**
+- 名称: get_homework_statistics
+- 路径: /statistics
+- 方法: GET
+- 分类: homework_management
+- 文件: student_homework_routes.py
+- 描述: 获取整体作业统计信息，教师查看所有作业的完成情况
+
+**响应格式**
+- 200:
+  - statistics: object
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- homework_submissions
+
+---
+
+### routes_get_learning_insights
+
+**基本信息**
+- 名称: get_learning_insights
+- 路径: /learning-insights/<int:user_id>
+- 方法: GET
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 获取学习洞察报告，分析用户学习模式和改进建议
+
+**请求参数**
+- user_id: 用户ID（路径参数）
+
+**响应格式**
+- 200:
+  - insights: object
+  - success: boolean
+
+**关联数据库表**
+- learning_behaviors
+- engagement_metrics
+
+---
+
+### routes_get_my_assignments
+
+**基本信息**
+- 名称: get_my_assignments
+- 路径: /teacher/my
+- 方法: GET
+- 分类: homework_management
+- 文件: assignment_routes.py
+- 描述: 获取教师创建的所有作业分配，用于教师管理界面
+
+**响应格式**
+- 200:
+  - assignments: array
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- homework_assignments
+
+---
+
+### routes_get_my_classes
+
+**基本信息**
+- 名称: get_my_classes
+- 路径: /classes/my
+- 方法: GET
+- 分类: homework_management
+- 文件: assignment_routes.py
+- 描述: 获取教师负责的班级列表，用于班级管理
+
+**响应格式**
+- 200:
+  - classes: array
+  - success: boolean
+
+**关联数据库表**
+- classes
+
+---
+
+### routes_get_my_notifications
+
+**基本信息**
+- 名称: get_my_notifications
+- 路径: /notifications/my
+- 方法: GET
+- 分类: homework_management
+- 文件: assignment_routes.py
+- 描述: 获取用户的通知消息列表，包括作业提醒、系统通知等
+
+**响应格式**
+- 200:
+  - notifications: array
+  - success: boolean
+
+**关联数据库表**
+- notifications
+
+---
+
+### routes_get_profile
+
+**基本信息**
+- 名称: get_profile
+- 路径: /profile
+- 方法: GET
+- 分类: authentication
+- 文件: auth_routes.py
+- 描述: 获取当前用户的个人资料信息，包括基本信息和偏好设置
+
+**响应格式**
+- 200:
+  - profile: object
+  - success: boolean
+
+**关联数据库表**
+- users
+
+---
+
+### routes_get_sessions
+
+**基本信息**
+- 名称: get_sessions
+- 路径: /sessions
+- 方法: GET
+- 分类: authentication
+- 文件: auth_routes.py
+- 描述: 获取用户的活跃会话列表，用于会话管理和安全监控
+
+**响应格式**
+- 200:
+  - sessions: array
+  - success: boolean
+
+**关联数据库表**
+- user_sessions
+
+---
+
+### routes_get_simple_homework_analytics
+
+**基本信息**
+- 名称: get_simple_homework_analytics
+- 路径: /homework/<int:homework_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: simple_analytics_routes.py
+- 描述: 暂无描述
+
+---
+
+### routes_get_simple_homework_feedback
+
+**基本信息**
+- 名称: get_simple_homework_feedback
+- 路径: /homework/<int:homework_id>
+- 方法: GET
+- 分类: homework_management
+- 文件: simple_feedback_routes.py
+- 描述: 暂无描述
+
+---
+
+### routes_get_statistics
+
+**基本信息**
+- 名称: get_statistics
+- 路径: /statistics
+- 方法: GET
+- 分类: homework_management
+- 文件: homework_routes.py
+- 描述: 获取作业统计信息，包括完成率、平均分等
+
+**响应格式**
+- 200:
+  - statistics: object
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+- homework_submissions
+
+---
+
+### routes_get_submission_result
+
+**基本信息**
+- 名称: get_submission_result
+- 路径: /<int:submission_id>/result
+- 方法: GET
+- 分类: student_features
+- 文件: submission_routes.py
+- 描述: 获取学生作业提交的完整结果，包括答案、评分、反馈
+
+**请求参数**
+- submission_id: 提交ID（路径参数）
+
+**响应格式**
+- 200:
+  - submission: object
+  - success: boolean
+
+**关联数据库表**
+- homework_submissions
+
+---
+
+### routes_get_symbol_categories
+
+**基本信息**
+- 名称: get_symbol_categories
+- 路径: /categories
+- 方法: GET
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 获取数学符号分类列表，用于符号选择界面的分类显示
+
+**响应格式**
+- 200:
+  - categories: array
+  - success: boolean
+
+**关联数据库表**
+- symbol_recommendations
+
+---
+
+### routes_get_symbol_completions
+
+**基本信息**
+- 名称: get_symbol_completions
+- 路径: /complete
+- 方法: POST
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 获取符号自动补全建议，帮助用户快速输入数学表达式
+
+**请求参数**
+- limit: 返回数量限制
+- partial_input: 部分输入内容
+
+**响应格式**
+- 200:
+  - completions: array
+  - success: boolean
+
+**关联数据库表**
+- symbol_recommendations
+
+---
+
+### routes_get_symbol_recommendations
+
+**基本信息**
+- 名称: get_symbol_recommendations
+- 路径: /recommend
+- 方法: POST
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 获取数学符号推荐，基于当前输入上下文推荐相关符号
+
+**请求参数**
+- context: 输入上下文
+- subject: 学科领域
+
+**响应格式**
+- 200:
+  - recommendations: array
+  - success: boolean
+
+**关联数据库表**
+- symbol_recommendations
+
+---
+
+### routes_get_symbols_by_category
+
+**基本信息**
+- 名称: get_symbols_by_category
+- 路径: /category/<category_id>
+- 方法: GET
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 获取指定分类下的所有数学符号，支持分类浏览
+
+**请求参数**
+- category_id: 分类ID（路径参数）
+
+**响应格式**
+- 200:
+  - success: boolean
+  - symbols: array
+
+**关联数据库表**
+- symbol_recommendations
+
+---
+
+### routes_get_teacher_overview
+
+**基本信息**
+- 名称: get_teacher_overview
+- 路径: /overview
+- 方法: GET
+- 分类: class_management
+- 文件: analytics_routes.py
+- 描述: 暂无描述
+
+---
+
+### routes_get_user_learning_analytics
+
+**基本信息**
+- 名称: get_user_learning_analytics
+- 路径: /analytics/<int:user_id>
+- 方法: GET
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 获取用户学习分析数据，包括学习行为、进度、偏好等
+
+**请求参数**
+- user_id: 用户ID（路径参数）
+
+**响应格式**
+- 200:
+  - analytics: object
+  - success: boolean
+
+**关联数据库表**
+- learning_behaviors
+- users
+
+---
+
+### routes_get_user_symbol_stats
+
+**基本信息**
+- 名称: get_user_symbol_stats
+- 路径: /stats/<int:user_id>
+- 方法: GET
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 获取用户的符号使用统计信息，包括常用符号、使用频率等
+
+**请求参数**
+- user_id: 用户ID（路径参数）
+
+**响应格式**
+- 200:
+  - stats: object
+  - success: boolean
+
+**关联数据库表**
+- users
+- interaction_logs
+
+---
+
+### routes_grade_submission
+
+**基本信息**
+- 名称: grade_submission
+- 路径: /grade/<int:submission_id>
+- 方法: POST
+- 分类: student_features
+- 文件: grading_routes.py
+- 描述: 自动评分学生作业提交，支持多种题型的智能评分
+
+**请求参数**
+- submission_id: 提交ID（路径参数）
+
+**响应格式**
+- 200:
+  - grading_result: object
+  - max_score: number
+  - success: boolean
+  - total_score: number
+- 404:
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- homework_submissions
+- grading_results
+- questions
+
+---
+
+### routes_list_homeworks
+
+**基本信息**
+- 名称: list_homeworks
+- 路径: /list
+- 方法: GET
+- 分类: homework_management
+- 文件: homework_routes.py
+- 描述: 获取作业列表，支持分页和筛选
+
+**请求参数**
+- category: 分类筛选
+- grade: 年级筛选
+- keyword: 关键词搜索
+- limit: 每页数量，默认10
+- page: 页码，默认1
 - subject: 学科筛选
 
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "overview": {
-      "total_homeworks": 25,
-      "completed_homeworks": 22,
-      "average_score": 86.5,
-      "total_study_time": 1800,
-      "completion_rate": 0.88
-    },
-    "recent_activity": [
-      {
-        "date": "2024-01-15",
-        "activity_type": "homework",
-        "activity_name": "一元一次方程练习",
-        "score": 85,
-        "time_spent": 60
-      }
-    ],
-    "subject_performance": [
-      {
-        "subject": "数学",
-        "homework_count": 15,
-        "average_score": 88.2,
-        "improvement_trend": 0.05
-      }
-    ],
-    "knowledge_mastery": [
-      {
-        "knowledge_point": "一元一次方程",
-        "mastery_level": 0.85,
-        "practice_count": 12,
-        "accuracy_rate": 0.83
-      }
-    ]
-  }
-}
-```
+**响应格式**
+- 200:
+  - homeworks: array
+  - page: number
+  - success: boolean
+  - total: number
+  - total_pages: number
 
-### 学习进度
+**关联数据库表**
+- homeworks
+- users
 
-#### GET /analytics/progress
-获取学习进度分析
+---
 
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "timeline": [
-      {
-        "date": "2024-01-01",
-        "homeworks_completed": 2,
-        "total_score": 170,
-        "study_time": 120
-      }
-    ],
-    "knowledge_progress": [
-      {
-        "knowledge_point_id": 301,
-        "knowledge_point_name": "一元一次方程",
-        "initial_level": 0.2,
-        "current_level": 0.85,
-        "improvement": 0.65,
-        "milestones": [
-          {
-            "date": "2024-01-05",
-            "level": 0.4,
-            "event": "完成基础练习"
-          }
-        ]
-      }
-    ],
-    "skill_radar": {
-      "computation": 0.85,
-      "reasoning": 0.72,
-      "problem_solving": 0.68,
-      "communication": 0.75
-    }
-  }
-}
-```
+### routes_login
 
-### 错误分析
-
-#### GET /analytics/errors
-获取错误分析报告
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "error_summary": {
-      "total_errors": 45,
-      "error_rate": 0.15,
-      "improvement_rate": 0.08
-    },
-    "error_categories": [
-      {
-        "category": "计算错误",
-        "count": 20,
-        "percentage": 0.44,
-        "trend": "decreasing",
-        "common_mistakes": [
-          {
-            "mistake": "移项时符号错误",
-            "frequency": 12,
-            "examples": ["x + 3 = 7 写成 x = 7 + 3"]
-          }
-        ]
-      }
-    ],
-    "knowledge_gaps": [
-      {
-        "knowledge_point": "移项法则",
-        "gap_level": 0.3,
-        "recommended_actions": [
-          "观看相关教学视频",
-          "完成专项练习",
-          "寻求教师指导"
-        ]
-      }
-    ],
-    "improvement_suggestions": [
-      {
-        "priority": "high",
-        "suggestion": "加强移项法则的理解和练习",
-        "estimated_improvement": 0.15
-      }
-    ]
-  }
-}
-```
-
-## 系统管理
-
-### 系统配置
-
-#### GET /system/config
-获取系统配置（仅管理员）
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "configs": [
-      {
-        "key": "homework.default_time_limit",
-        "value": "60",
-        "type": "number",
-        "description": "作业默认时间限制(分钟)"
-      }
-    ]
-  }
-}
-```
-
-#### PUT /system/config
-更新系统配置（仅管理员）
+**基本信息**
+- 名称: login
+- 路径: /login
+- 方法: POST
+- 分类: authentication
+- 文件: auth_routes.py
+- 描述: 用户登录认证，支持学生、教师、管理员登录
 
 **请求参数**
-```json
-{
-  "configs": [
-    {
-      "key": "homework.default_time_limit",
-      "value": "90"
-    }
-  ]
-}
+- device_id: 设备唯一标识
+- device_type: 设备类型
+- password: 用户密码
+- username: 用户名或邮箱
+
+**响应格式**
+- 200:
+  - access_token: string
+  - expires_in: number
+  - refresh_token: string
+  - success: boolean
+  - user: object
+- 401:
+  - error: object
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- users
+- user_sessions
+
+---
+
+### routes_logout
+
+**基本信息**
+- 名称: logout
+- 路径: /logout
+- 方法: POST
+- 分类: authentication
+- 文件: auth_routes.py
+- 描述: 用户登出，清除会话信息
+
+**响应格式**
+- 200:
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- user_sessions
+
+---
+
+### routes_mark_notification_read
+
+**基本信息**
+- 名称: mark_notification_read
+- 路径: /notifications/<int:notification_id>/read
+- 方法: PUT
+- 分类: homework_management
+- 文件: assignment_routes.py
+- 描述: 标记指定通知为已读状态，更新通知状态
+
+**请求参数**
+- notification_id: 通知ID（路径参数）
+
+**响应格式**
+- 200:
+  - success: boolean
+
+**关联数据库表**
+- notifications
+
+---
+
+### routes_publish_homework
+
+**基本信息**
+- 名称: publish_homework
+- 路径: /<int:homework_id>/publish
+- 方法: POST
+- 分类: homework_management
+- 文件: homework_routes.py
+- 描述: 发布作业，使学生可以看到并完成作业
+
+**请求参数**
+- homework_id: 作业ID（路径参数）
+
+**响应格式**
+- 200:
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+
+---
+
+### routes_record_symbol_usage
+
+**基本信息**
+- 名称: record_symbol_usage
+- 路径: /usage
+- 方法: POST
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 记录用户符号使用行为，用于优化推荐算法和学习分析
+
+**请求参数**
+- context: 使用上下文
+- symbol: 使用的符号
+- timestamp: 使用时间
+
+**响应格式**
+- 200:
+  - success: boolean
+
+**关联数据库表**
+- symbol_recommendations
+- interaction_logs
+
+---
+
+### routes_refresh
+
+**基本信息**
+- 名称: refresh
+- 路径: /refresh
+- 方法: POST
+- 分类: authentication
+- 文件: auth_routes.py
+- 描述: 刷新用户访问令牌，延长登录会话
+
+**请求参数**
+- refresh_token: 刷新令牌
+
+**响应格式**
+- 200:
+  - access_token: string
+  - expires_in: number
+  - success: boolean
+
+**关联数据库表**
+- user_sessions
+
+---
+
+### routes_register
+
+**基本信息**
+- 名称: register
+- 路径: /register
+- 方法: POST
+- 分类: authentication
+- 文件: auth_routes.py
+- 描述: 用户注册，创建新的学生、教师或管理员账户
+
+**请求参数**
+- class_name: 班级名称
+- email: 邮箱地址
+- grade: 年级（学生必填）
+- password: 密码
+- real_name: 真实姓名
+- role: 用户角色：student/teacher/admin
+- school: 学校名称
+- username: 用户名
+
+**响应格式**
+- 201:
+  - message: string
+  - success: boolean
+  - user_id: number
+- 400:
+  - errors: object
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- users
+
+---
+
+### routes_review_grading
+
+**基本信息**
+- 名称: review_grading
+- 路径: /review/<int:submission_id>
+- 方法: POST
+- 分类: student_features
+- 文件: grading_routes.py
+- 描述: 教师复查自动评分结果，可以调整分数和添加评语
+
+**请求参数**
+- adjustments: 评分调整
+- comments: 教师评语
+- submission_id: 提交ID（路径参数）
+
+**响应格式**
+- 200:
+  - success: boolean
+
+**关联数据库表**
+- homework_submissions
+
+---
+
+### routes_save_homework_progress
+
+**基本信息**
+- 名称: save_homework_progress
+- 路径: /<int:homework_id>/progress
+- 方法: POST
+- 分类: homework_management
+- 文件: student_homework_routes.py
+- 描述: 保存作业完成进度，支持断点续做
+
+**请求参数**
+- answers: 答案数据
+- homework_id: 作业ID（路径参数）
+- progress: 完成进度
+
+**响应格式**
+- 200:
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- homework_progress
+
+---
+
+### routes_search_homeworks
+
+**基本信息**
+- 名称: search_homeworks
+- 路径: /search
+- 方法: GET
+- 分类: homework_management
+- 文件: homework_routes.py
+- 描述: 搜索作业，支持关键词、学科、年级等条件搜索
+
+**请求参数**
+- grade: 年级筛选
+- keyword: 搜索关键词
+- subject: 学科筛选
+
+**响应格式**
+- 200:
+  - homeworks: array
+  - success: boolean
+  - total: number
+
+**关联数据库表**
+- homeworks
+
+---
+
+### routes_search_symbols
+
+**基本信息**
+- 名称: search_symbols
+- 路径: /search
+- 方法: POST
+- 分类: recommendation_system
+- 文件: enhanced_symbol_routes.py
+- 描述: 搜索数学符号，支持按名称、描述、LaTeX代码等条件搜索
+
+**请求参数**
+- category: 分类筛选
+- limit: 结果数量限制
+- query: 搜索关键词
+
+**响应格式**
+- 200:
+  - success: boolean
+  - symbols: array
+
+**关联数据库表**
+- symbol_recommendations
+
+---
+
+### routes_share_feedback
+
+**基本信息**
+- 名称: share_feedback
+- 路径: /homework/<int:homework_id>/share
+- 方法: POST
+- 分类: homework_management
+- 文件: feedback_routes.py
+- 描述: 暂无描述
+
+---
+
+### routes_submit_homework
+
+**基本信息**
+- 名称: submit_homework
+- 路径: /<int:assignment_id>
+- 方法: POST
+- 分类: homework_management
+- 文件: submission_routes.py
+- 描述: 提交作业答案，完成作业
+
+**请求参数**
+- answers: 答案数据
+- assignment_id: 作业分配ID（路径参数）
+
+**响应格式**
+- 200:
+  - submission_id: number
+  - success: boolean
+
+**关联数据库表**
+- homework_submissions
+
+---
+
+### routes_toggle_homework_favorite
+
+**基本信息**
+- 名称: toggle_homework_favorite
+- 路径: /<int:assignment_id>/favorite
+- 方法: POST
+- 分类: homework_management
+- 文件: student_homework_routes.py
+- 描述: 切换作业收藏状态，添加或移除收藏
+
+**请求参数**
+- assignment_id: 作业分配ID（路径参数）
+
+**响应格式**
+- 200:
+  - is_favorite: boolean
+  - success: boolean
+
+**关联数据库表**
+- homework_favorites
+
+---
+
+### routes_unpublish_homework
+
+**基本信息**
+- 名称: unpublish_homework
+- 路径: /<int:homework_id>/unpublish
+- 方法: POST
+- 分类: homework_management
+- 文件: homework_routes.py
+- 描述: 取消发布作业，隐藏作业不让学生看到
+
+**请求参数**
+- homework_id: 作业ID（路径参数）
+
+**响应格式**
+- 200:
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+
+---
+
+### routes_update_assignment_status
+
+**基本信息**
+- 名称: update_assignment_status
+- 路径: /<int:assignment_id>/status
+- 方法: PUT
+- 分类: homework_management
+- 文件: assignment_routes.py
+- 描述: 更新作业分配状态，如开启、关闭、延期等操作
+
+**请求参数**
+- assignment_id: 分配ID（路径参数）
+- status: 新状态
+
+**响应格式**
+- 200:
+  - success: boolean
+
+**关联数据库表**
+- homework_assignments
+
+---
+
+### routes_update_grading_rules
+
+**基本信息**
+- 名称: update_grading_rules
+- 路径: /rules/<int:homework_id>
+- 方法: POST
+- 分类: homework_management
+- 文件: grading_routes.py
+- 描述: 更新作业的评分规则，教师可以自定义评分标准
+
+**请求参数**
+- homework_id: 作业ID（路径参数）
+- rules: 评分规则配置
+
+**响应格式**
+- 200:
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+
+---
+
+### routes_update_homework
+
+**基本信息**
+- 名称: update_homework
+- 路径: /<int:homework_id>
+- 方法: PUT
+- 分类: homework_management
+- 文件: homework_routes.py
+- 描述: 更新作业信息，包括标题、描述、题目等
+
+**请求参数**
+- description: 作业描述
+- due_date: 截止日期
+- homework_id: 作业ID（路径参数）
+- title: 作业标题
+
+**响应格式**
+- 200:
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- homeworks
+
+---
+
+### routes_update_profile
+
+**基本信息**
+- 名称: update_profile
+- 路径: /profile
+- 方法: PUT
+- 分类: authentication
+- 文件: auth_routes.py
+- 描述: 更新用户个人资料信息
+
+**请求参数**
+- email: 邮箱地址
+- phone: 手机号码
+- real_name: 真实姓名
+- school: 学校名称
+
+**响应格式**
+- 200:
+  - message: string
+  - success: boolean
+
+**关联数据库表**
+- users
+
+---
+
+
+## 使用示例
+
+### JavaScript调用示例
+```javascript
+// 获取所有API信息
+fetch('http://172.104.172.5:5001/api/apis')
+  .then(response => response.json())
+  .then(data => console.log(data));
+
+// 获取特定API详情
+fetch('http://172.104.172.5:5001/api/apis/auth_login')
+  .then(response => response.json())
+  .then(data => console.log(data));
 ```
 
-### 日志查询
-
-#### GET /system/logs
-获取操作日志（仅管理员）
-
-**查询参数**
-- operation_type: 操作类型
-- user_id: 用户ID
-- start_date: 开始时间
-- end_date: 结束时间
-- page: 页码
-- limit: 每页数量
-
-**响应示例**
-```json
-{
-  "success": true,
-  "data": {
-    "logs": [
-      {
-        "id": 100001,
-        "user_id": 1001,
-        "username": "student001",
-        "operation_type": "homework_submit",
-        "resource_type": "homework",
-        "resource_id": 1001,
-        "operation_detail": "提交作业：一元一次方程练习",
-        "ip_address": "192.168.1.100",
-        "status": "success",
-        "execution_time": 250,
-        "created_at": "2024-01-15T15:00:00Z"
-      }
-    ],
-    "pagination": {
-      "page": 1,
-      "limit": 20,
-      "total": 1000,
-      "total_pages": 50
-    }
-  }
-}
-```
-
-## 错误码参考
-
-### 认证相关错误
-| 错误码 | HTTP状态码 | 错误信息 | 说明 |
-|--------|------------|----------|------|
-| AUTH001 | 401 | 用户名或密码错误 | 登录凭证无效 |
-| AUTH002 | 401 | 访问令牌已过期 | Token过期需要刷新 |
-| AUTH003 | 401 | 访问令牌无效 | Token格式错误或被篡改 |
-| AUTH004 | 403 | 权限不足 | 用户无权限访问资源 |
-| AUTH005 | 409 | 用户名已存在 | 注册时用户名冲突 |
-
-### 作业相关错误
-| 错误码 | HTTP状态码 | 错误信息 | 说明 |
-|--------|------------|----------|------|
-| HW001 | 404 | 作业不存在 | 作业ID无效 |
-| HW002 | 403 | 作业已截止 | 超过截止时间 |
-| HW003 | 409 | 作业已提交 | 不能重复提交 |
-| HW004 | 422 | 答案格式错误 | 答案数据格式不正确 |
-| HW005 | 422 | 必答题未完成 | 存在未回答的必答题 |
-
-### 推荐相关错误
-| 错误码 | HTTP状态码 | 错误信息 | 说明 |
-|--------|------------|----------|------|
-| REC001 | 400 | 上下文信息不足 | 推荐所需上下文缺失 |
-| REC002 | 404 | 无可推荐内容 | 没有找到合适的推荐内容 |
-| REC003 | 500 | 推荐引擎错误 | 推荐算法执行失败 |
-
-## SDK示例
-
-### JavaScript/TypeScript SDK
-
-```typescript
-class DiemAPI {
-  private baseURL = 'https://diem.edu/api/v1';
-  private token: string | null = null;
-
-  // 设置认证令牌
-  setToken(token: string) {
-    this.token = token;
-  }
-
-  // 通用请求方法
-  private async request(endpoint: string, options: RequestInit = {}) {
-    const url = `${this.baseURL}${endpoint}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(this.token && { Authorization: `Bearer ${this.token}` }),
-      ...options.headers,
-    };
-
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
-    const data = await response.json();
-    
-    if (!data.success) {
-      throw new Error(data.message || '请求失败');
-    }
-    
-    return data.data;
-  }
-
-  // 用户登录
-  async login(username: string, password: string) {
-    const data = await this.request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-    });
-    
-    this.setToken(data.access_token);
-    return data;
-  }
-
-  // 获取作业列表
-  async getHomeworkList(params: any = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/homework/list?${query}`);
-  }
-
-  // 获取作业详情
-  async getHomeworkDetail(homeworkId: number) {
-    return this.request(`/homework/detail/${homeworkId}`);
-  }
-
-  // 提交作业
-  async submitHomework(homeworkId: number, answers: any) {
-    return this.request('/homework/submit', {
-      method: 'POST',
-      body: JSON.stringify({ homework_id: homeworkId, answers }),
-    });
-  }
-
-  // 获取符号推荐
-  async getSymbolRecommendations(context: string, questionId?: number) {
-    return this.request('/recommend/symbols', {
-      method: 'POST',
-      body: JSON.stringify({ context, question_id: questionId }),
-    });
-  }
-}
-
-// 使用示例
-const api = new DiemAPI();
-
-// 登录
-const loginData = await api.login('student001', 'password123');
-console.log('登录成功', loginData.user);
-
-// 获取作业列表
-const homeworks = await api.getHomeworkList({ status: 'pending' });
-console.log('待完成作业', homeworks);
-
-// 获取符号推荐
-const symbols = await api.getSymbolRecommendations('解方程：2x + 3 = 7');
-console.log('推荐符号', symbols);
-```
-
-### Python SDK
-
+### Python调用示例
 ```python
 import requests
-from typing import Dict, Any, Optional
 
-class DiemAPI:
-    def __init__(self, base_url: str = 'https://diem.edu/api/v1'):
-        self.base_url = base_url
-        self.token: Optional[str] = None
-        self.session = requests.Session()
-    
-    def set_token(self, token: str):
-        """设置认证令牌"""
-        self.token = token
-        self.session.headers.update({'Authorization': f'Bearer {token}'})
-    
-    def _request(self, endpoint: str, method: str = 'GET', **kwargs) -> Dict[str, Any]:
-        """通用请求方法"""
-        url = f"{self.base_url}{endpoint}"
-        response = self.session.request(method, url, **kwargs)
-        
-        data = response.json()
-        if not data.get('success'):
-            raise Exception(data.get('message', '请求失败'))
-        
-        return data.get('data')
-    
-    def login(self, username: str, password: str) -> Dict[str, Any]:
-        """用户登录"""
-        data = self._request('/auth/login', 'POST', json={
-            'username': username,
-            'password': password
-        })
-        
-        self.set_token(data['access_token'])
-        return data
-    
-    def get_homework_list(self, **params) -> Dict[str, Any]:
-        """获取作业列表"""
-        return self._request('/homework/list', params=params)
-    
-    def get_homework_detail(self, homework_id: int) -> Dict[str, Any]:
-        """获取作业详情"""
-        return self._request(f'/homework/detail/{homework_id}')
-    
-    def submit_homework(self, homework_id: int, answers: Dict[str, Any]) -> Dict[str, Any]:
-        """提交作业"""
-        return self._request('/homework/submit', 'POST', json={
-            'homework_id': homework_id,
-            'answers': answers
-        })
-    
-    def get_symbol_recommendations(self, context: str, question_id: Optional[int] = None) -> Dict[str, Any]:
-        """获取符号推荐"""
-        return self._request('/recommend/symbols', 'POST', json={
-            'context': context,
-            'question_id': question_id
-        })
+# 获取所有API信息
+response = requests.get('http://172.104.172.5:5001/api/apis')
+apis = response.json()
+print(f"总API数量: {apis['total_apis']}")
 
-# 使用示例
-api = DiemAPI()
-
-# 登录
-login_data = api.login('student001', 'password123')
-print('登录成功', login_data['user'])
-
-# 获取作业列表
-homeworks = api.get_homework_list(status='pending')
-print('待完成作业', homeworks)
-
-# 获取符号推荐
-symbols = api.get_symbol_recommendations('解方程：2x + 3 = 7')
-print('推荐符号', symbols)
+# 获取特定API详情
+response = requests.get('http://172.104.172.5:5001/api/apis/auth_login')
+api_detail = response.json()
+print(api_detail)
 ```
 
 ## 总结
 
-本API设计文档提供了K-12数学教育智能数字生态系统的完整API接口规范。主要特点包括：
+本文档基于实际运行的API服务自动生成，包含了系统中所有API的详细信息。文档生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-1. **RESTful设计**：标准化的资源导向API设计
-2. **统一响应格式**：一致的JSON响应结构
-3. **完善的认证体系**：JWT Token认证和权限控制
-4. **智能推荐接口**：符号、知识点、练习题推荐
-5. **学习分析功能**：进度跟踪、错误分析、统计报告
-6. **详细错误处理**：标准化错误码和错误信息
-7. **SDK支持**：多语言SDK示例代码
-
-该API设计能够很好地支持前端应用和第三方系统的集成，为K-12数学教育提供强大的数据服务支持。
+该API系统为K-12数学教育智能数字生态系统提供了完整的数据库可视化和API分析功能。
